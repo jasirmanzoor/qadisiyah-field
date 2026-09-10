@@ -1,0 +1,279 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #f2ede4;
+  --surface: #faf8f3;
+  --surface-2: #ebe4d6;
+  --fg: #1c1914;
+  --muted: #6b6458;
+  --faint: #9a9284;
+  --primary: #1f5c4a;
+  --primary-fg: #f4f1ea;
+  --border: color-mix(in oklab, #1c1914 12%, transparent);
+  --border-strong: color-mix(in oklab, #1c1914 22%, transparent);
+  --danger: #9b2c2c;
+  --status-grey: #8a8478;
+  --status-amber: #b45309;
+  --status-green: #1f7a4d;
+  --status-red: #b42318;
+  --status-purple: #6d4c8a;
+  --shadow-border: 0px 0px 0px 1px rgba(28, 25, 20, 0.06), 0px 1px 2px -1px rgba(28, 25, 20, 0.06),
+    0px 2px 4px 0px rgba(28, 25, 20, 0.04);
+  --shadow-lift: 0px 0px 0px 1px rgba(28, 25, 20, 0.08), 0px 8px 24px -8px rgba(28, 25, 20, 0.18);
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --font-sans: "IBM Plex Sans", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --motion-quick: 150ms;
+  --motion-fast: 250ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html.dark {
+  --bg: #12110e;
+  --surface: #1c1b17;
+  --surface-2: #26241e;
+  --fg: #f2ede4;
+  --muted: #b4ab9c;
+  --faint: #7c7468;
+  --primary: #3d9a78;
+  --primary-fg: #071410;
+  --border: color-mix(in oklab, #f2ede4 12%, transparent);
+  --border-strong: color-mix(in oklab, #f2ede4 22%, transparent);
+  --danger: #f97066;
+  --status-grey: #9a9284;
+  --status-amber: #f0a04b;
+  --status-green: #4ade80;
+  --status-red: #f97066;
+  --status-purple: #c4a0e0;
+  --shadow-border: 0 0 0 1px rgba(242, 237, 228, 0.08);
+  --shadow-lift: 0 0 0 1px rgba(242, 237, 228, 0.1), 0 12px 28px -12px rgba(0, 0, 0, 0.55);
+}
+
+@theme inline {
+  --font-sans: var(--font-sans);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-primary: var(--primary);
+  --color-primary-fg: var(--primary-fg);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-danger: var(--danger);
+  --color-status-grey: var(--status-grey);
+  --color-status-amber: var(--status-amber);
+  --color-status-green: var(--status-green);
+  --color-status-red: var(--status-red);
+  --color-status-purple: var(--status-purple);
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-md: var(--radius-md);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--bg);
+    color: var(--fg);
+  }
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    letter-spacing: -0.03em;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  input,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+  }
+  [dir="rtl"] .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes insight-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.insight-swap {
+  animation: insight-in var(--motion-fast) var(--ease-out);
+}
+
+.qads-sheet {
+  animation: sheet-in var(--motion-fast) var(--ease-out);
+}
+
+.qads-chips {
+  scrollbar-width: none;
+}
+.qads-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.qads-pin {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(28, 25, 20, 0.28), 0 1px 4px rgba(28, 25, 20, 0.35);
+}
+.qads-pin-not_visited {
+  background: var(--status-grey);
+}
+.qads-pin-partial {
+  background: var(--status-amber);
+}
+.qads-pin-completed {
+  background: var(--status-green);
+}
+.qads-pin-refused,
+.qads-pin-closed {
+  background: var(--status-red);
+}
+.qads-pin-competitor {
+  background: var(--status-purple);
+}
+.qads-pin-sm {
+  width: 10px;
+  height: 10px;
+}
+.qads-pin-selected {
+  width: 22px;
+  height: 22px;
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+.qads-pin-trained {
+  box-shadow: 0 0 0 1px rgba(28, 25, 20, 0.28), 0 0 0 4px var(--status-green), 0 1px 4px rgba(28, 25, 20, 0.35);
+}
+.qads-heat {
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.qads-cluster {
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(28, 25, 20, 0.28), 0 2px 8px rgba(28, 25, 20, 0.32);
+  background: var(--cluster-fill, var(--primary));
+}
+
+.qads-route-num {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-fg);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(28, 25, 20, 0.35);
+}
+
+.qads-me {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--primary);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 7px color-mix(in oklab, var(--primary) 28%, transparent);
+}
+
+.leaflet-container {
+  background: var(--bg);
+  font-family: var(--font-sans);
+}
+
+.leaflet-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.qads-tip.leaflet-tooltip {
+  background: var(--surface);
+  color: var(--fg);
+  border: none;
+  border-radius: 8px;
+  box-shadow: var(--shadow-border);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  padding: 4px 8px;
+}
+.qads-tip.leaflet-tooltip::before {
+  border-top-color: var(--surface);
+}
+.leaflet-tooltip-top.qads-tip::before {
+  border-top-color: var(--surface);
+}
+
+img {
+  outline: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+  outline-offset: -1px;
+}
