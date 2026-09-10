@@ -20,7 +20,7 @@ _GIS = Path("/workspace/attachments/AL QADISIYAH - SURVEY - Autolink- Al Qadisiy
 XLSX = _MIND if _MIND.exists() else (_LATEST if _LATEST.exists() else _PREV)
 OUT = Path("/workspace/src/lib/census-data.json")
 MARKET = (24.8260, 46.8230)
-CENSUS_VERSION = 13
+CENSUS_VERSION = 14
 # GIS WKT more than this far from the market is the out-of-area branch, not the Qadisiyah pin.
 GIS_OUTLIER_M = 4000
 
@@ -1441,6 +1441,7 @@ def to_census_row(r):
     flags = {
         "sdId": r["sdId"],
         "census": True,
+        "market": "qadisiyah",
         "credibility": r["credibility"],
         "gpsSource": r["gpsSource"],
         "street": r["street"],

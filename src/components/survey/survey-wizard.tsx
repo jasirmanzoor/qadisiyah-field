@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ChipMulti, Choice, FigureBadge, Input, Label, SourceToggle, Textarea } from "@/components/ui/field";
 import { BANK_OPTIONS, BRAND_OPTIONS, FAIL_REASON_OPTIONS } from "@/lib/seed";
 import { COPY } from "@/lib/i18n";
+import { dealerMarket } from "@/lib/markets";
 import { canSubmitSurvey, SURVEY_STEPS } from "@/lib/survey-schema";
 import type { SurveyPayload, VisitStatus } from "@/lib/types";
 import { todayISO, uid } from "@/lib/utils";
@@ -53,14 +54,14 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
 
   useEffect(() => {
     if (!dealer) return;
-    if (!payload.visitDate || !payload.surveyorName) {
-      void patchSurvey(dealershipId, {
-        visitDate: payload.visitDate || todayISO(),
-        surveyorName: payload.surveyorName || user?.displayName || user?.primaryEmail || "",
-        visitStatus: payload.visitStatus || dealer.status,
-      });
-    }
-  }, [dealer, dealershipId, payload.visitDate, payload.surveyorName, payload.visitStatus, patchSurvey, user]);
+    const patch: Partial<SurveyPayload> = {};
+    if (!payload.visitDate) patch.visitDate = todayISO();
+    if (!payload.surveyorName) patch.surveyorName = user?.displayName || user?.primaryEmail || "";
+    if (!payload.visitStatus) patch.visitStatus = dealer.status;
+    if (dealerMarket(dealer) === "shifa" && !payload.vehicleType) patch.vehicleType = "used_only";
+    if (Object.keys(patch).length === 0) return;
+    void patchSurvey(dealershipId, patch);
+  }, [dealer, dealershipId, payload.visitDate, payload.surveyorName, payload.visitStatus, payload.vehicleType, patchSurvey, user]);
 
   if (!dealer) {
     return (
@@ -87,6 +88,7 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
           <p className="truncate text-sm font-semibold">{dealer.nameEn}</p>
           <p className="text-[11px] text-muted">
             {dealer.flags.sdId ? `${dealer.flags.sdId} · ` : ""}
+            {dealerMarket(dealer) === "shifa" ? `${t.usedCarMarket} · ` : ""}
             {step + 1}/{SURVEY_STEPS.length} · {lang === "ar" ? stepMeta.titleAr : stepMeta.titleEn}
           </p>
         </div>
@@ -248,6 +250,7 @@ function VisitStep({ payload, onSave }: { payload: SurveyPayload; onSave: (p: Pa
 }
 
 function BusinessStep({ payload, onSave }: { payload: SurveyPayload; onSave: (p: Partial<SurveyPayload>) => void }) {
+  const t = COPY[usePrefs((s) => s.lang)];
   return (
     <>
       <div className="mb-4 rounded-2xl bg-status-amber/10 p-3">
@@ -281,6 +284,9 @@ function BusinessStep({ payload, onSave }: { payload: SurveyPayload; onSave: (p:
         />
       </FieldBlock>
       <FieldBlock label="Vehicle type">
+        {payload.vehicleType === "used_only" ? (
+          <p className="text-xs text-muted">{t.usedOnlyDefault}</p>
+        ) : null}
         <Choice
           value={payload.vehicleType}
           onChange={(id) => onSave({ vehicleType: id as SurveyPayload["vehicleType"] })}

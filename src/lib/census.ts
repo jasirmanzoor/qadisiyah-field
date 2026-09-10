@@ -1,5 +1,6 @@
 import raw from "./census-data.json";
-import type { DealershipFlags, SurveyPayload, VisitStatus } from "./types";
+import { SHIFA_ROWS } from "./shifa-seed";
+import type { CensusRow } from "./types";
 
 /** August 2026 walking census (D0001–D0309) plus leftover mapping-only pins.
  *
@@ -18,20 +19,12 @@ import type { DealershipFlags, SurveyPayload, VisitStatus } from "./types";
  * Training: Induction Sheet overlay (trained / hold / declined / unavailable / scheduled).
  * GIS identity: D0309 is Saleh Group (induction pin); D0151 is Swapcar closed (no WKT).
  * GIS reopen: D0069 Al Khiyar Al Badil has a live WKT pin (mind-map latlng was blank/closed).
+ *
+ * v14: Al Shifa (الشفا) used-car mapping seed (S0001+) is merged from shifa-seed.ts.
+ *      Qadisiyah rows are tagged market=qadisiyah. Shifa has no invented financials.
  */
-export type CensusRow = {
-  sdId: string;
-  nameEn: string;
-  nameAr: string;
-  lat: number;
-  lng: number;
-  phone: string;
-  note: string;
-  status: VisitStatus;
-  flags: DealershipFlags;
-  survey: SurveyPayload;
-  step: number;
-};
+export type { CensusRow };
+
 
 type CensusFile = {
   version: number;
@@ -56,8 +49,28 @@ type CensusFile = {
 
 const data = raw as CensusFile;
 
-export const CENSUS_VERSION = data.version;
-export const CENSUS_STATS = data.stats;
-export const CENSUS_ROWS: CensusRow[] = data.rows;
-export const EXTRA_PINS: CensusRow[] = data.extra;
-export const ALL_CENSUS: CensusRow[] = [...CENSUS_ROWS, ...EXTRA_PINS];
+/** Roster sync version. Bump to force existing workspaces to insert new pins. */
+export const CENSUS_VERSION = 14;
+
+function tagMarket(row: CensusRow, market: "qadisiyah" | "shifa"): CensusRow {
+  return {
+    ...row,
+    flags: {
+      ...row.flags,
+      market,
+      censusVersion: CENSUS_VERSION,
+    },
+  };
+}
+
+export const CENSUS_ROWS: CensusRow[] = data.rows.map((r) => tagMarket(r, "qadisiyah"));
+export const EXTRA_PINS: CensusRow[] = data.extra.map((r) => tagMarket(r, "qadisiyah"));
+export const SHIFA_PINS: CensusRow[] = SHIFA_ROWS.map((r) => tagMarket(r, "shifa"));
+export const ALL_CENSUS: CensusRow[] = [...CENSUS_ROWS, ...EXTRA_PINS, ...SHIFA_PINS];
+
+export const CENSUS_STATS = {
+  ...data.stats,
+  extraMapping: (data.stats.extraMapping ?? 0) + SHIFA_PINS.length,
+  shifa: SHIFA_PINS.length,
+  qadisiyah: CENSUS_ROWS.length + EXTRA_PINS.length,
+};

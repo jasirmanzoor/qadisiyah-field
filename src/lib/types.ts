@@ -21,6 +21,8 @@ export const PIPELINE_STAGES = [
 ] as const;
 export type PipelineStage = (typeof PIPELINE_STAGES)[number];
 
+export type MarketId = "qadisiyah" | "shifa";
+
 export type DealershipFlags = {
   competitor?: boolean;
   complex?: boolean;
@@ -50,6 +52,7 @@ export type DealershipFlags = {
   trainingStage?: "trained" | "hold" | "declined" | "unavailable" | "scheduled";
   trainingNote?: string;
   failedSession?: string;
+  market?: MarketId;
 };
 
 export type Dealership = {
@@ -64,6 +67,20 @@ export type Dealership = {
   flags: DealershipFlags;
   createdAt: string;
   updatedAt: string;
+};
+
+export type CensusRow = {
+  sdId: string;
+  nameEn: string;
+  nameAr: string;
+  lat: number;
+  lng: number;
+  phone: string;
+  note: string;
+  status: VisitStatus;
+  flags: DealershipFlags;
+  survey: SurveyPayload;
+  step: number;
 };
 
 export type SurveyPayload = {

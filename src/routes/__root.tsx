@@ -37,7 +37,7 @@ export const Route = createRootRoute({
         { name: "theme-color", content: "#1F5C4A" },
         {
           name: "description",
-          content: "Offline-first field survey for Al Qadisiyah independent car dealerships.",
+          content: "Offline-first field survey for Al Qadisiyah and Al Shifa independent car dealerships.",
         },
         ...(ogImage ? [{ property: "og:image", content: ogImage }] : []),
         ...(xBanner ? [{ property: "x:game:image", content: xBanner }] : []),

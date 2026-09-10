@@ -1,13 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Input, StatusBadge } from "@/components/ui/field";
 import { COPY, trainingCopy } from "@/lib/i18n";
-import { haversineM, MARKET_CENTER } from "@/lib/geo";
+import { haversineM, MARKET_CENTERS } from "@/lib/geo";
+import { sliceSnapshot } from "@/lib/markets";
+import { MarketSwitch } from "@/components/market-switch";
 import { PIPELINE_STAGES, type PipelineStage, type TeamInfo } from "@/lib/types";
 import { cn, formatJoinCode, inviteUrl, todayISO, uid } from "@/lib/utils";
 import { pilotScore } from "@/lib/scoring";
 import { useField, surveyFor } from "@/stores/field";
 import { usePrefs } from "@/stores/prefs";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TrainingBadge } from "@/components/ui/field";
 
 const STAGE_LABEL: Record<PipelineStage, string> = {
@@ -19,10 +21,11 @@ const STAGE_LABEL: Record<PipelineStage, string> = {
 };
 
 export function OpsPage() {
-  const { lang } = usePrefs();
+  const { lang, market } = usePrefs();
   const t = COPY[lang];
-  const snapshot = useField((s) => s.snapshot);
-  const gps = useField((s) => s.gps) ?? MARKET_CENTER;
+  const raw = useField((s) => s.snapshot);
+  const snapshot = useMemo(() => sliceSnapshot(raw, market), [raw, market]);
+  const gps = useField((s) => s.gps) ?? MARKET_CENTERS[market];
   const upsertFollowup = useField((s) => s.upsertFollowup);
   const setStage = useField((s) => s.setStage);
   const joinTeam = useField((s) => s.joinTeam);
@@ -33,6 +36,12 @@ export function OpsPage() {
   const [joinInput, setJoinInput] = useState("");
   const [joinError, setJoinError] = useState<string | null>(null);
   const [copied, setCopied] = useState<"code" | "link" | null>(null);
+
+  useEffect(() => {
+    if (!snapshot.dealerships.some((d) => d.id === dealerId)) {
+      setDealerId(snapshot.dealerships[0]?.id ?? "");
+    }
+  }, [snapshot.dealerships, dealerId]);
 
   const ranked = useMemo(
     () =>
@@ -66,6 +75,7 @@ export function OpsPage() {
   return (
     <div className="flex flex-col gap-4 overflow-auto px-4 py-4">
       <h1 className="text-xl font-semibold tracking-tight">{t.ops}</h1>
+      <MarketSwitch />
 
       <TeamCard
         t={t}
@@ -92,7 +102,7 @@ export function OpsPage() {
           const code = snapshot.team?.joinCode;
           if (!code) return;
           const link = inviteUrl(code);
-          const text = `Join my Qadisiyah Field roster:\n${link}\n\nOr sign up and enter team code ${formatJoinCode(code)}.`;
+          const text = `Join my Qadisiyah Field roster (Al Qadisiyah + Al Shifa used-car strip):\n${link}\n\nOr sign up and enter team code ${formatJoinCode(code)}.`;
           window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noreferrer");
         }}
         onJoin={() => {

@@ -73,7 +73,7 @@ function Login() {
   return (
     <main className="grid min-h-dvh place-items-center bg-bg px-5 text-fg">
       <div className="w-full max-w-sm">
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted">Al Qadisiyah · East Riyadh</p>
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted">Al Qadisiyah · Al Shifa · Riyadh</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight">Qadisiyah Field</h1>
         <p className="mt-2 text-sm text-muted">{t.signInBlurb}</p>
         <p className="mt-1 text-sm text-muted" dir="rtl">

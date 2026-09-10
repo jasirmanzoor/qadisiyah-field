@@ -246,7 +246,20 @@ async function refreshCensusPins(sql: Awaited<ReturnType<typeof getSql>>, userId
     `;
   }
 
-  if (!doRefresh) return;
+  if (!doRefresh) {
+    if (inserted > 0) {
+      await sql`
+        insert into notifications (id, user_id, kind, title, body, dealership_id, read)
+        values (
+          ${uid()}, ${userId}, 'info',
+          ${"Al Shifa used-car mapping seed"},
+          ${`${inserted} Al Shifa pins added. Used-car strip in Al Marwah — unwalked, no invented volumes. Switch the market toggle to الشفا / Al Shifa.`},
+          ${null}, false
+        )
+      `;
+    }
+    return;
+  }
   if (inserted === 0 && updated === 0) return;
 
   const surveyed = CENSUS_STATS.gpsSources.survey ?? 0;
@@ -258,7 +271,7 @@ async function refreshCensusPins(sql: Awaited<ReturnType<typeof getSql>>, userId
     values (
       ${uid()}, ${userId}, 'info',
       ${GPS_REFRESH_TITLE},
-      ${`${CENSUS_STATS.census} showrooms synced from the GIS survey layer (v${CENSUS_VERSION}). ${inserted} new pins · ${updated} refreshed. ${surveyed} captured GPS · ${interpolated} still need an on-site tap. Induction: ${trained} trained desks, ${priority} active-priority users.`},
+      ${`${CENSUS_STATS.census} Qadisiyah showrooms + ${CENSUS_STATS.shifa ?? 0} Al Shifa used-car mapping pins (v${CENSUS_VERSION}). ${inserted} new pins · ${updated} refreshed. ${surveyed} captured GPS · ${interpolated} still need an on-site tap. Induction: ${trained} trained desks, ${priority} active-priority users. Al Shifa is unwalked — used-only default, no invented volumes.`},
       ${null}, false
     )
   `;

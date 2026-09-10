@@ -1,6 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { COPY, STATUS_LABEL, trainingCopy } from "@/lib/i18n";
-import { formatDistance, haversineM, MARKET_CENTER, optimizeWalkOrder } from "@/lib/geo";
+import { formatDistance, haversineM, MARKET_CENTERS, optimizeWalkOrder } from "@/lib/geo";
+import { dealersInMarket } from "@/lib/markets";
 import { cn, formatNumber, formatPct, formatSarCompact, mapsLink, telLink, uid, waLink } from "@/lib/utils";
 import type { Dealership, SurveyPayload } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,7 @@ import {
   MapPinned,
   Crosshair,
 } from "lucide-react";
-import { lazy, Suspense, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import type { MapFocus } from "./map-canvas";
 
 const MapCanvas = lazy(() => import("./map-canvas").then((m) => ({ default: m.MapCanvas })));
@@ -32,14 +33,17 @@ type FilterId = "all" | "unvisited" | "partial" | "needsGps" | "noPhone" | "clos
 const NEAR_LIMIT = 12;
 
 export function MapPage() {
-  const { lang } = usePrefs();
+  const { lang, market } = usePrefs();
   const t = COPY[lang];
   const navigate = useNavigate();
   const snapshot = useField((s) => s.snapshot);
   const gps = useField((s) => s.gps);
   const gpsError = useField((s) => s.gpsError);
   const upsertDealer = useField((s) => s.upsertDealer);
-  const origin = gps ?? { ...MARKET_CENTER, accuracy: 9999 };
+  const patchSurvey = useField((s) => s.patchSurvey);
+  const marketCenter = MARKET_CENTERS[market];
+  const origin = gps ?? { lat: marketCenter.lat, lng: marketCenter.lng, accuracy: 9999 };
+  const roster = useMemo(() => dealersInMarket(snapshot.dealerships, market), [snapshot.dealerships, market]);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [satellite, setSatellite] = useState(false);
@@ -55,8 +59,23 @@ export function MapPage() {
   const [cluster, setCluster] = useState<Dealership[] | null>(null);
   const [focus, setFocus] = useState<MapFocus | null>(null);
 
+  useEffect(() => {
+    setSelectedId(null);
+    setCluster(null);
+    setNearMe(false);
+    setRouteIds([]);
+    setFilter("all");
+    setSearch("");
+    setFocus({
+      lat: marketCenter.lat,
+      lng: marketCenter.lng,
+      zoom: marketCenter.zoom,
+      nonce: Date.now(),
+    });
+  }, [market, marketCenter.lat, marketCenter.lng, marketCenter.zoom]);
+
   const counts = useMemo(() => {
-    const all = snapshot.dealerships;
+    const all = roster;
     let unvisited = 0;
     let partial = 0;
     let needsGps = 0;
@@ -80,7 +99,7 @@ export function MapPage() {
       if (d.flags.trainingStage || d.flags.trainingPriority) induction += 1;
     }
     return { all: all.length, unvisited, partial, needsGps, noPhone, closed, authorised, walked, completed, trained, induction };
-  }, [snapshot.dealerships]);
+  }, [roster]);
 
   const brandsById = useMemo(() => {
     const m = new Map<string, string[]>();
@@ -89,7 +108,7 @@ export function MapPage() {
   }, [snapshot.surveys]);
 
   const dealers = useMemo(() => {
-    return snapshot.dealerships.filter((d) => {
+    return roster.filter((d) => {
       if (filter === "unvisited") return d.status === "not_visited";
       if (filter === "partial") return d.status === "partial";
       if (filter === "needsGps") return Boolean(d.flags.needsGps);
@@ -100,7 +119,7 @@ export function MapPage() {
       if (filter === "induction") return Boolean(d.flags.trainingStage || d.flags.trainingPriority);
       return true;
     });
-  }, [snapshot.dealerships, filter]);
+  }, [roster, filter]);
 
   const selected =
     dealers.find((d) => d.id === selectedId) ?? snapshot.dealerships.find((d) => d.id === selectedId) ?? null;
@@ -114,7 +133,7 @@ export function MapPage() {
   const searchHits = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return [];
-    return snapshot.dealerships
+    return roster
       .filter((d) => {
         const brands = (brandsById.get(d.id) ?? []).join(" ");
         return `${d.flags.sdId ?? ""} ${d.nameEn} ${d.nameAr} ${d.listedPhone} ${d.flags.street ?? ""} ${brands} ${d.flags.trainingStage ?? ""} ${d.flags.trainingNote ?? ""}`
@@ -122,7 +141,7 @@ export function MapPage() {
           .includes(q);
       })
       .slice(0, 8);
-  }, [snapshot.dealerships, search, brandsById]);
+  }, [roster, search, brandsById]);
 
   const nearest = useMemo(() => {
     return [...dealers]
@@ -144,8 +163,8 @@ export function MapPage() {
 
   const nearbyDupes = useMemo(() => {
     if (!adding) return [];
-    return snapshot.dealerships.filter((d) => haversineM(origin, d) < 40).slice(0, 3);
-  }, [adding, snapshot.dealerships, origin]);
+    return roster.filter((d) => haversineM(origin, d) < 40).slice(0, 3);
+  }, [adding, roster, origin]);
 
   const sheetOpen = Boolean(selected || nearMe || planning || adding || cluster);
   const walkedPct = counts.all ? Math.round((counts.walked / counts.all) * 100) : 0;
@@ -155,7 +174,7 @@ export function MapPage() {
   }
 
   function pickDealer(id: string) {
-    const d = snapshot.dealerships.find((x) => x.id === id);
+    const d = roster.find((x) => x.id === id) ?? snapshot.dealerships.find((x) => x.id === id);
     setSelectedId(id);
     setNearMe(false);
     setCluster(null);
@@ -199,13 +218,20 @@ export function MapPage() {
       lat: origin.lat,
       lng: origin.lng,
       listedPhone: newPhone.trim(),
-      seedNote: nearbyDupes.length ? `${t.possibleDup} ${nearbyDupes.map((d) => d.nameEn).join(", ")}` : "Added in field",
+      seedNote: nearbyDupes.length
+        ? `${t.possibleDup} ${nearbyDupes.map((d) => d.nameEn).join(", ")}`
+        : market === "shifa"
+          ? "Added in field · Al Shifa used-car lot"
+          : "Added in field",
       status: "not_visited",
-      flags: { gpsSource: "survey" },
+      flags: { gpsSource: "survey", market },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
     await upsertDealer(dealer);
+    if (market === "shifa") {
+      await patchSurvey(dealer.id, { vehicleType: "used_only", visitStatus: "not_visited" }, 0, "not_visited");
+    }
     setAdding(false);
     setNewName("");
     setNewNameAr("");
@@ -244,6 +270,7 @@ export function MapPage() {
         <ClientOnly fallback={<div className="grid h-full place-items-center text-sm text-muted">Loading map…</div>}>
           <Suspense fallback={<div className="grid h-full place-items-center text-sm text-muted">Loading map…</div>}>
             <MapCanvas
+              key={market}
               dealers={mapDealers}
               selectedId={selectedId}
               onSelect={onSelect}
@@ -252,6 +279,7 @@ export function MapPage() {
               me={gps}
               route={routeDealers}
               focus={focus}
+              origin={marketCenter}
             />
           </Suspense>
         </ClientOnly>
@@ -370,6 +398,7 @@ export function MapPage() {
           <div className="flex items-center justify-between gap-3">
             <LegendDots />
             <p className="shrink-0 text-xs font-medium tabular-nums text-muted">
+              {market === "shifa" ? <span className="me-2 font-semibold text-fg">{t.usedCarMarket}</span> : null}
               {filter === "all" ? (
                 <>
                   <span className="text-fg">{counts.walked}</span>
@@ -486,6 +515,7 @@ export function MapPage() {
             <div>
               <p className="text-base font-semibold tracking-tight">{t.addDealer}</p>
               <p className="text-xs text-muted">{t.addDealerHint}</p>
+              {market === "shifa" ? <p className="mt-1 text-xs text-muted">{t.usedOnlyDefault}</p> : null}
             </div>
             <button type="button" onClick={() => setAdding(false)} className="grid size-10 shrink-0 place-items-center">
               <X className="size-4" />
@@ -688,9 +718,15 @@ function DealerSheet({
       </div>
 
       {dealer.flags.needsGps ? <p className="mb-2 text-xs text-status-amber">{t.confirmGps}</p> : null}
+      {dealer.flags.market === "shifa" ? <p className="mb-2 text-xs text-muted">{t.usedCarMarket}</p> : null}
       {dealer.flags.competitor ? <p className="mb-2 text-xs text-status-purple">{t.competitor}</p> : null}
       {dealer.flags.complex ? <p className="mb-2 text-xs text-muted">{t.complex}</p> : null}
       {dealer.flags.authorised ? <p className="mb-2 text-xs text-muted">{t.authorised}</p> : null}
+      {dealer.flags.relatedSdId ? (
+        <p className="mb-2 text-xs text-muted">
+          {t.relatedDesk} {dealer.flags.relatedSdId}
+        </p>
+      ) : null}
       {dealer.flags.trainingNote ? <p className="mb-2 text-xs text-muted">{dealer.flags.trainingNote}</p> : null}
       {dealer.flags.failedSession ? (
         <p className="mb-2 text-xs text-status-red">

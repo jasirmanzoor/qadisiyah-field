@@ -2,6 +2,8 @@ import { BulkSearchPanel } from "@/components/research/bulk-search";
 import { Button } from "@/components/ui/button";
 import { Choice, Input, Textarea } from "@/components/ui/field";
 import { COPY } from "@/lib/i18n";
+import { dealersInMarket } from "@/lib/markets";
+import { MarketSwitch } from "@/components/market-switch";
 import { RESEARCH_SOURCE_OPTIONS } from "@/lib/seed";
 import { surveyCompleteness } from "@/lib/survey-schema";
 import type { ResearchTask } from "@/lib/types";
@@ -13,9 +15,10 @@ import { useMemo, useState } from "react";
 type RosterFilter = "all" | "unvisited" | "missing_cr" | "no_phone" | "no_findings";
 
 export function ResearchPage() {
-  const { lang } = usePrefs();
+  const { lang, market } = usePrefs();
   const t = COPY[lang];
   const snapshot = useField((s) => s.snapshot);
+  const roster = useMemo(() => dealersInMarket(snapshot.dealerships, market), [snapshot.dealerships, market]);
   const upsertTask = useField((s) => s.upsertTask);
   const runAgent = useField((s) => s.runAgent);
   const setFinding = useField((s) => s.setFinding);
@@ -40,7 +43,7 @@ export function ResearchPage() {
 
   const visibleDealers = useMemo(() => {
     const q = dealerQuery.trim().toLowerCase();
-    return snapshot.dealerships.filter((d) => {
+    return roster.filter((d) => {
       if (q) {
         const blob = `${d.nameEn} ${d.nameAr} ${d.listedPhone}`.toLowerCase();
         if (!blob.includes(q)) return false;
@@ -55,7 +58,7 @@ export function ResearchPage() {
       }
       return true;
     });
-  }, [snapshot, dealerQuery, rosterFilter]);
+  }, [snapshot, dealerQuery, rosterFilter, roster]);
 
   const est = selectedDealers.length * selectedTasks.length;
 
@@ -71,7 +74,7 @@ export function ResearchPage() {
   function applyFilter(next: RosterFilter) {
     setRosterFilter(next);
     const q = dealerQuery.trim().toLowerCase();
-    const ids = snapshot.dealerships
+    const ids = roster
       .filter((d) => {
         if (q) {
           const blob = `${d.nameEn} ${d.nameAr} ${d.listedPhone}`.toLowerCase();
@@ -101,6 +104,7 @@ export function ResearchPage() {
   return (
     <div className="flex flex-col gap-4 overflow-auto px-4 py-4">
       <h1 className="text-xl font-semibold tracking-tight">{t.research}</h1>
+      <MarketSwitch />
       <section className="rounded-2xl bg-surface p-4 shadow-[var(--shadow-border)]">
         <p className="text-sm font-medium">{t.dailyCap}</p>
         <p className="mt-1 text-2xl font-semibold tabular-nums">

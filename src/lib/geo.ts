@@ -1,4 +1,9 @@
-export const MARKET_CENTER = { lat: 24.826, lng: 46.823 } as const;
+export const MARKET_CENTERS = {
+  qadisiyah: { lat: 24.826, lng: 46.823, zoom: 15 },
+  shifa: { lat: 24.5496, lng: 46.6813, zoom: 16 },
+} as const;
+
+export const MARKET_CENTER = MARKET_CENTERS.qadisiyah;
 export const DEFAULT_ZOOM = 15;
 
 export function haversineM(

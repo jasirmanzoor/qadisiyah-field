@@ -92,6 +92,44 @@ if (await khiyar.count()) {
 await search.fill("");
 await page.waitForTimeout(300);
 
+const shifaBtn = page.getByRole("tab", { name: /Al Shifa|الشفا/ }).first();
+console.log("HAS_SHIFA_TAB", (await shifaBtn.count()) > 0);
+if (await shifaBtn.count()) {
+  await shifaBtn.click();
+  await page.waitForTimeout(1200);
+  const sbody = await page.locator("body").innerText();
+  console.log("SHIFA MAP", sbody.slice(0, 700));
+  console.log("SHIFA_USED", /Used-car|المستعمل/.test(sbody));
+  await page.screenshot({ path: "/workspace/screenshots/map-shifa.png" });
+  await search.fill("Haraj");
+  await page.waitForTimeout(600);
+  const haraj = page.locator("button").filter({ hasText: /Haraj|حراج/i }).first();
+  console.log("HAS_HARAJ", (await haraj.count()) > 0);
+  if (await haraj.count()) {
+    await haraj.click();
+    await page.waitForTimeout(800);
+    const hsheet = await page.locator("body").innerText();
+    console.log("HARAJ SHEET", hsheet.slice(0, 600));
+    console.log("HARAJ_USED_BADGE", /Used-car market|سوق المستعمل/.test(hsheet));
+    await page.screenshot({ path: "/workspace/screenshots/dealer-haraj.png" });
+  }
+  await search.fill("Nukhba");
+  await page.waitForTimeout(600);
+  const nukhba = page.locator("button").filter({ hasText: /Nukhba|النخبة/i }).first();
+  console.log("HAS_SHIFA_NUKHBA", (await nukhba.count()) > 0);
+  const shifaHud = sbody.match(/(\d+)\s*\/\s*(\d+)/);
+  console.log("SHIFA HUD", shifaHud ? shifaHud[0] : "none");
+}
+
+await search.fill("");
+await page.waitForTimeout(300);
+
+const qadsBtn = page.getByRole("tab", { name: /Al Qadisiyah|القادسية/ }).first();
+if (await qadsBtn.count()) {
+  await qadsBtn.click();
+  await page.waitForTimeout(600);
+}
+
 const dash = page.getByRole("link", { name: /Dashboard|لوحة/i });
 if (await dash.count()) {
   await dash.click();

@@ -1,13 +1,16 @@
 import { create } from "zustand";
 import type { Lang } from "@/lib/i18n";
+import type { MarketId } from "@/lib/types";
 
 type Theme = "light" | "dark";
 
 type Prefs = {
   lang: Lang;
   theme: Theme;
+  market: MarketId;
   setLang: (l: Lang) => void;
   setTheme: (t: Theme) => void;
+  setMarket: (m: MarketId) => void;
   hydrate: () => void;
 };
 
@@ -22,9 +25,15 @@ function applyLang(lang: Lang) {
   document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
 }
 
+function readMarket(): MarketId {
+  const v = localStorage.getItem("qads.market");
+  return v === "shifa" ? "shifa" : "qadisiyah";
+}
+
 export const usePrefs = create<Prefs>((set) => ({
   lang: "en",
   theme: "light",
+  market: "qadisiyah",
   setLang: (lang) => {
     localStorage.setItem("qads.lang", lang);
     applyLang(lang);
@@ -35,11 +44,16 @@ export const usePrefs = create<Prefs>((set) => ({
     applyTheme(theme);
     set({ theme });
   },
+  setMarket: (market) => {
+    localStorage.setItem("qads.market", market);
+    set({ market });
+  },
   hydrate: () => {
     const lang = (localStorage.getItem("qads.lang") as Lang) || "en";
     const theme = (localStorage.getItem("qads.theme") as Theme) || "light";
+    const market = readMarket();
     applyLang(lang);
     applyTheme(theme);
-    set({ lang, theme });
+    set({ lang, theme, market });
   },
 }));

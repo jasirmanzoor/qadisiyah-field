@@ -597,6 +597,26 @@ function buildInsights(f: {
     if (i) out.push(i);
   };
 
+  if (f.walked === 0) {
+    add({
+      id: "survey-starting",
+      category: "coverage",
+      title: tx(L, "Survey starting", "المسح يبدأ"),
+      headline: tx(L, `0 / ${f.universe} walked`, `0 / ${f.universe} تمت زيارته`),
+      body: tx(
+        L,
+        "Mapping seed only. Pin GPS, count stock, ask monthly volume at the desk. No inventory, ASP or FPR is seeded — do not invent figures.",
+        "بذرة خريطة فقط. ثبّت الموقع، عدّ المخزون، اسأل الحجم الشهري في المكتب. لا مخزون ولا سعر ولا اختراق تمويل مزروع — لا تختلق أرقاماً.",
+      ),
+      why: tx(
+        L,
+        "Derivations stay empty until the walk produces observed numbers. The engine will light up as surveys land.",
+        "الاشتقاقات تبقى فارغة حتى ينتج المشي أرقاماً ملاحظة. المحرك يضيء كلما هبطت المسوح.",
+      ),
+      evidence: evidence(0, f.universe, true),
+    });
+  }
+
   add({
     id: "census-size",
     category: "coverage",
@@ -649,8 +669,8 @@ function buildInsights(f: {
     headline: tx(L, `${f.universe - f.needsGps} exact pins`, `${f.universe - f.needsGps} موقع دقيق`),
     body: tx(
       L,
-      `${f.needsGps} still sit on interpolated walking-order coordinates. Open Maps uses the Google pin when a maps link was captured.`,
-      `${f.needsGps} ما زالت على إحداثيات تقديرية من مسار المشي. زر الخرائط يستخدم رابط Google عند توفره.`,
+      `${f.needsGps} still need an on-site GPS tap. Open Maps uses the Google pin when a maps link was captured.`,
+      `${f.needsGps} ما زالت تحتاج تثبيتاً في الموقع. زر الخرائط يستخدم رابط Google عند توفره.`,
     ),
     why: tx(
       L,
@@ -728,7 +748,25 @@ function buildInsights(f: {
   const used = f.typeMix.find((s) => s.key === "used_only");
   const neu = f.typeMix.find((s) => s.key === "new_only");
   const mixT = f.typeMix.find((s) => s.key === "mix");
-  if (neu || used) {
+  if (used && used.share >= 0.5) {
+    add({
+      id: "used-strip",
+      category: "market",
+      title: tx(L, "Used-car market", "سوق المستعمل"),
+      headline: tx(L, `${formatPct(used.share * 100)} used`, `${formatPct(used.share * 100)} مستعمل`),
+      body: tx(
+        L,
+        `${formatNumber(used.n)} lots tagged used-only · ${formatNumber(mixT?.n ?? 0)} mixed · ${formatNumber(neu?.n ?? 0)} new-only contrast. ${f.walked === 0 ? "Default from the mapping seed — change the type on site if the lot is new or mixed." : "Age and mileage rules are the product, not a new-car programme."} No volumes invented.`,
+        `${formatNumber(used.n)} معرض مستعمل فقط · ${formatNumber(mixT?.n ?? 0)} مختلط · ${formatNumber(neu?.n ?? 0)} جديد فقط للمقارنة. ${f.walked === 0 ? "افتراضي من بذرة الخريطة — غيّر النوع في الموقع إذا كان المعرض جديداً أو مختلطاً." : "قواعد العمر والكمية هي المنتج، لا برنامج سيارات جديدة."} لا أحجام مختلقة.`,
+      ),
+      why: tx(
+        L,
+        "A used-car strip needs a used-car credit box (age, mileage, brand). Do not copy a new-car programme from another market.",
+        "شريط المستعمل يحتاج صندوق ائتمان للمستعمل (العمر، الكمية، العلامة). لا تنسخ برنامج الجديد من سوق آخر.",
+      ),
+      evidence: evidence(used.n, of, true),
+    });
+  } else if (neu || used) {
     add({
       id: "new-vs-used",
       category: "market",

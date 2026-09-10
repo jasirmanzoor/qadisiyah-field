@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/field";
 import { matchQueryToDealer, parseLookupLines } from "@/lib/bulk-match";
 import { COPY } from "@/lib/i18n";
-import { MARKET_CENTER } from "@/lib/geo";
+import { MARKET_CENTERS } from "@/lib/geo";
 import { flagsFromNote } from "@/lib/seed";
 import type { BulkSearchHit, Dealership } from "@/lib/types";
 import { cn, uid } from "@/lib/utils";
@@ -11,12 +11,12 @@ import { usePrefs } from "@/stores/prefs";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
-function jitter(name: string): { lat: number; lng: number } {
+function jitter(name: string, center: { lat: number; lng: number }): { lat: number; lng: number } {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
   return {
-    lat: MARKET_CENTER.lat + ((h % 80) / 10000 - 0.004),
-    lng: MARKET_CENTER.lng + (((h >> 8) % 80) / 10000 - 0.004),
+    lat: center.lat + ((h % 80) / 10000 - 0.004),
+    lng: center.lng + (((h >> 8) % 80) / 10000 - 0.004),
   };
 }
 
@@ -40,11 +40,13 @@ export function BulkSearchPanel({
 }: {
   onSelectDealers: (ids: string[]) => void;
 }) {
-  const { lang } = usePrefs();
+  const { lang, market } = usePrefs();
   const t = COPY[lang];
+  const center = MARKET_CENTERS[market];
   const snapshot = useField((s) => s.snapshot);
   const bulkSearch = useField((s) => s.bulkSearch);
   const upsertDealer = useField((s) => s.upsertDealer);
+  const patchSurvey = useField((s) => s.patchSurvey);
 
   const [mode, setMode] = useState<"discover" | "lookup">("lookup");
   const [query, setQuery] = useState("");
@@ -127,7 +129,7 @@ export function BulkSearchPanel({
     const createdByHit = new Map<string, string>();
     for (const hit of pickedNew) {
       const loc =
-        hit.lat != null && hit.lng != null ? { lat: hit.lat, lng: hit.lng } : jitter(hit.nameEn || hit.nameAr);
+        hit.lat != null && hit.lng != null ? { lat: hit.lat, lng: hit.lng } : jitter(hit.nameEn || hit.nameAr, center);
       const note = [hit.note, hit.sourceUrl ? `Source: ${hit.sourceUrl}` : "", hit.lat == null ? "Location approximate — verify in field" : ""]
         .filter(Boolean)
         .join(". ");
@@ -141,11 +143,14 @@ export function BulkSearchPanel({
         listedPhone: hit.phone,
         seedNote: note || "Added from bulk search",
         status,
-        flags,
+        flags: { ...flags, market, gpsSource: flags.gpsSource ?? "mapping_seed" },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
       await upsertDealer(dealer);
+      if (market === "shifa") {
+        await patchSurvey(dealer.id, { vehicleType: "used_only", visitStatus: "not_visited" }, 0, "not_visited");
+      }
       createdByHit.set(hit.id, dealer.id);
     }
     setHits((prev) =>
@@ -204,7 +209,7 @@ export function BulkSearchPanel({
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={t.bulkPlaceholderDiscover}
+          placeholder={market === "shifa" ? t.bulkPlaceholderDiscoverShifa : t.bulkPlaceholderDiscover}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();

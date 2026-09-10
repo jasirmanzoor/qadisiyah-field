@@ -128,6 +128,7 @@ export function MapCanvas({
   route,
   focus = null,
   heat = false,
+  origin = MARKET_CENTER,
 }: {
   dealers: Dealership[];
   selectedId: string | null;
@@ -138,6 +139,7 @@ export function MapCanvas({
   route: Dealership[];
   focus?: MapFocus | null;
   heat?: boolean;
+  origin?: { lat: number; lng: number; zoom?: number };
 }) {
   const [zoom, setZoom] = useState(15);
   const onZoom = useCallback((z: number) => setZoom(Math.round(z)), []);
@@ -162,8 +164,8 @@ export function MapCanvas({
 
   return (
     <MapContainer
-      center={[MARKET_CENTER.lat, MARKET_CENTER.lng]}
-      zoom={15}
+      center={[origin.lat, origin.lng]}
+      zoom={origin.zoom ?? 15}
       className="z-0 h-full w-full"
       style={{ minHeight: 180, height: "100%" }}
       zoomControl={false}

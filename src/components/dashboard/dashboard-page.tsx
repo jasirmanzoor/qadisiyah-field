@@ -11,6 +11,9 @@ import {
   type InsightCategory,
 } from "@/lib/engine";
 import { COPY } from "@/lib/i18n";
+import { MARKET_CENTERS } from "@/lib/geo";
+import { MARKET_META, sliceSnapshot } from "@/lib/markets";
+import { MarketSwitch } from "@/components/market-switch";
 import { pilotScore } from "@/lib/scoring";
 import { formatNumber, formatPct, formatSar, formatSarCompact } from "@/lib/utils";
 import { useField, surveyFor } from "@/stores/field";
@@ -32,10 +35,12 @@ const CATS: { id: InsightCategory | "all"; en: string; ar: string }[] = [
 ];
 
 export function DashboardPage() {
-  const { lang } = usePrefs();
+  const { lang, market } = usePrefs();
   const t = COPY[lang];
-  const snapshot = useField((s) => s.snapshot);
+  const raw = useField((s) => s.snapshot);
+  const snapshot = useMemo(() => sliceSnapshot(raw, market), [raw, market]);
   const gps = useField((s) => s.gps);
+  const marketCenter = MARKET_CENTERS[market];
   const [observedOnly, setObservedOnly] = useState(false);
   const [heat, setHeat] = useState(true);
   const [capture, setCapture] = useState(DEFAULT_CAPTURE);
@@ -81,11 +86,11 @@ export function DashboardPage() {
 
   function exportCsv() {
     const csv = buildCsv(snapshot.dealerships, snapshot.surveys, snapshot.photos);
-    downloadBlob("qadisiyah-field.csv", "text/csv;charset=utf-8", csv);
+    downloadBlob(`qadisiyah-field-${market}.csv`, "text/csv;charset=utf-8", csv);
   }
   function exportXls() {
     const xml = buildExcelXml(snapshot.dealerships, snapshot.surveys, snapshot.photos);
-    downloadBlob("qadisiyah-field.xls", "application/vnd.ms-excel", xml);
+    downloadBlob(`qadisiyah-field-${market}.xls`, "application/vnd.ms-excel", xml);
   }
 
   const quality = current.evidence.quality;
@@ -103,7 +108,7 @@ export function DashboardPage() {
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-xl font-semibold tracking-tight">{t.dashboard}</h1>
-          <p className="text-xs text-muted">{t.engineSub}</p>
+          <p className="text-xs text-muted">{market === "shifa" ? t.engineSubShifa : t.engineSub}</p>
         </div>
         <button
           type="button"
@@ -113,6 +118,47 @@ export function DashboardPage() {
           {observedOnly ? t.observedOnly : t.disclosedFigures}
         </button>
       </div>
+
+      <MarketSwitch />
+
+      {market === "shifa" ? (
+        <section className="rounded-2xl bg-surface p-4 shadow-[var(--shadow-border)]">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted">{t.shifaBriefTitle}</p>
+          <p className="mt-1 text-base font-semibold tracking-tight">
+            {lang === "ar" ? MARKET_META.shifa.labelAr : MARKET_META.shifa.labelEn}
+            <span className="ms-2 text-xs font-medium text-muted">{t.usedCarMarket}</span>
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-fg">{t.shifaBrief}</p>
+          <p className="mt-2 text-xs text-muted">{t.shifaCorridors}</p>
+          <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
+            <div className="rounded-xl bg-surface-2 px-3 py-2">
+              <dt className="text-muted">{t.namedLots}</dt>
+              <dd className="mt-0.5 text-base font-semibold tabular-nums">{snapshot.dealerships.length}</dd>
+            </div>
+            <div className="rounded-xl bg-surface-2 px-3 py-2">
+              <dt className="text-muted">{t.publicGps}</dt>
+              <dd className="mt-0.5 text-base font-semibold tabular-nums">
+                {snapshot.dealerships.filter((d) => !d.flags.needsGps).length}
+              </dd>
+            </div>
+            <div className="rounded-xl bg-surface-2 px-3 py-2">
+              <dt className="text-muted">{t.usedOnlyLots}</dt>
+              <dd className="mt-0.5 text-base font-semibold tabular-nums">
+                {snapshot.surveys.filter((s) => s.payload.vehicleType === "used_only").length}
+              </dd>
+            </div>
+            <div className="rounded-xl bg-surface-2 px-3 py-2">
+              <dt className="text-muted">{t.relatedDesk}</dt>
+              <dd className="mt-0.5 text-base font-semibold tabular-nums">
+                {snapshot.dealerships.filter((d) => d.flags.relatedSdId).length}
+              </dd>
+            </div>
+          </dl>
+          <p className="mt-2 text-xs tabular-nums text-muted">
+            {t.mappingSeed} · {t.surveyStarting}
+          </p>
+        </section>
+      ) : null}
 
       <section className="rounded-[28px] bg-surface p-4 shadow-[var(--shadow-border)]">
         <div className="mb-3 flex flex-nowrap gap-1 overflow-x-auto pb-1">
@@ -153,6 +199,7 @@ export function DashboardPage() {
         </Button>
       </section>
 
+      {engine.sampleN > 0 ? (
       <section className="grid grid-cols-2 gap-2">
         <HeroStat label={t.deskTam} value={formatSarCompact(engine.impliedWalkinGapGmv)} hint={t.perMonth} />
         <HeroStat label={t.financeGap} value={formatSarCompact(engine.impliedGapGmv)} hint={t.perMonth} />
@@ -163,7 +210,13 @@ export function DashboardPage() {
           hint={`${engine.sampleN} ${t.lotsDisclosed}`}
         />
       </section>
+      ) : (
+      <section className="rounded-2xl bg-surface p-4 shadow-[var(--shadow-border)]">
+        <p className="text-sm leading-relaxed text-muted">{t.noVolumesYet}</p>
+      </section>
+      )}
 
+      {engine.sampleN > 0 ? (
       <section className="rounded-2xl bg-surface p-4 shadow-[var(--shadow-border)]">
         <p className="text-sm font-medium">{t.planningSliders}</p>
         <p className="mt-1 text-xs text-muted">{t.planningHint}</p>
@@ -204,6 +257,7 @@ export function DashboardPage() {
           <StatCard label={t.sampleFpr} value={formatPct(engine.sampleFpr != null ? engine.sampleFpr * 100 : null)} />
         </div>
       </section>
+      ) : null}
 
       <section className="rounded-2xl bg-surface p-4 shadow-[var(--shadow-border)]">
         <p className="text-xs font-medium uppercase tracking-wide text-muted">{t.walked}</p>
@@ -239,6 +293,7 @@ export function DashboardPage() {
           <ClientOnly fallback={<div className="grid h-full place-items-center text-xs text-muted">Map</div>}>
             <Suspense fallback={null}>
               <MapCanvas
+                key={market}
                 dealers={snapshot.dealerships}
                 selectedId={null}
                 onSelect={() => undefined}
@@ -246,6 +301,8 @@ export function DashboardPage() {
                 me={gps}
                 route={[]}
                 heat={heat}
+                origin={marketCenter}
+                focus={{ lat: marketCenter.lat, lng: marketCenter.lng, zoom: marketCenter.zoom, nonce: market === "shifa" ? 2 : 1 }}
               />
             </Suspense>
           </ClientOnly>
