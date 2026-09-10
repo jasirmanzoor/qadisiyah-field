@@ -9,7 +9,7 @@ import { Input, StatusBadge, FigureBadge, TrainingBadge } from "@/components/ui/
 import { ClientOnly } from "@/components/client-only";
 import { useField, surveyFor } from "@/stores/field";
 import { usePrefs } from "@/stores/prefs";
-import { SHIFA_PUBLIC_SNIPPETS } from "@/lib/shifa-seed";
+import { SHIFA_CORRIDOR_ORDER, SHIFA_PUBLIC_SNIPPETS, shifaCorridor } from "@/lib/shifa-seed";
 import {
   MapPinPlus,
   LocateFixed,
@@ -24,6 +24,9 @@ import {
   MapPinned,
   Crosshair,
   List as ListIcon,
+  Copy,
+  Check,
+  ChevronRight,
 } from "lucide-react";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { MapFocus } from "./map-canvas";
@@ -188,6 +191,33 @@ export function MapPage() {
     return [...pool].sort((a, b) => haversineM(origin, a) - haversineM(origin, b));
   }, [dealers, search, brandsById, origin]);
 
+  const listGroups = useMemo(() => {
+    if (market !== "shifa") return null;
+    const buckets = new Map<string, Dealership[]>();
+    for (const d of listRows) {
+      const key = shifaCorridor(d.flags.street ?? "");
+      const arr = buckets.get(key) ?? [];
+      arr.push(d);
+      buckets.set(key, arr);
+    }
+    const keys = [...buckets.keys()].sort((a, b) => {
+      const order = SHIFA_CORRIDOR_ORDER as readonly string[];
+      const ia = order.indexOf(a);
+      const ib = order.indexOf(b);
+      if (ia === -1 && ib === -1) return a.localeCompare(b);
+      if (ia === -1) return 1;
+      if (ib === -1) return -1;
+      return ia - ib;
+    });
+    return keys.map((key) => ({ key, items: buckets.get(key) ?? [] }));
+  }, [market, listRows]);
+
+  const nextDesk = useMemo(() => {
+    const pool = dealers.filter((d) => d.status === "not_visited");
+    if (!pool.length) return null;
+    return pool.reduce((best, d) => (haversineM(origin, d) < haversineM(origin, best) ? d : best));
+  }, [dealers, origin]);
+
   const routeDealers = useMemo(() => {
     const picked = dealers.filter((d) => routeIds.includes(d.id));
     return optimizeWalkOrder(origin, picked);
@@ -301,6 +331,16 @@ export function MapPage() {
     flyTo(gps);
   }
 
+  async function markClosed(id: string) {
+    await patchSurvey(id, { visitStatus: "closed" }, 0, "closed");
+    const rest = dealers.filter((d) => d.id !== id && d.status === "not_visited");
+    const nxt = rest.length
+      ? rest.reduce((best, d) => (haversineM(origin, d) < haversineM(origin, best) ? d : best))
+      : null;
+    if (nxt) pickDealer(nxt.id);
+    else setSelectedId(null);
+  }
+
   const filters: { id: FilterId; label: string; count: number }[] = [
     { id: "all", label: t.filterAll, count: counts.all },
     { id: "dual", label: t.bothMarkets, count: counts.dual },
@@ -312,7 +352,11 @@ export function MapPage() {
     { id: "authorised", label: t.authFilter, count: counts.authorised },
     { id: "trained", label: t.trainedFilter, count: counts.trained },
     { id: "induction", label: t.inductionFilter, count: counts.induction },
-  ];
+  ].filter((f): f is { id: FilterId; label: string; count: number } => {
+    if (f.id === "all" || f.id === "dual") return true;
+    if (market === "shifa" && f.count === 0) return false;
+    return true;
+  });
 
   return (
     <div className="relative min-h-0 flex-1">
@@ -331,7 +375,7 @@ export function MapPage() {
               focus={focus}
               origin={marketCenter}
               dualIds={dualIds}
-              showDualLabels={market === "shifa"}
+              showDualLabels={market === "shifa" && filter === "dual"}
             />
           </Suspense>
         </ClientOnly>
@@ -417,6 +461,29 @@ export function MapPage() {
               <div className={cn("min-h-0 flex-1 overflow-auto px-1 pb-1", selected && "pb-56")}>
                 {listRows.length === 0 ? (
                   <p className="px-3 py-6 text-sm text-muted">{t.noShowroomMatch}</p>
+                ) : listGroups ? (
+                  listGroups.map((g) => (
+                    <div key={g.key}>
+                      <p className="sticky top-0 z-10 bg-surface px-3 py-1.5 text-xs font-semibold text-muted">
+                        {g.key}
+                        <span className="ms-1.5 tabular-nums opacity-80">{g.items.length}</span>
+                      </p>
+                      {g.items.map((d) => (
+                        <DealerRow
+                          key={d.id}
+                          dealer={d}
+                          lang={lang}
+                          dual={dualIds.has(d.id)}
+                          selected={d.id === selectedId}
+                          meta={formatDistance(haversineM(origin, d))}
+                          subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, STATUS_LABEL[lang][d.status]]
+                            .filter(Boolean)
+                            .join(" · ")}
+                          onClick={() => pickDealer(d.id)}
+                        />
+                      ))}
+                    </div>
+                  ))
                 ) : (
                   listRows.map((d) => (
                     <DealerRow
@@ -511,6 +578,20 @@ export function MapPage() {
               style={{ width: `${filter === "all" ? walkedPct : dealers.length && counts.all ? Math.round((dealers.length / counts.all) * 100) : 0}%` }}
             />
           </div>
+          {nextDesk ? (
+            <button
+              type="button"
+              onClick={() => pickDealer(nextDesk.id)}
+              className="mt-2 flex min-h-11 w-full items-center gap-2 rounded-xl bg-surface-2 px-2 text-start"
+            >
+              <span className="text-xs font-semibold text-primary">{t.nextDesk}</span>
+              <span className="min-w-0 flex-1 truncate text-sm font-medium text-fg">
+                {lang === "ar" && nextDesk.nameAr ? nextDesk.nameAr : nextDesk.nameEn}
+              </span>
+              <span className="shrink-0 text-xs tabular-nums text-muted">{formatDistance(haversineM(origin, nextDesk))}</span>
+              <ChevronRight className="size-4 shrink-0 text-muted" />
+            </button>
+          ) : null}
         </div>
       ) : null}
 
@@ -608,6 +689,7 @@ export function MapPage() {
           onClose={() => setSelectedId(null)}
           onSurvey={(id) => void navigate({ to: "/survey/$id", params: { id } })}
           onPinGps={() => void pinSelectedToGps()}
+          onMarkClosed={() => void markClosed(selected.id)}
           onOpenPartner={(p) => {
             pendingJump.current = p.id;
             setMarket(dealerMarket(p));
@@ -777,6 +859,7 @@ function DealerSheet({
   onClose,
   onSurvey,
   onPinGps,
+  onMarkClosed,
   onOpenPartner,
 }: {
   dealer: Dealership;
@@ -789,10 +872,12 @@ function DealerSheet({
   onClose: () => void;
   onSurvey: (id: string) => void;
   onPinGps: () => void;
+  onMarkClosed: () => void;
   onOpenPartner: (p: Dealership) => void;
 }) {
   const { lang } = usePrefs();
   const t = COPY[lang];
+  const [copied, setCopied] = useState(false);
   const call = telLink(dealer.listedPhone);
   const wa = waLink(dealer.listedPhone);
   const maps = dealer.flags.mapsUrl || mapsLink(dealer.lat, dealer.lng, dealer.nameEn);
@@ -819,6 +904,16 @@ function DealerSheet({
     survey?.showroomSizeSqm != null ? { k: t.sizeSqm, v: `${formatNumber(survey.showroomSizeSqm)} m²` } : null,
     survey?.fpr != null ? { k: "FPR", v: formatPct(survey.fpr * 100) } : null,
   ].filter(Boolean) as { k: string; v: string }[];
+
+  async function copyNotes() {
+    try {
+      await navigator.clipboard.writeText(roughBody);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* clipboard blocked */
+    }
+  }
 
   return (
     <div className="qads-sheet absolute inset-x-3 bottom-3 z-30 max-h-[52vh] overflow-auto rounded-2xl bg-surface p-4 shadow-[var(--shadow-lift)]">
@@ -929,7 +1024,17 @@ function DealerSheet({
 
       {roughBody ? (
         <div className="mb-3 rounded-xl bg-surface-2 px-3 py-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted">{t.roughNotes}</p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">{t.roughNotes}</p>
+            <button
+              type="button"
+              onClick={() => void copyNotes()}
+              className="flex min-h-10 items-center gap-1 px-1 text-xs font-semibold text-primary"
+            >
+              {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+              {copied ? t.copied : t.copyNotes}
+            </button>
+          </div>
           <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-fg">{roughBody}</p>
           {dealer.flags.market === "shifa" && dealer.status === "not_visited" && !/this Al Shifa lot is unwalked/i.test(roughBody) ? (
             <p className="mt-1 text-xs text-muted">{t.thisLotUnwalked}</p>
@@ -1003,6 +1108,15 @@ function DealerSheet({
       >
         {hasSurvey ? t.continueSurvey : t.startSurvey}
       </Button>
+      {dealer.status === "not_visited" ? (
+        <button
+          type="button"
+          onClick={onMarkClosed}
+          className="mt-1 flex min-h-10 w-full items-center justify-center text-sm font-medium text-muted"
+        >
+          {t.markClosed}
+        </button>
+      ) : null}
     </div>
   );
 }

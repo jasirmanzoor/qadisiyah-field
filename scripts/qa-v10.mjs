@@ -101,8 +101,8 @@ if (await shifaBtn.count()) {
   console.log("SHIFA MAP", sbody.slice(0, 700));
   console.log("SHIFA_USED", /Used-car|المستعمل/.test(sbody));
   console.log("HAS_BOTH_CHIP", /Both markets|في السوقين/.test(sbody));
-  console.log("HAS_SALEH_LABEL", /Saleh Group/.test(sbody));
-  console.log("HAS_SARI_LABEL", /Al Sari/.test(sbody));
+  console.log("SHIFA_ALL_DUAL_TIPS", await page.locator(".qads-tip-dual").count());
+  console.log("HAS_NEXT_DESK", /Next desk|المعرض التالي/.test(sbody));
   await page.screenshot({ path: "/workspace/screenshots/map-shifa.png" });
   const bothChip = page.locator("button").filter({ hasText: /Both markets|في السوقين/ }).first();
   if (await bothChip.count()) {
@@ -110,6 +110,7 @@ if (await shifaBtn.count()) {
     await page.waitForTimeout(800);
     const bothBody = await page.locator("body").innerText();
     console.log("BOTH FILTER", bothBody.match(/Showing\s+\d+|المعروض\s+\d+/)?.[0] ?? "none");
+    console.log("SHIFA_BOTH_DUAL_TIPS", await page.locator(".qads-tip-dual").count());
     console.log("BOTH_SALEH", /Saleh Group/.test(bothBody));
     console.log("BOTH_NUKHBA", /Nukhba|النخبة/.test(bothBody));
     await page.screenshot({ path: "/workspace/screenshots/map-shifa-dual.png" });
@@ -126,6 +127,8 @@ if (await shifaBtn.count()) {
     console.log("HARAJ_USED_BADGE", /Used-car market|سوق المستعمل/.test(hsheet));
     console.log("HARAJ_ROUGH", /rough notes|ملاحظات أولية/i.test(hsheet));
     console.log("HARAJ_LOT_PASTE", /Inventory:\s*[—–-]/.test(hsheet) && /Showroom size:\s*[—–-]/.test(hsheet));
+    console.log("HARAJ_COPY", /Copy|نسخ/.test(hsheet));
+    console.log("HARAJ_CLOSED_CTA", /Lot closed|المعرض مغلق/.test(hsheet));
     await page.screenshot({ path: "/workspace/screenshots/dealer-haraj.png" });
   }
   await search.fill("");
@@ -147,6 +150,7 @@ if (await shifaBtn.count()) {
     console.log("HAS_LIST_COL", (await listCol.count()) > 0);
     console.log("LIST_HAS_HARAJ", /Haraj Al Shifa/.test(listBody));
     console.log("LIST_HAS_SALEH", /Saleh Group/.test(listBody));
+    console.log("LIST_HAS_CORRIDOR", /Ahmad Al Basri/.test(listBody));
     await page.screenshot({ path: "/workspace/screenshots/map-shifa-list.png" });
     const salehRow = listCol.locator("button").filter({ hasText: /Saleh Group/i }).first();
     if (await salehRow.count()) {

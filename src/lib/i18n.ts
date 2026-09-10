@@ -236,6 +236,9 @@ const en = {
   roughNotes: "Rough notes",
   relatedWalked: "Related Qadisiyah desk (walked — do not copy onto this lot)",
   thisLotUnwalked: "This Al Shifa lot is unwalked. Confirm on site.",
+  nextDesk: "Next desk",
+  copyNotes: "Copy",
+  markClosed: "Lot closed",
 } as const;
 
 const ar: Record<keyof typeof en, string> = {
@@ -474,6 +477,9 @@ const ar: Record<keyof typeof en, string> = {
   roughNotes: "ملاحظات أولية",
   relatedWalked: "مكتب القادسية المرتبط (مسح ميداني — لا تنسخ الأرقام على هذا المعرض)",
   thisLotUnwalked: "معرض الشفا هذا لم يُزر. أكّده في الموقع.",
+  nextDesk: "المعرض التالي",
+  copyNotes: "نسخ",
+  markClosed: "المعرض مغلق",
 };
 
 export const COPY: Record<Lang, Record<keyof typeof en, string>> = { en, ar };

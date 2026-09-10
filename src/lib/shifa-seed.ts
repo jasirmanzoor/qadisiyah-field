@@ -662,6 +662,26 @@ const SEED: SeedIn[] = [
 export const SHIFA_ROWS: CensusRow[] = SEED.map(row);
 export const SHIFA_COUNT = SHIFA_ROWS.length;
 
+export const SHIFA_CORRIDOR_ORDER = [
+  "Ahmad Al Basri",
+  "Ibn Sayyidah",
+  "Al Khalil Ibn Ahmad",
+  "Al Imam Muslim",
+  "Masoud Al Umawi",
+  "Al Shifa strip",
+] as const;
+
+export function shifaCorridor(street: string): string {
+  const s = street.toLowerCase();
+  if (s.includes("ahmad al basri") || s.includes("basri")) return "Ahmad Al Basri";
+  if (s.includes("ibn sayyidah") || s.includes("sayyidah")) return "Ibn Sayyidah";
+  if (s.includes("khalil")) return "Al Khalil Ibn Ahmad";
+  if (s.includes("imam muslim")) return "Al Imam Muslim";
+  if (s.includes("masoud") || s.includes("umaoui") || s.includes("umawi")) return "Masoud Al Umawi";
+  if (!s.trim() || s.includes("al shifa strip") || s === "al shifa, riyadh" || s === "al shifa") return "Al Shifa strip";
+  return street;
+}
+
 /** Public directory snippets for display-only rough notes. Never copy into survey fields. */
 export const SHIFA_PUBLIC_SNIPPETS: Record<string, string> = {
   S0053:
