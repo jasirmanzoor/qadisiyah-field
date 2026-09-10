@@ -6,7 +6,7 @@ import type { CensusRow, DealershipFlags, SurveyPayload, VisitStatus } from "./t
  * Al Khalil Ibn Ahmad. Public directories claim 60+ lots; this file only
  * names lots we can source. No invented inventory, ASP, FPR, or monthly volume.
  * GPS: five public pins; everything else is corridor-placed and needsGps.
- * S0068–S0070: 10 Sep 2026 visual census from facade/floor photos (estimated).
+ * S0068–S0071: 10 Sep 2026 visual census from facade/floor photos (estimated).
  */
 type LatLng = { lat: number; lng: number };
 
@@ -729,6 +729,23 @@ const SEED: SeedIn[] = [
       inventoryAgePctOver5: 30,
       showroomSizeSqm: 650,
       mainBrands: ["Mercedes", "Dodge", "Lexus", "Chevrolet", "GMC", "Jeep", "Kia"],
+    },
+  },
+  {
+    sdId: "S0071",
+    nameEn: "Muntaha Al Takamul Cars",
+    nameAr: "معرض منتهى التكامل",
+    pos: around(CLUSTER, 130, 15),
+    street: "Ahmad Al Basri",
+    note: "Visual count 10 Sep 2026 from facade + two floor columns, not VIN. GPS still needs a tap. Deep hangar — Ford Explorer row on the left, sedans/luxury on the right. ASP band ~80–160k SAR typical unit, G-Class the upper tail — not filed.",
+    walked: {
+      visitDate: "2026-09-10",
+      inventoryUnits: 34,
+      inventoryInside: 34,
+      inventoryOutside: 0,
+      inventoryAgePctOver5: 30,
+      showroomSizeSqm: 900,
+      mainBrands: ["Ford", "Lexus", "Honda", "Genesis", "Mercedes", "Toyota"],
     },
   },
 ];

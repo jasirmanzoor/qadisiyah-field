@@ -22,7 +22,7 @@ import type { CensusRow } from "./types";
  *
  * v14: Al Shifa (الشفا) used-car mapping seed (S0001+) is merged from shifa-seed.ts.
  *      Qadisiyah rows are tagged market=qadisiyah. Shifa has no invented financials.
- *      S0068–S0070 are 10 Sep 2026 visual walk (estimated floor counts, not VIN).
+ *      S0068–S0071 are 10 Sep 2026 visual walk (estimated floor counts, not VIN).
  *      Public listing counts stay in notes only (Ramz 59 on YallaMotor).
  */
 export type { CensusRow };

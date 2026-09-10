@@ -225,6 +225,18 @@ if (await shifaBtn.count()) {
     console.log("THAQIB_MERCEDES", /Mercedes/.test(tsheet));
     await page.screenshot({ path: "/workspace/screenshots/dealer-najm-thaqib.png" });
   }
+  await search.fill("Takamul");
+  await page.waitForTimeout(500);
+  const takamul = page.locator("button").filter({ hasText: /Takamul|التكامل/i }).first();
+  console.log("HAS_TAKAMUL_HIT", (await takamul.count()) > 0);
+  if (await takamul.count()) {
+    await takamul.click({ force: true });
+    await page.waitForTimeout(600);
+    const ksheet = await page.locator(".qads-sheet").innerText().catch(() => "");
+    console.log("TAKAMUL_INV", /Inventory:\s*34/.test(ksheet));
+    console.log("TAKAMUL_FORD", /Ford/.test(ksheet));
+    await page.screenshot({ path: "/workspace/screenshots/dealer-takamul.png" });
+  }
   await search.fill("");
   const closeSheet = page.locator(".qads-sheet button").first();
   if (await closeSheet.count()) await closeSheet.click({ force: true }).catch(() => {});
