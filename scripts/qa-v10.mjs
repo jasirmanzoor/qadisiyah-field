@@ -250,6 +250,18 @@ if (await shifaBtn.count()) {
     console.log("FOURCARS_MERCEDES", /Mercedes/.test(fsheet));
     await page.screenshot({ path: "/workspace/screenshots/dealer-4cars.png" });
   }
+  await search.fill("Jaidi");
+  await page.waitForTimeout(500);
+  const jaidi = page.locator("button").filter({ hasText: /Jaidi|الجعيدي/i }).first();
+  console.log("HAS_JAIDI_HIT", (await jaidi.count()) > 0);
+  if (await jaidi.count()) {
+    await jaidi.click({ force: true });
+    await page.waitForTimeout(600);
+    const jsheet = await page.locator(".qads-sheet").innerText().catch(() => "");
+    console.log("JAIDI_INV", /Inventory:\s*19/.test(jsheet));
+    console.log("JAIDI_GENESIS", /Genesis/.test(jsheet));
+    await page.screenshot({ path: "/workspace/screenshots/dealer-jaidi.png" });
+  }
   await search.fill("");
   const closeSheet = page.locator(".qads-sheet button").first();
   if (await closeSheet.count()) await closeSheet.click({ force: true }).catch(() => {});

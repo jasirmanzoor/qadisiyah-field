@@ -6,7 +6,7 @@ import type { CensusRow, DealershipFlags, SurveyPayload, VisitStatus } from "./t
  * Al Khalil Ibn Ahmad. Public directories claim 60+ lots; this file only
  * names lots we can source. No invented inventory, ASP, FPR, or monthly volume.
  * GPS: five public pins; everything else is corridor-placed and needsGps.
- * S0068–S0072: 10 Sep 2026 visual census from facade/floor photos (estimated).
+ * S0068–S0073: 10 Sep 2026 visual census from facade/floor photos (estimated).
  */
 type LatLng = { lat: number; lng: number };
 
@@ -763,6 +763,23 @@ const SEED: SeedIn[] = [
       inventoryAgePctOver5: 25,
       showroomSizeSqm: 950,
       mainBrands: ["Mercedes", "Audi", "Lexus", "Jeep", "Toyota", "BMW"],
+    },
+  },
+  {
+    sdId: "S0073",
+    nameEn: "Al Jaidi Cars",
+    nameAr: "الجعيدي للتجارة",
+    pos: around(CLUSTER, 190, 15),
+    street: "Ahmad Al Basri",
+    note: "Visual count 10 Sep 2026, cars visible in frame only — not VIN. GPS still needs a tap. Shorter hangar, Vision 2030 back wall. Bank logos on the right (SNB, Alinma, Emirates NBD, SAB). ASP band ~90–160k SAR typical unit — not filed.",
+    walked: {
+      visitDate: "2026-09-10",
+      inventoryUnits: 19,
+      inventoryInside: 16,
+      inventoryOutside: 3,
+      inventoryAgePctOver5: 20,
+      showroomSizeSqm: 450,
+      mainBrands: ["Mercedes", "Genesis", "BMW", "Land Rover", "Jeep", "Ford"],
     },
   },
 ];
