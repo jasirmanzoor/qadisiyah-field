@@ -253,7 +253,7 @@ async function refreshCensusPins(sql: Awaited<ReturnType<typeof getSql>>, userId
         values (
           ${uid()}, ${userId}, 'info',
           ${"Al Shifa used-car mapping seed"},
-          ${`${inserted} Al Shifa pins added. Used-car strip in Al Marwah — unwalked, no invented volumes. Switch the market toggle to الشفا / Al Shifa.`},
+          ${`${inserted} Al Shifa pins added. Used-car strip in Al Marwah — walk the lots, no invented volumes. Switch the market toggle to الشفا / Al Shifa.`},
           ${null}, false
         )
       `;

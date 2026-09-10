@@ -4,8 +4,9 @@ import type { CensusRow, DealershipFlags, SurveyPayload, VisitStatus } from "./t
  *
  * South Riyadh, Al Marwah 14721. Corridors: Ahmad Al Basri, Ibn Sayyidah,
  * Al Khalil Ibn Ahmad. Public directories claim 60+ lots; this file only
- * names lots we can source. No inventory, ASP, FPR, or monthly volume.
+ * names lots we can source. No invented inventory, ASP, FPR, or monthly volume.
  * GPS: five public pins; everything else is corridor-placed and needsGps.
+ * S0068–S0070: 10 Sep 2026 visual census from facade/floor photos (estimated).
  */
 type LatLng = { lat: number; lng: number };
 
@@ -21,6 +22,16 @@ function around(base: LatLng, eastM: number, northM: number): LatLng {
   return { lat: +(base.lat + northM / latM).toFixed(7), lng: +(base.lng + eastM / lngM).toFixed(7) };
 }
 
+type WalkedVisual = {
+  visitDate: string;
+  inventoryUnits: number;
+  inventoryInside: number;
+  inventoryOutside: number;
+  inventoryAgePctOver5: number;
+  showroomSizeSqm: number;
+  mainBrands: string[];
+};
+
 type SeedIn = {
   sdId: string;
   nameEn: string;
@@ -35,6 +46,7 @@ type SeedIn = {
   authorisedBrand?: string;
   relatedSdId?: string;
   vehicleType?: SurveyPayload["vehicleType"];
+  walked?: WalkedVisual;
 };
 
 function mapsUrl(p: LatLng): string {
@@ -58,11 +70,12 @@ function row(s: SeedIn): CensusRow {
     authorisedBrand: s.authorisedBrand || undefined,
     relatedSdId: s.relatedSdId,
   };
+  const w = s.walked;
   const survey: SurveyPayload = {
-    visitDate: "",
-    surveyorName: "",
-    visitStatus: "not_visited",
-    mainBrands: [],
+    visitDate: w?.visitDate ?? "",
+    surveyorName: w ? "visual census" : "",
+    visitStatus: w ? "partial" : "not_visited",
+    mainBrands: w?.mainBrands ?? [],
     banksPartnered: [],
     leadOnlinePct: 0,
     authorisedDealer: s.authorised ? "yes" : "",
@@ -70,8 +83,18 @@ function row(s: SeedIn): CensusRow {
     vehicleType: s.vehicleType ?? "used_only",
     street: s.street,
     notes: s.note,
+    inventoryUnits: w?.inventoryUnits ?? null,
+    inventoryInside: w?.inventoryInside ?? null,
+    inventoryOutside: w?.inventoryOutside ?? null,
+    inventoryAgePctOver5: w?.inventoryAgePctOver5 ?? null,
+    inventoryBasis: w ? "estimated" : "",
+    inventorySource: w ? "observed" : "",
+    showroomSizeSqm: w?.showroomSizeSqm ?? null,
+    sizeBasis: w ? "estimated" : "",
+    showroomSizeSource: w ? "observed" : "",
+    volumeFiguresAre: w ? "observed" : "",
   };
-  const status: VisitStatus = "not_visited";
+  const status: VisitStatus = w ? "partial" : "not_visited";
   return {
     sdId: s.sdId,
     nameEn: s.nameEn,
@@ -657,6 +680,57 @@ const SEED: SeedIn[] = [
     street: "Al Shifa strip",
     note: "Named in public Shifa used-car guides. No address/GPS — corridor placeholder. No volumes.",
   },
+  {
+    sdId: "S0068",
+    nameEn: "Al Nukhba Cruise Cars",
+    nameAr: "معرض النخبة كروز للسيارات",
+    pos: around(CLUSTER, 40, 15),
+    street: "Ahmad Al Basri",
+    note: "Visual count 10 Sep 2026 from facade + floor photos, not VIN. GPS still needs a tap. Open steel hangar. ASP band ~60–120k SAR typical unit — not filed.\nMay be the same stall as S0057 Dar Al Nukhba — confirm on site. Do not copy D0187 (94 / 1,400 m² / 200k ASP) onto this hangar.",
+    walked: {
+      visitDate: "2026-09-10",
+      inventoryUnits: 17,
+      inventoryInside: 14,
+      inventoryOutside: 3,
+      inventoryAgePctOver5: 35,
+      showroomSizeSqm: 500,
+      mainBrands: ["Jetour", "Kia", "GMC", "Lexus", "Mazda", "Toyota", "Hyundai"],
+    },
+  },
+  {
+    sdId: "S0069",
+    nameEn: "Mustaqbal Al Sura'a Cars",
+    nameAr: "معرض مستقبل السرعة للسيارات",
+    pos: around(CLUSTER, 70, 15),
+    street: "Ahmad Al Basri",
+    note: "Visual count 10 Sep 2026 through closed gate, not VIN. GPS still needs a tap. License on fascia: 4520. Commercial vans/buses + economy hatches. ASP band ~35–80k SAR typical unit — not filed.",
+    walked: {
+      visitDate: "2026-09-10",
+      inventoryUnits: 14,
+      inventoryInside: 14,
+      inventoryOutside: 0,
+      inventoryAgePctOver5: 60,
+      showroomSizeSqm: 550,
+      mainBrands: ["Toyota", "Isuzu", "Hyundai"],
+    },
+  },
+  {
+    sdId: "S0070",
+    nameEn: "Al Najm Al Thaqib Cars",
+    nameAr: "معرض النجم الثاقب للسيارات",
+    pos: around(CLUSTER, 100, 15),
+    street: "Ahmad Al Basri",
+    note: "Visual count 10 Sep 2026 from facade + floor photos, not VIN. GPS still needs a tap. Used luxury/muscle hangar (Mercedes + Dodge + American trucks). ASP band ~120–250k SAR typical unit — not filed. Distinct from S0005 Najoom Al Shifa.",
+    walked: {
+      visitDate: "2026-09-10",
+      inventoryUnits: 20,
+      inventoryInside: 18,
+      inventoryOutside: 2,
+      inventoryAgePctOver5: 30,
+      showroomSizeSqm: 650,
+      mainBrands: ["Mercedes", "Dodge", "Lexus", "Chevrolet", "GMC", "Jeep", "Kia"],
+    },
+  },
 ];
 
 export const SHIFA_ROWS: CensusRow[] = SEED.map(row);
@@ -685,7 +759,9 @@ export function shifaCorridor(street: string): string {
 /** Public directory snippets for display-only rough notes. Never copy into survey fields. */
 export const SHIFA_PUBLIC_SNIPPETS: Record<string, string> = {
   S0053:
-    "Public listing (YallaMotor): 59 cars · 17 brands. Do not copy listing counts onto the survey.",
+    "YallaMotor brands: Kia, Ford, Hyundai, Toyota, Honda, Chery, Jetour, Nissan, Chevrolet, Suzuki, MG, GAC, Isuzu. Listing count stays notes-only.",
+  S0057:
+    "Walked nearby fascia: S0068 معرض النخبة كروز. Confirm if the same stall. Do not copy Cruise figures onto this pin until confirmed.",
 };
 
 

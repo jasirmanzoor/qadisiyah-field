@@ -181,7 +181,54 @@ if (await shifaBtn.count()) {
       console.log("NAJOOM_NO_QADS_INV", !/Inventory:\s*140/.test(nsheet));
       await page.screenshot({ path: "/workspace/screenshots/dealer-najoom-shifa.png" });
     }
+    console.log("LIST_HAS_NUKHBA_CRUISE", /Nukhba Cruise/.test(listBody));
+    console.log("LIST_HAS_MUSTAQBAL", /Mustaqbal Al Sura/.test(listBody));
+    console.log("LIST_HAS_NAJM_THAQIB", /Najm Al Thaqib|النجم الثاقب/.test(listBody));
+    await listBtn.click();
+    await page.waitForTimeout(400);
   }
+
+  await search.fill("Nukhba Cruise");
+  await page.waitForTimeout(600);
+  const cruiseHit = page.locator("button").filter({ hasText: /Nukhba Cruise/i }).first();
+  console.log("HAS_CRUISE_HIT", (await cruiseHit.count()) > 0);
+  if (await cruiseHit.count()) {
+    await cruiseHit.click({ force: true });
+    await page.waitForTimeout(800);
+    const csheet = await page.locator(".qads-sheet").innerText().catch(() => page.locator("body").innerText());
+    console.log("CRUISE_SHEET", csheet.slice(0, 900));
+    console.log("CRUISE_INV", /Inventory:\s*17/.test(csheet));
+    console.log("CRUISE_INSIDE", /Inside:\s*14/.test(csheet));
+    console.log("CRUISE_SIZE", /Showroom size:\s*500/.test(csheet));
+    console.log("CRUISE_JETOUR", /Jetour/.test(csheet));
+    await page.screenshot({ path: "/workspace/screenshots/dealer-nukhba-cruise.png" });
+  }
+  await search.fill("Mustaqbal");
+  await page.waitForTimeout(500);
+  const mustaq = page.locator("button").filter({ hasText: /Mustaqbal/i }).first();
+  if (await mustaq.count()) {
+    await mustaq.click({ force: true });
+    await page.waitForTimeout(600);
+    const msheet = await page.locator(".qads-sheet").innerText().catch(() => "");
+    console.log("MUSTAQBAL_INV", /Inventory:\s*14/.test(msheet));
+    console.log("MUSTAQBAL_LICENSE", /4520/.test(msheet));
+    await page.screenshot({ path: "/workspace/screenshots/dealer-mustaqbal.png" });
+  }
+  await search.fill("Thaqib");
+  await page.waitForTimeout(500);
+  const thaqib = page.locator("button").filter({ hasText: /Thaqib|النجم الثاقب/i }).first();
+  if (await thaqib.count()) {
+    await thaqib.click({ force: true });
+    await page.waitForTimeout(600);
+    const tsheet = await page.locator(".qads-sheet").innerText().catch(() => "");
+    console.log("THAQIB_INV", /Inventory:\s*20/.test(tsheet));
+    console.log("THAQIB_MERCEDES", /Mercedes/.test(tsheet));
+    await page.screenshot({ path: "/workspace/screenshots/dealer-najm-thaqib.png" });
+  }
+  await search.fill("");
+  const closeSheet = page.locator(".qads-sheet button").first();
+  if (await closeSheet.count()) await closeSheet.click({ force: true }).catch(() => {});
+  await page.waitForTimeout(400);
 
   const addBtn = page.locator("[data-add='1']").first();
   console.log("HAS_ADD_BTN", (await addBtn.count()) > 0);

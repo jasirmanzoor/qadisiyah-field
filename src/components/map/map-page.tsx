@@ -1190,6 +1190,7 @@ function formatThisLotPaste(dealer: Dealership, survey?: SurveyPayload): string 
   const inside = survey?.inventoryInside;
   const outside = survey?.inventoryOutside;
   const size = survey?.showroomSizeSqm;
+  const age = survey?.inventoryAgePctOver5;
   const lines = [dealer.nameEn];
   lines.push(`Inventory: ${inv != null ? formatNumber(inv) : "—"}`);
   if (inside != null) lines.push(`Inside: ${formatNumber(inside)}`);
@@ -1201,6 +1202,20 @@ function formatThisLotPaste(dealer: Dealership, survey?: SurveyPayload): string 
   if (inv != null && survey?.monthlySoldExact != null) {
     lines.push(`Monthly sold: ${formatNumber(survey.monthlySoldExact)}`);
   }
+  if (age != null) {
+    lines.push(`Age: ${age}% ≥5 yr / ${100 - age}% <5 yr`);
+  }
+  const mix =
+    survey?.vehicleType === "used_only"
+      ? "used"
+      : survey?.vehicleType === "new_only"
+        ? "new"
+        : survey?.vehicleType === "mix"
+          ? "mixed"
+          : "";
+  if (inv != null && mix) lines.push(`Type: ${mix}`);
+  const brands = (survey?.mainBrands ?? []).filter(Boolean);
+  if (brands.length) lines.push(`Brands: ${brands.join(", ")}`);
   return lines.join("\n");
 }
 
@@ -1215,7 +1230,7 @@ function stripLeadingLotPaste(text: string, nameEn: string): string {
   if (!nameEn) return text;
   const escaped = nameEn.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const re = new RegExp(
-    `^${escaped}\\s*\\nInventory:\\s*[^\\n]*(?:\\nInside:\\s*[^\\n]*)?(?:\\nOutside:\\s*[^\\n]*)?\\nShowroom size:\\s*[^\\n]*(?:\\nASP:\\s*[^\\n]*)?(?:\\nMonthly sold:\\s*[^\\n]*)?\\n*`,
+    `^${escaped}\\s*\\nInventory:\\s*[^\\n]*(?:\\nInside:\\s*[^\\n]*)?(?:\\nOutside:\\s*[^\\n]*)?\\nShowroom size:\\s*[^\\n]*(?:\\nASP:\\s*[^\\n]*)?(?:\\nMonthly sold:\\s*[^\\n]*)?(?:\\nAge:\\s*[^\\n]*)?(?:\\nType:\\s*[^\\n]*)?(?:\\nBrands:\\s*[^\\n]*)?\\n*`,
     "i",
   );
   return text.replace(re, "").trim();
@@ -1258,7 +1273,7 @@ function collectRoughNotes(opts: {
   const survey = (opts.surveyNotes ?? "").trim();
   const snippet = (opts.publicSnippet ?? "").trim();
   const skipSnippet =
-    !snippet || seed.includes(snippet) || survey.includes(snippet) || /59 cars/i.test(seed);
+    !snippet || seed.includes(snippet) || survey.includes(snippet);
   const mapping = uniqueBlobs(seed, survey, skipSnippet ? "" : snippet)
     .map((b) => stripLeadingLotPaste(stripRelatedSection(b), nameEn))
     .filter(Boolean);
