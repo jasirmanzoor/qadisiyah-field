@@ -1,7 +1,7 @@
 import type { SurveyPayload } from "./types";
 
 export const SURVEY_STEPS = [
-  { id: "identity", titleEn: "Identity", titleAr: "الهوية" },
+  { id: "identity", titleEn: "Showroom", titleAr: "المعرض" },
   { id: "visit", titleEn: "Visit", titleAr: "الزيارة" },
   { id: "business", titleEn: "Business", titleAr: "المنشأة" },
   { id: "people", titleEn: "People", titleAr: "الأشخاص" },

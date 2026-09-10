@@ -288,8 +288,19 @@ export function MapPage() {
     setSelectedId(null);
   }
 
+  function openAdd(prefill?: string) {
+    if (prefill?.trim()) setNewName(prefill.trim());
+    setAdding(true);
+    setNearMe(false);
+    setPlanning(false);
+    setCluster(null);
+    setSelectedId(null);
+    setListMode(false);
+  }
+
   async function addDealer() {
     if (!newName.trim()) return;
+    const hasFix = Boolean(gps && !gpsError);
     const dealer: Dealership = {
       id: uid(),
       nameEn: newName.trim(),
@@ -303,7 +314,11 @@ export function MapPage() {
           ? "Added in field · Al Shifa used-car lot"
           : "Added in field",
       status: "not_visited",
-      flags: { gpsSource: "survey", market },
+      flags: {
+        gpsSource: hasFix ? "survey" : "interpolated",
+        market,
+        needsGps: !hasFix,
+      },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -315,8 +330,7 @@ export function MapPage() {
     setNewName("");
     setNewNameAr("");
     setNewPhone("");
-    setSelectedId(dealer.id);
-    flyTo(dealer);
+    void navigate({ to: "/survey/$id", params: { id: dealer.id } });
   }
 
   async function pinSelectedToGps() {
@@ -411,7 +425,18 @@ export function MapPage() {
             {search.trim() && !planning && !adding && !listMode ? (
               <div className="qads-sheet relative z-30 mt-1 max-h-56 overflow-auto rounded-2xl bg-surface p-1 shadow-[var(--shadow-lift)]">
                 {searchHits.length === 0 ? (
-                  <p className="px-3 py-3 text-sm text-muted">{t.noShowroomMatch}</p>
+                  <div className="px-2 py-2">
+                    <p className="px-1 py-2 text-sm text-muted">{t.noShowroomMatch}</p>
+                    <Button
+                      data-add="1"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => openAdd(search)}
+                    >
+                      <MapPinPlus className="size-4" />
+                      {t.addThisLot}
+                    </Button>
+                  </div>
                 ) : (
                   searchHits.map((d) => (
                     <DealerRow
@@ -453,14 +478,36 @@ export function MapPage() {
               className="pointer-events-auto qads-sheet mt-1 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-surface shadow-[var(--shadow-lift)]"
             >
               <div className="flex items-center justify-between gap-2 px-3 py-2">
-                <p className="text-sm font-semibold">{t.list}</p>
-                <p className="text-xs font-medium tabular-nums text-muted">
-                  {t.showing} <span className="text-fg">{listRows.length}</span>
-                </p>
+                <div>
+                  <p className="text-sm font-semibold">{t.list}</p>
+                  <p className="text-xs font-medium tabular-nums text-muted">
+                    {t.showing} <span className="text-fg">{listRows.length}</span>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  data-add="1"
+                  onClick={() => openAdd()}
+                  className="flex min-h-10 items-center gap-1 rounded-xl bg-primary px-3 text-xs font-semibold text-primary-fg"
+                >
+                  <MapPinPlus className="size-3.5" />
+                  {t.addDealer}
+                </button>
               </div>
               <div className={cn("min-h-0 flex-1 overflow-auto px-1 pb-1", selected && "pb-56")}>
                 {listRows.length === 0 ? (
-                  <p className="px-3 py-6 text-sm text-muted">{t.noShowroomMatch}</p>
+                  <div className="px-3 py-6">
+                    <p className="text-sm text-muted">{t.noShowroomMatch}</p>
+                    <Button
+                      data-add="1"
+                      size="sm"
+                      className="mt-3 w-full"
+                      onClick={() => openAdd(search)}
+                    >
+                      <MapPinPlus className="size-4" />
+                      {t.addThisLot}
+                    </Button>
+                  </div>
                 ) : listGroups ? (
                   listGroups.map((g) => (
                     <div key={g.key}>
@@ -540,14 +587,7 @@ export function MapPage() {
           <IconTool
             label={t.addDealer}
             active={adding}
-            onClick={() => {
-              setAdding(true);
-              setNearMe(false);
-              setPlanning(false);
-              setCluster(null);
-              setSelectedId(null);
-              setListMode(false);
-            }}
+            onClick={() => openAdd()}
           >
             <MapPinPlus className="size-4" />
           </IconTool>
@@ -592,6 +632,10 @@ export function MapPage() {
               <ChevronRight className="size-4 shrink-0 text-muted" />
             </button>
           ) : null}
+          <Button data-add="1" className="mt-2 w-full" size="sm" onClick={() => openAdd()}>
+            <MapPinPlus className="size-4" />
+            {t.addDealer}
+          </Button>
         </div>
       ) : null}
 
@@ -703,6 +747,7 @@ export function MapPage() {
             <div>
               <p className="text-base font-semibold tracking-tight">{t.addDealer}</p>
               <p className="text-xs text-muted">{t.addDealerHint}</p>
+              <p className="mt-1 text-xs text-muted">{gps && !gpsError ? t.pinningGps : t.usingCenter}</p>
               {market === "shifa" ? <p className="mt-1 text-xs text-muted">{t.usedOnlyDefault}</p> : null}
             </div>
             <button type="button" onClick={() => setAdding(false)} className="grid size-10 shrink-0 place-items-center">
@@ -718,8 +763,8 @@ export function MapPage() {
             <Input autoFocus value={newName} onChange={(e) => setNewName(e.target.value)} placeholder={t.nameEn} />
             <Input dir="rtl" value={newNameAr} onChange={(e) => setNewNameAr(e.target.value)} placeholder={t.nameAr} />
             <Input value={newPhone} onChange={(e) => setNewPhone(e.target.value)} placeholder={t.phone} type="tel" />
-            <Button onClick={() => void addDealer()} disabled={!newName.trim()}>
-              {t.save}
+            <Button data-save-survey="1" onClick={() => void addDealer()} disabled={!newName.trim()}>
+              {t.saveAndSurvey}
             </Button>
           </div>
         </div>
@@ -899,9 +944,12 @@ function DealerSheet({
 
   const stats = [
     survey?.inventoryUnits != null ? { k: t.stock, v: formatNumber(survey.inventoryUnits) } : null,
+    survey?.inventoryInside != null ? { k: t.inventoryInside, v: formatNumber(survey.inventoryInside) } : null,
+    survey?.inventoryOutside != null ? { k: t.inventoryOutside, v: formatNumber(survey.inventoryOutside) } : null,
     survey?.monthlySoldExact != null ? { k: t.soldMo, v: formatNumber(survey.monthlySoldExact) } : null,
     survey?.avgSellingPriceSar != null ? { k: "ASP", v: formatSarCompact(survey.avgSellingPriceSar) } : null,
     survey?.showroomSizeSqm != null ? { k: t.sizeSqm, v: `${formatNumber(survey.showroomSizeSqm)} m²` } : null,
+    survey?.inventoryAgePctOver5 != null ? { k: t.inventoryAgeOver5, v: `${survey.inventoryAgePctOver5}%` } : null,
     survey?.fpr != null ? { k: "FPR", v: formatPct(survey.fpr * 100) } : null,
   ].filter(Boolean) as { k: string; v: string }[];
 
@@ -1013,7 +1061,7 @@ function DealerSheet({
 
       {stats.length ? (
         <div className={cn("mb-3 grid gap-1.5", stats.length >= 3 ? "grid-cols-3" : stats.length === 2 ? "grid-cols-2" : "grid-cols-1")}>
-          {stats.slice(0, 3).map((s) => (
+          {stats.slice(0, 6).map((s) => (
             <div key={s.k} className="rounded-xl bg-surface-2 px-2 py-2">
               <p className="truncate text-xs text-muted">{s.k}</p>
               <p className="truncate text-sm font-semibold tabular-nums tracking-tight">{s.v}</p>
@@ -1139,9 +1187,13 @@ function uniqueBlobs(...parts: Array<string | null | undefined>): string[] {
 
 function formatThisLotPaste(dealer: Dealership, survey?: SurveyPayload): string {
   const inv = survey?.inventoryUnits;
+  const inside = survey?.inventoryInside;
+  const outside = survey?.inventoryOutside;
   const size = survey?.showroomSizeSqm;
   const lines = [dealer.nameEn];
   lines.push(`Inventory: ${inv != null ? formatNumber(inv) : "—"}`);
+  if (inside != null) lines.push(`Inside: ${formatNumber(inside)}`);
+  if (outside != null) lines.push(`Outside: ${formatNumber(outside)}`);
   lines.push(`Showroom size: ${size != null ? `${formatNumber(size)} m²` : "—"}`);
   if (inv != null && survey?.avgSellingPriceSar != null) {
     lines.push(`ASP: ${formatSar(survey.avgSellingPriceSar)}`);
@@ -1163,7 +1215,7 @@ function stripLeadingLotPaste(text: string, nameEn: string): string {
   if (!nameEn) return text;
   const escaped = nameEn.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const re = new RegExp(
-    `^${escaped}\\s*\\nInventory:\\s*[^\\n]*\\nShowroom size:\\s*[^\\n]*(?:\\nASP:\\s*[^\\n]*)?(?:\\nMonthly sold:\\s*[^\\n]*)?\\n*`,
+    `^${escaped}\\s*\\nInventory:\\s*[^\\n]*(?:\\nInside:\\s*[^\\n]*)?(?:\\nOutside:\\s*[^\\n]*)?\\nShowroom size:\\s*[^\\n]*(?:\\nASP:\\s*[^\\n]*)?(?:\\nMonthly sold:\\s*[^\\n]*)?\\n*`,
     "i",
   );
   return text.replace(re, "").trim();

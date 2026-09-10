@@ -182,6 +182,38 @@ if (await shifaBtn.count()) {
       await page.screenshot({ path: "/workspace/screenshots/dealer-najoom-shifa.png" });
     }
   }
+
+  const addBtn = page.locator("[data-add='1']").first();
+  console.log("HAS_ADD_BTN", (await addBtn.count()) > 0);
+  if (await addBtn.count()) {
+    await addBtn.click({ force: true });
+    await page.waitForTimeout(600);
+    const addBody = await page.locator("body").innerText();
+    console.log("HAS_ADD_SHEET", /Add showroom|إضافة معرض/.test(addBody));
+    console.log("HAS_SAVE_AND_SURVEY", /Save and survey|حفظ وبدء المسح/.test(addBody));
+    await page.screenshot({ path: "/workspace/screenshots/add-showroom.png" });
+    const nameField = page.getByPlaceholder(/Name \(English\)|الاسم \(إنجليزي\)/);
+    if (await nameField.count()) await nameField.fill("Walk Lot Test");
+    const saveSurvey = page.locator("[data-save-survey='1']");
+    if (await saveSurvey.count()) {
+      await saveSurvey.click();
+      await page.waitForTimeout(1500);
+      console.log("SURVEY_URL", page.url());
+      const stext = await page.locator("body").innerText();
+      console.log("HAS_FIELD_CAPTURE", /Cars inside|سيارات بالداخل/.test(stext));
+      console.log("HAS_FIELD_PHOTOS", /Facade and floor|الواجهة/.test(stext));
+      console.log("HAS_AGE_SLIDER", /Older than 5 years|أقدم من 5 سنوات/.test(stext));
+      await page.screenshot({ path: "/workspace/screenshots/survey-identity.png" });
+    }
+    const mapLink = page.getByRole("button", { name: /^Map$|^الخريطة$/ }).first();
+    if (await mapLink.count()) {
+      await mapLink.click();
+      await page.waitForTimeout(800);
+    } else {
+      await page.goto("http://127.0.0.1:8080/", { waitUntil: "domcontentloaded" });
+      await page.waitForTimeout(800);
+    }
+  }
 }
 
 await search.fill("");

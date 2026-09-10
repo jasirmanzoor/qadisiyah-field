@@ -79,6 +79,7 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
       <div className="flex items-center gap-2 border-b border-border px-2 py-2">
         <button
           type="button"
+          aria-label={step === 0 ? t.map : t.back}
           className="grid size-12 place-items-center"
           onClick={() => (step === 0 ? navigate({ to: "/" }) : void patchSurvey(dealershipId, {}, step - 1))}
         >
@@ -107,8 +108,22 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
             dealer={dealer}
             payload={payload}
             gps={gps}
+            photos={photos}
             onDealer={(patch) => void upsertDealer({ ...dealer, ...patch, updatedAt: new Date().toISOString() })}
             onSave={save}
+            onPhoto={async (file) => {
+              const dataUrl = await compressImage(file);
+              if (!dataUrl) return;
+              await addPhoto({
+                id: uid(),
+                dealershipId,
+                dataUrl,
+                lat: gps?.lat ?? dealer.lat,
+                lng: gps?.lng ?? dealer.lng,
+                capturedAt: new Date().toISOString(),
+              });
+            }}
+            onRemove={(id) => void removePhoto(id)}
           />
         ) : null}
         {step === 1 ? <VisitStep payload={payload} onSave={save} /> : null}
@@ -182,35 +197,44 @@ function IdentityStep({
   dealer,
   payload,
   gps,
+  photos,
   onDealer,
   onSave,
+  onPhoto,
+  onRemove,
 }: {
   dealer: { nameEn: string; nameAr: string; lat: number; lng: number; listedPhone: string };
   payload: SurveyPayload;
   gps: { lat: number; lng: number } | null;
+  photos: { id: string; dataUrl: string }[];
   onDealer: (p: { nameEn?: string; nameAr?: string; lat?: number; lng?: number; listedPhone?: string }) => void;
   onSave: (p: Partial<SurveyPayload>) => void;
+  onPhoto: (file: File) => Promise<void>;
+  onRemove: (id: string) => void;
 }) {
   const t = COPY[usePrefs((s) => s.lang)];
+  const fileRef = useRef<HTMLInputElement>(null);
+  const over5 = payload.inventoryAgePctOver5 ?? 50;
+
+  function setSplit(inside: number | null, outside: number | null) {
+    const total = inside == null && outside == null ? null : (inside ?? 0) + (outside ?? 0);
+    onSave({
+      inventoryInside: inside,
+      inventoryOutside: outside,
+      inventoryUnits: total,
+      inventorySource: "observed",
+      inventoryBasis: "counted",
+      volumeFiguresAre: payload.volumeFiguresAre || "observed",
+    });
+  }
+
   return (
-    <>
+    <div data-field-capture="1">
       <FieldBlock label={t.nameEn}>
         <Input className="bg-surface-2" value={dealer.nameEn} onChange={(e) => onDealer({ nameEn: e.target.value })} />
       </FieldBlock>
       <FieldBlock label={t.nameAr}>
         <Input dir="rtl" className="bg-surface-2" value={dealer.nameAr} onChange={(e) => onDealer({ nameAr: e.target.value })} />
-      </FieldBlock>
-      <FieldBlock label="Latitude / Longitude">
-        <p className="text-sm tabular-nums text-muted">
-          {dealer.lat.toFixed(6)}, {dealer.lng.toFixed(6)}
-        </p>
-        <Button
-          variant="secondary"
-          disabled={!gps}
-          onClick={() => gps && onDealer({ lat: gps.lat, lng: gps.lng })}
-        >
-          {t.updateGps}
-        </Button>
       </FieldBlock>
       <FieldBlock label={t.phone}>
         <Input
@@ -220,13 +244,127 @@ function IdentityStep({
           onChange={(e) => onDealer({ listedPhone: e.target.value })}
         />
       </FieldBlock>
-      <p className="text-xs text-muted">
-        {payload.visitDate ? `Visit date ${payload.visitDate}` : "Visit date —"}
-        {payload.surveyorName ? ` · ${payload.surveyorName}` : ""}
-        {payload.street ? ` · ${payload.street}` : ""}
-        {payload.informationCredibility ? ` · ${payload.informationCredibility} credibility` : ""}
-      </p>
-    </>
+      <FieldBlock label={t.fieldPhotos} hint={t.fieldPhotosHint}>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void onPhoto(f);
+            e.target.value = "";
+          }}
+        />
+        <Button variant="secondary" onClick={() => fileRef.current?.click()}>
+          {t.photos}
+        </Button>
+        {photos.length ? (
+          <div className="mt-2 grid grid-cols-3 gap-2">
+            {photos.map((p) => (
+              <button key={p.id} type="button" className="relative overflow-hidden rounded-lg" onClick={() => onRemove(p.id)}>
+                <img src={p.dataUrl} alt="" className="aspect-square w-full object-cover" />
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </FieldBlock>
+      <FieldBlock label={`${t.sizeSqm} (m²)`}>
+        <Input
+          type="number"
+          inputMode="numeric"
+          className="bg-surface-2"
+          value={payload.showroomSizeSqm ?? ""}
+          onChange={(e) =>
+            onSave({
+              showroomSizeSqm: e.target.value === "" ? null : Number(e.target.value),
+              showroomSizeSource: "observed",
+              sizeBasis: payload.sizeBasis || "estimated",
+            })
+          }
+        />
+      </FieldBlock>
+      <div className="mb-5 grid grid-cols-2 gap-2">
+        <FieldBlock label={t.inventoryInside}>
+          <Input
+            type="number"
+            inputMode="numeric"
+            className="bg-surface-2"
+            value={payload.inventoryInside ?? ""}
+            onChange={(e) =>
+              setSplit(e.target.value === "" ? null : Number(e.target.value), payload.inventoryOutside ?? null)
+            }
+          />
+        </FieldBlock>
+        <FieldBlock label={t.inventoryOutside}>
+          <Input
+            type="number"
+            inputMode="numeric"
+            className="bg-surface-2"
+            value={payload.inventoryOutside ?? ""}
+            onChange={(e) =>
+              setSplit(payload.inventoryInside ?? null, e.target.value === "" ? null : Number(e.target.value))
+            }
+          />
+        </FieldBlock>
+      </div>
+      <FieldBlock label={t.inventoryAgeOver5}>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={5}
+          value={payload.inventoryAgePctOver5 ?? 50}
+          onChange={(e) => onSave({ inventoryAgePctOver5: Number(e.target.value) })}
+          className="w-full accent-primary"
+        />
+        <p className="text-sm tabular-nums text-muted">
+          {over5}% {t.inventoryAgeOver5} · {100 - over5}% {t.inventoryAgeUnder5}
+        </p>
+      </FieldBlock>
+      <FieldBlock label="Used / new / mix">
+        <Choice
+          value={payload.vehicleType}
+          onChange={(id) => onSave({ vehicleType: id as SurveyPayload["vehicleType"] })}
+          options={[
+            { id: "used_only", label: "Used" },
+            { id: "new_only", label: "New" },
+            { id: "mix", label: "Mix" },
+          ]}
+        />
+      </FieldBlock>
+      <FieldBlock label="Brands" hint="Tap to toggle. Type and press Enter for others.">
+        <ChipMulti
+          options={BRAND_OPTIONS}
+          value={payload.mainBrands ?? []}
+          onChange={(mainBrands) => onSave({ mainBrands })}
+          allowCustom
+        />
+      </FieldBlock>
+      <FieldBlock label="Average selling price (SAR)">
+        <Input
+          type="number"
+          inputMode="numeric"
+          className="bg-surface-2"
+          value={payload.avgSellingPriceSar ?? ""}
+          onChange={(e) =>
+            onSave({
+              avgSellingPriceSar: e.target.value === "" ? null : Number(e.target.value),
+              avgPriceSource: "observed",
+            })
+          }
+        />
+      </FieldBlock>
+      <FieldBlock label="Latitude / Longitude">
+        <p className="text-sm tabular-nums text-muted">
+          {dealer.lat.toFixed(6)}, {dealer.lng.toFixed(6)}
+        </p>
+        <Button variant="secondary" disabled={!gps} onClick={() => gps && onDealer({ lat: gps.lat, lng: gps.lng })}>
+          {t.updateGps}
+        </Button>
+      </FieldBlock>
+    </div>
   );
 }
 

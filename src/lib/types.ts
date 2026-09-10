@@ -103,6 +103,9 @@ export type SurveyPayload = {
   authorisedDealer?: "yes" | "no" | "unclear" | "";
   authorisedBrand?: string;
   inventoryUnits?: number | null;
+  inventoryInside?: number | null;
+  inventoryOutside?: number | null;
+  inventoryAgePctOver5?: number | null;
   inventoryBasis?: "counted" | "estimated" | "dealer_stated" | "";
   inventorySource?: FigureSource | "";
   avgSellingPriceSar?: number | null;
