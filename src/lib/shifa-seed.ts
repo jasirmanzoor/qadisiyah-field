@@ -6,7 +6,7 @@ import type { CensusRow, DealershipFlags, SurveyPayload, VisitStatus } from "./t
  * Al Khalil Ibn Ahmad. Public directories claim 60+ lots; this file only
  * names lots we can source. No invented inventory, ASP, FPR, or monthly volume.
  * GPS: five public pins; everything else is corridor-placed and needsGps.
- * S0068–S0071: 10 Sep 2026 visual census from facade/floor photos (estimated).
+ * S0068–S0072: 10 Sep 2026 visual census from facade/floor photos (estimated).
  */
 type LatLng = { lat: number; lng: number };
 
@@ -746,6 +746,23 @@ const SEED: SeedIn[] = [
       inventoryAgePctOver5: 30,
       showroomSizeSqm: 900,
       mainBrands: ["Ford", "Lexus", "Honda", "Genesis", "Mercedes", "Toyota"],
+    },
+  },
+  {
+    sdId: "S0072",
+    nameEn: "4cars",
+    nameAr: "فور كارز",
+    pos: around(CLUSTER, 160, 15),
+    street: "Ahmad Al Basri",
+    note: "Visual count 10 Sep 2026 from facade + full floor, not VIN. GPS still needs a tap. Finished hangar (gold stripes, Vision 2030 wall). Mercedes-heavy German/Lexus mix, Jeep on the apron. Right wall is 2-deep (sedans + SUVs). ASP band ~120–220k SAR typical unit — not filed.",
+    walked: {
+      visitDate: "2026-09-10",
+      inventoryUnits: 40,
+      inventoryInside: 38,
+      inventoryOutside: 2,
+      inventoryAgePctOver5: 25,
+      showroomSizeSqm: 950,
+      mainBrands: ["Mercedes", "Audi", "Lexus", "Jeep", "Toyota", "BMW"],
     },
   },
 ];

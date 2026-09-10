@@ -184,6 +184,7 @@ if (await shifaBtn.count()) {
     console.log("LIST_HAS_NUKHBA_CRUISE", /Nukhba Cruise/.test(listBody));
     console.log("LIST_HAS_MUSTAQBAL", /Mustaqbal Al Sura/.test(listBody));
     console.log("LIST_HAS_NAJM_THAQIB", /Najm Al Thaqib|النجم الثاقب/.test(listBody));
+    console.log("LIST_HAS_4CARS", /4cars|فور كارز/.test(listBody));
     await listBtn.click();
     await page.waitForTimeout(400);
   }
@@ -236,6 +237,18 @@ if (await shifaBtn.count()) {
     console.log("TAKAMUL_INV", /Inventory:\s*34/.test(ksheet));
     console.log("TAKAMUL_FORD", /Ford/.test(ksheet));
     await page.screenshot({ path: "/workspace/screenshots/dealer-takamul.png" });
+  }
+  await search.fill("4cars");
+  await page.waitForTimeout(500);
+  const fourcars = page.locator("button").filter({ hasText: /4cars|فور كارز/i }).first();
+  console.log("HAS_4CARS_HIT", (await fourcars.count()) > 0);
+  if (await fourcars.count()) {
+    await fourcars.click({ force: true });
+    await page.waitForTimeout(600);
+    const fsheet = await page.locator(".qads-sheet").innerText().catch(() => "");
+    console.log("FOURCARS_INV", /Inventory:\s*40/.test(fsheet));
+    console.log("FOURCARS_MERCEDES", /Mercedes/.test(fsheet));
+    await page.screenshot({ path: "/workspace/screenshots/dealer-4cars.png" });
   }
   await search.fill("");
   const closeSheet = page.locator(".qads-sheet button").first();
