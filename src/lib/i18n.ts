@@ -228,6 +228,10 @@ const en = {
   publicGps: "Public GPS",
   usedOnlyLots: "Used-only lots",
   namedLots: "Named lots",
+  bothMarkets: "Both markets",
+  alsoInQadisiyah: "Also in Al Qadisiyah",
+  alsoInShifa: "Also in Al Shifa",
+  openOtherDesk: "Open other desk",
 } as const;
 
 const ar: Record<keyof typeof en, string> = {
@@ -458,6 +462,10 @@ const ar: Record<keyof typeof en, string> = {
   publicGps: "موقع عام",
   usedOnlyLots: "معارض مستعمل فقط",
   namedLots: "معارض مسمّاة",
+  bothMarkets: "في السوقين",
+  alsoInQadisiyah: "أيضاً في القادسية",
+  alsoInShifa: "أيضاً في الشفا",
+  openOtherDesk: "فتح المكتب الآخر",
 };
 
 export const COPY: Record<Lang, Record<keyof typeof en, string>> = { en, ar };

@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { COPY, STATUS_LABEL, trainingCopy } from "@/lib/i18n";
 import { formatDistance, haversineM, MARKET_CENTERS, optimizeWalkOrder } from "@/lib/geo";
-import { dealersInMarket } from "@/lib/markets";
+import { dealersInMarket, dealerMarket, dualPartner, isDualLocation } from "@/lib/markets";
 import { cn, formatNumber, formatPct, formatSarCompact, mapsLink, telLink, uid, waLink } from "@/lib/utils";
 import type { Dealership, SurveyPayload } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -23,17 +23,17 @@ import {
   MapPinned,
   Crosshair,
 } from "lucide-react";
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { MapFocus } from "./map-canvas";
 
 const MapCanvas = lazy(() => import("./map-canvas").then((m) => ({ default: m.MapCanvas })));
 
-type FilterId = "all" | "unvisited" | "partial" | "needsGps" | "noPhone" | "closed" | "authorised" | "trained" | "induction";
+type FilterId = "all" | "unvisited" | "partial" | "needsGps" | "noPhone" | "closed" | "authorised" | "trained" | "induction" | "dual";
 
 const NEAR_LIMIT = 12;
 
 export function MapPage() {
-  const { lang, market } = usePrefs();
+  const { lang, market, setMarket } = usePrefs();
   const t = COPY[lang];
   const navigate = useNavigate();
   const snapshot = useField((s) => s.snapshot);
@@ -44,6 +44,14 @@ export function MapPage() {
   const marketCenter = MARKET_CENTERS[market];
   const origin = gps ?? { lat: marketCenter.lat, lng: marketCenter.lng, accuracy: 9999 };
   const roster = useMemo(() => dealersInMarket(snapshot.dealerships, market), [snapshot.dealerships, market]);
+  const dualIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const d of snapshot.dealerships) {
+      if (isDualLocation(d, snapshot.dealerships)) ids.add(d.id);
+    }
+    return ids;
+  }, [snapshot.dealerships]);
+  const pendingJump = useRef<string | null>(null);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [satellite, setSatellite] = useState(false);
@@ -60,12 +68,22 @@ export function MapPage() {
   const [focus, setFocus] = useState<MapFocus | null>(null);
 
   useEffect(() => {
-    setSelectedId(null);
     setCluster(null);
     setNearMe(false);
     setRouteIds([]);
     setFilter("all");
     setSearch("");
+    const jump = pendingJump.current;
+    pendingJump.current = null;
+    if (jump) {
+      const d = snapshot.dealerships.find((x) => x.id === jump);
+      setSelectedId(jump);
+      if (d) {
+        setFocus({ lat: d.lat, lng: d.lng, zoom: 17, nonce: Date.now(), padBottom: true });
+      }
+      return;
+    }
+    setSelectedId(null);
     setFocus({
       lat: marketCenter.lat,
       lng: marketCenter.lng,
@@ -86,6 +104,7 @@ export function MapPage() {
     let completed = 0;
     let trained = 0;
     let induction = 0;
+    let dual = 0;
     for (const d of all) {
       if (d.status === "not_visited") unvisited += 1;
       if (d.status === "partial") partial += 1;
@@ -97,9 +116,10 @@ export function MapPage() {
       if (d.status !== "not_visited" && d.status !== "competitor") walked += 1;
       if (d.flags.trainingStage === "trained") trained += 1;
       if (d.flags.trainingStage || d.flags.trainingPriority) induction += 1;
+      if (dualIds.has(d.id)) dual += 1;
     }
-    return { all: all.length, unvisited, partial, needsGps, noPhone, closed, authorised, walked, completed, trained, induction };
-  }, [roster]);
+    return { all: all.length, unvisited, partial, needsGps, noPhone, closed, authorised, walked, completed, trained, induction, dual };
+  }, [roster, dualIds]);
 
   const brandsById = useMemo(() => {
     const m = new Map<string, string[]>();
@@ -117,9 +137,10 @@ export function MapPage() {
       if (filter === "authorised") return Boolean(d.flags.authorised);
       if (filter === "trained") return d.flags.trainingStage === "trained";
       if (filter === "induction") return Boolean(d.flags.trainingStage || d.flags.trainingPriority);
+      if (filter === "dual") return dualIds.has(d.id);
       return true;
     });
-  }, [roster, filter]);
+  }, [roster, filter, dualIds]);
 
   const selected =
     dealers.find((d) => d.id === selectedId) ?? snapshot.dealerships.find((d) => d.id === selectedId) ?? null;
@@ -254,6 +275,7 @@ export function MapPage() {
 
   const filters: { id: FilterId; label: string; count: number }[] = [
     { id: "all", label: t.filterAll, count: counts.all },
+    { id: "dual", label: t.bothMarkets, count: counts.dual },
     { id: "unvisited", label: t.unvisited, count: counts.unvisited },
     { id: "partial", label: t.partialFilter, count: counts.partial },
     { id: "needsGps", label: t.needsGps, count: counts.needsGps },
@@ -280,6 +302,8 @@ export function MapPage() {
               route={routeDealers}
               focus={focus}
               origin={marketCenter}
+              dualIds={dualIds}
+              showDualLabels={market === "shifa"}
             />
           </Suspense>
         </ClientOnly>
@@ -319,7 +343,8 @@ export function MapPage() {
                     <DealerRow
                       key={d.id}
                       dealer={d}
-                      subtitle={[d.flags.sdId, d.nameAr || d.listedPhone || d.flags.street]
+                      dual={dualIds.has(d.id)}
+                      subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, d.nameAr || d.listedPhone || d.flags.street]
                         .filter(Boolean)
                         .join(" · ")}
                       lang={lang}
@@ -467,8 +492,11 @@ export function MapPage() {
               key={d.id}
               dealer={d}
               lang={lang}
+              dual={dualIds.has(d.id)}
               meta={formatDistance(haversineM(origin, d))}
-              subtitle={[d.flags.sdId, STATUS_LABEL[lang][d.status]].filter(Boolean).join(" · ")}
+              subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, STATUS_LABEL[lang][d.status]]
+                .filter(Boolean)
+                .join(" · ")}
               onClick={() => pickDealer(d.id)}
             />
           ))}
@@ -488,8 +516,11 @@ export function MapPage() {
                 key={d.id}
                 dealer={d}
                 lang={lang}
+                dual={dualIds.has(d.id)}
                 meta={formatDistance(haversineM(origin, d))}
-                subtitle={[d.flags.sdId, STATUS_LABEL[lang][d.status]].filter(Boolean).join(" · ")}
+                subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, STATUS_LABEL[lang][d.status]]
+                  .filter(Boolean)
+                  .join(" · ")}
                 onClick={() => pickDealer(d.id)}
               />
             ))}
@@ -499,6 +530,7 @@ export function MapPage() {
       {selected && !planning && !nearMe && !cluster ? (
         <DealerSheet
           dealer={selected}
+          partner={dualPartner(selected, snapshot.dealerships)}
           distance={haversineM(origin, selected)}
           source={survey?.payload.volumeFiguresAre}
           survey={survey?.payload}
@@ -506,6 +538,10 @@ export function MapPage() {
           onClose={() => setSelectedId(null)}
           onSurvey={(id) => void navigate({ to: "/survey/$id", params: { id } })}
           onPinGps={() => void pinSelectedToGps()}
+          onOpenPartner={(p) => {
+            pendingJump.current = p.id;
+            setMarket(dealerMarket(p));
+          }}
         />
       ) : null}
 
@@ -582,6 +618,9 @@ function LegendDots() {
           <span className={cn("qads-pin qads-pin-sm", `qads-pin-${k}`)} />
         </span>
       ))}
+      <span className="flex items-center gap-1" title="Both markets">
+        <span className="qads-pin qads-pin-sm qads-pin-not_visited qads-pin-dual" />
+      </span>
     </div>
   );
 }
@@ -618,12 +657,14 @@ function DealerRow({
   lang,
   subtitle,
   meta,
+  dual,
   onClick,
 }: {
   dealer: Dealership;
   lang: "en" | "ar";
   subtitle?: string;
   meta?: string;
+  dual?: boolean;
   onClick: () => void;
 }) {
   const name = lang === "ar" && dealer.nameAr ? dealer.nameAr : dealer.nameEn;
@@ -633,9 +674,16 @@ function DealerRow({
       onClick={onClick}
       className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left transition-colors duration-150 hover:bg-surface-2"
     >
-      <span className={cn("qads-pin shrink-0", `qads-pin-${dealer.status}`, dealer.flags.trainingStage === "trained" && "qads-pin-trained")} />
+      <span
+        className={cn(
+          "qads-pin shrink-0",
+          `qads-pin-${dealer.status}`,
+          dealer.flags.trainingStage === "trained" && "qads-pin-trained",
+          dual && "qads-pin-dual",
+        )}
+      />
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-medium">{name}</span>
+        <span className={cn("block truncate text-sm font-medium", dual && "text-primary")}>{name}</span>
         {subtitle ? <span className="block truncate text-xs text-muted">{subtitle}</span> : null}
       </span>
       {meta ? <span className="shrink-0 text-xs tabular-nums text-muted">{meta}</span> : null}
@@ -645,6 +693,7 @@ function DealerRow({
 
 function DealerSheet({
   dealer,
+  partner,
   distance,
   source,
   survey,
@@ -652,8 +701,10 @@ function DealerSheet({
   onClose,
   onSurvey,
   onPinGps,
+  onOpenPartner,
 }: {
   dealer: Dealership;
+  partner: Dealership | null;
   distance: number;
   source?: string;
   survey?: SurveyPayload;
@@ -661,6 +712,7 @@ function DealerSheet({
   onClose: () => void;
   onSurvey: (id: string) => void;
   onPinGps: () => void;
+  onOpenPartner: (p: Dealership) => void;
 }) {
   const { lang } = usePrefs();
   const t = COPY[lang];
@@ -679,14 +731,16 @@ function DealerSheet({
   ].filter(Boolean) as { k: string; v: string }[];
 
   return (
-    <div className="qads-sheet absolute inset-x-3 bottom-3 z-20 rounded-2xl bg-surface p-4 shadow-[var(--shadow-lift)]">
+    <div className="qads-sheet absolute inset-x-3 bottom-3 z-20 max-h-[52vh] overflow-auto rounded-2xl bg-surface p-4 shadow-[var(--shadow-lift)]">
       <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-surface-2" />
       <div className="mb-2 flex items-start justify-between gap-2">
         <div className="min-w-0">
           {dealer.flags.sdId ? (
             <p className="text-xs font-semibold uppercase tracking-wide text-muted">{dealer.flags.sdId}</p>
           ) : null}
-          <p className="truncate text-base font-semibold tracking-tight">{dealer.nameEn}</p>
+          <p className={cn("truncate text-base font-semibold tracking-tight", partner && "text-primary")}>
+            {dealer.nameEn}
+          </p>
           {dealer.nameAr ? (
             <p className="truncate text-sm text-muted" dir="rtl">
               {dealer.nameAr}
@@ -700,6 +754,11 @@ function DealerSheet({
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <StatusBadge status={dealer.status} />
+        {partner ? (
+          <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-fg">
+            {t.bothMarkets}
+          </span>
+        ) : null}
         <TrainingBadge
           stage={dealer.flags.trainingStage}
           priority={dealer.flags.trainingPriority}
@@ -722,7 +781,24 @@ function DealerSheet({
       {dealer.flags.competitor ? <p className="mb-2 text-xs text-status-purple">{t.competitor}</p> : null}
       {dealer.flags.complex ? <p className="mb-2 text-xs text-muted">{t.complex}</p> : null}
       {dealer.flags.authorised ? <p className="mb-2 text-xs text-muted">{t.authorised}</p> : null}
-      {dealer.flags.relatedSdId ? (
+      {partner ? (
+        <div className="mb-3 rounded-xl bg-primary/10 px-3 py-2">
+          <p className="text-xs font-semibold text-primary">
+            {dealerMarket(dealer) === "shifa" ? t.alsoInQadisiyah : t.alsoInShifa}
+          </p>
+          <p className="mt-0.5 truncate text-sm font-medium text-fg">
+            {partner.flags.sdId ? `${partner.flags.sdId} · ` : ""}
+            {lang === "ar" && partner.nameAr ? partner.nameAr : partner.nameEn}
+          </p>
+          <button
+            type="button"
+            className="mt-1 min-h-10 text-xs font-semibold text-primary"
+            onClick={() => onOpenPartner(partner)}
+          >
+            {t.openOtherDesk}
+          </button>
+        </div>
+      ) : dealer.flags.relatedSdId ? (
         <p className="mb-2 text-xs text-muted">
           {t.relatedDesk} {dealer.flags.relatedSdId}
         </p>

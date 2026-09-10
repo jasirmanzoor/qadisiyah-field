@@ -12,7 +12,7 @@ import {
 } from "@/lib/engine";
 import { COPY } from "@/lib/i18n";
 import { MARKET_CENTERS } from "@/lib/geo";
-import { MARKET_META, sliceSnapshot } from "@/lib/markets";
+import { MARKET_META, isDualLocation, sliceSnapshot } from "@/lib/markets";
 import { MarketSwitch } from "@/components/market-switch";
 import { pilotScore } from "@/lib/scoring";
 import { formatNumber, formatPct, formatSar, formatSarCompact } from "@/lib/utils";
@@ -148,9 +148,9 @@ export function DashboardPage() {
               </dd>
             </div>
             <div className="rounded-xl bg-surface-2 px-3 py-2">
-              <dt className="text-muted">{t.relatedDesk}</dt>
+              <dt className="text-muted">{t.bothMarkets}</dt>
               <dd className="mt-0.5 text-base font-semibold tabular-nums">
-                {snapshot.dealerships.filter((d) => d.flags.relatedSdId).length}
+                {snapshot.dealerships.filter((d) => isDualLocation(d)).length}
               </dd>
             </div>
           </dl>

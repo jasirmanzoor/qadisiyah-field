@@ -36,6 +36,23 @@ export const MARKET_META: Record<
   },
 };
 
+/** Same operator with a desk in both markets. Shifa id first, Qadisiyah second. */
+export const DUAL_PAIRS: [string, string][] = [
+  ["S0004", "D0309"], // Saleh Group
+  ["S0056", "D0146"], // Al Sari
+  ["S0057", "D0187"], // Dar Al Nukhba
+  ["S0018", "D0052"], // Shalal Najd
+  ["S0040", "D0109"], // Misfer Al Shahrani
+  ["S0034", "D0180"], // Latest Cars
+  ["S0042", "D0066"], // Khaled Cars
+];
+
+const DUAL_OTHER = new Map<string, string>();
+for (const [a, b] of DUAL_PAIRS) {
+  DUAL_OTHER.set(a, b);
+  DUAL_OTHER.set(b, a);
+}
+
 export function dealerMarket(d: Pick<Dealership, "lat" | "flags">): MarketId {
   if (d.flags.market === "shifa") return "shifa";
   if (d.flags.market === "qadisiyah") return "qadisiyah";
@@ -68,4 +85,32 @@ export function marketCounts(dealers: Dealership[]): Record<MarketId, number> {
   const out: Record<MarketId, number> = { qadisiyah: 0, shifa: 0 };
   for (const d of dealers) out[dealerMarket(d)] += 1;
   return out;
+}
+
+export function sdKey(d: Pick<Dealership, "id" | "flags">): string {
+  if (d.flags.sdId) return d.flags.sdId;
+  const tail = d.id.split("::").pop() ?? d.id;
+  return tail;
+}
+
+function partnerSd(d: Pick<Dealership, "id" | "flags">): string | null {
+  if (d.flags.relatedSdId) return d.flags.relatedSdId;
+  return DUAL_OTHER.get(sdKey(d)) ?? null;
+}
+
+export function isDualLocation(d: Pick<Dealership, "id" | "flags">, all?: Dealership[]): boolean {
+  if (partnerSd(d)) return true;
+  if (!all) return false;
+  const sd = sdKey(d);
+  return all.some((x) => x.id !== d.id && x.flags.relatedSdId === sd);
+}
+
+export function dualPartner(d: Pick<Dealership, "id" | "flags">, all: Dealership[]): Dealership | null {
+  const target = partnerSd(d);
+  if (target) {
+    const hit = all.find((x) => sdKey(x) === target);
+    if (hit) return hit;
+  }
+  const sd = sdKey(d);
+  return all.find((x) => x.id !== d.id && x.flags.relatedSdId === sd) ?? null;
 }

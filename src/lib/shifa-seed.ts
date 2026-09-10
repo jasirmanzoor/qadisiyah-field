@@ -247,7 +247,8 @@ const SEED: SeedIn[] = [
     nameAr: "معرض شلال نجد للسيارات",
     pos: around(SALEH, 20, -90),
     street: "Ibn Sayyidah",
-    note: "Street-level public listing. Confirm operator and GPS on site.",
+    note: "Street-level public listing. Confirm operator and GPS on site. Qadisiyah desk is D0052 Shalal Najd — do not merge the two sites.",
+    relatedSdId: "D0052",
   },
   {
     sdId: "S0019",
@@ -379,7 +380,8 @@ const SEED: SeedIn[] = [
     nameAr: "أحدث السيارات فرع الشفا",
     pos: around(HARAJ, -200, -80),
     street: "Al Imam Muslim",
-    note: "Public listing on Imam Muslim, west of the Ahmad Al Basri strip. Confirm GPS.",
+    note: "Public listing on Imam Muslim, west of the Ahmad Al Basri strip. Qadisiyah desk is D0180 Latest Cars — confirm same operator on site.",
+    relatedSdId: "D0180",
   },
   {
     sdId: "S0035",
@@ -427,7 +429,8 @@ const SEED: SeedIn[] = [
     nameAr: "مسفر الشهراني للسيارات",
     pos: around(HARAJ, -250, 30),
     street: "Muhammad Ibn Hamad Abu Shaybah",
-    note: "Street-level public listing. Distinct from Ayed Saad Misfer (S0024) until proven otherwise.",
+    note: "Street-level public listing. Distinct from Ayed Saad Misfer (S0024) until proven otherwise. Qadisiyah desk is D0109.",
+    relatedSdId: "D0109",
   },
   {
     sdId: "S0041",
@@ -445,7 +448,8 @@ const SEED: SeedIn[] = [
     pos: around(HARAJ, -120, -100),
     phone: "+966533717314",
     street: "Al Shifa, Riyadh",
-    note: "Public phone (YallaMotor). Address is district-level only — pin to GPS on site.",
+    note: "Public phone (YallaMotor). Address is district-level only — pin to GPS on site. Qadisiyah desk is D0066 Khaled Cars — confirm same operator.",
+    relatedSdId: "D0066",
   },
   {
     sdId: "S0043",

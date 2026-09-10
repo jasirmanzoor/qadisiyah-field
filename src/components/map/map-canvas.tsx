@@ -23,14 +23,14 @@ function statusFill(status: string): string {
   return "var(--status-grey)";
 }
 
-function pinIcon(status: string, selected: boolean, trained = false) {
-  const key = `p:${status}:${selected ? 1 : 0}:${trained ? 1 : 0}`;
+function pinIcon(status: string, selected: boolean, trained = false, dual = false) {
+  const key = `p:${status}:${selected ? 1 : 0}:${trained ? 1 : 0}:${dual ? 1 : 0}`;
   const hit = iconCache.get(key);
   if (hit) return hit;
-  const size = selected ? 22 : 18;
+  const size = selected ? 22 : dual ? 20 : 18;
   const icon = L.divIcon({
     className: "",
-    html: `<div class="qads-pin qads-pin-${status} ${selected ? "qads-pin-selected" : ""} ${trained ? "qads-pin-trained" : ""}"></div>`,
+    html: `<div class="qads-pin qads-pin-${status} ${selected ? "qads-pin-selected" : ""} ${trained ? "qads-pin-trained" : ""} ${dual ? "qads-pin-dual" : ""}"></div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   });
@@ -129,6 +129,8 @@ export function MapCanvas({
   focus = null,
   heat = false,
   origin = MARKET_CENTER,
+  dualIds,
+  showDualLabels = true,
 }: {
   dealers: Dealership[];
   selectedId: string | null;
@@ -140,6 +142,8 @@ export function MapCanvas({
   focus?: MapFocus | null;
   heat?: boolean;
   origin?: { lat: number; lng: number; zoom?: number };
+  dualIds?: Set<string>;
+  showDualLabels?: boolean;
 }) {
   const [zoom, setZoom] = useState(15);
   const onZoom = useCallback((z: number) => setZoom(Math.round(z)), []);
@@ -147,9 +151,14 @@ export function MapCanvas({
   const routeIds = useMemo(() => new Set(route.map((d) => d.id)), [route]);
 
   const clusters = useMemo(() => {
-    const rest = dealers.filter((d) => d.id !== selectedId && !routeIds.has(d.id));
+    const rest = dealers.filter((d) => d.id !== selectedId && !routeIds.has(d.id) && !dualIds?.has(d.id));
     return clusterByZoom(rest, zoom);
-  }, [dealers, selectedId, routeIds, zoom]);
+  }, [dealers, selectedId, routeIds, zoom, dualIds]);
+
+  const labeledDealers = useMemo(
+    () => dealers.filter((d) => dualIds?.has(d.id) && d.id !== selectedId && !routeIds.has(d.id)),
+    [dealers, dualIds, selectedId, routeIds],
+  );
 
   const selected = dealers.find((d) => d.id === selectedId) ?? null;
 
@@ -206,7 +215,7 @@ export function MapCanvas({
                 <Marker
                   key={d.id}
                   position={[d.lat, d.lng]}
-                  icon={pinIcon(d.status, false, d.flags.trainingStage === "trained")}
+                  icon={pinIcon(d.status, false, d.flags.trainingStage === "trained", dualIds?.has(d.id))}
                   eventHandlers={{ click: () => onSelect(d.id) }}
                 />
               );
@@ -231,6 +240,24 @@ export function MapCanvas({
           })
         : null}
 
+      {!heat
+        ? labeledDealers.map((d) => (
+            <Marker
+              key={`dual-${d.id}`}
+              position={[d.lat, d.lng]}
+              icon={pinIcon(d.status, false, d.flags.trainingStage === "trained", true)}
+              zIndexOffset={600}
+              eventHandlers={{ click: () => onSelect(d.id) }}
+            >
+              {showDualLabels ? (
+                <Tooltip direction="top" offset={[0, -14]} permanent className="qads-tip qads-tip-dual">
+                  {d.nameEn}
+                </Tooltip>
+              ) : null}
+            </Marker>
+          ))
+        : null}
+
       {route.map((d, i) => (
         <Marker
           key={`r-${d.id}`}
@@ -245,11 +272,21 @@ export function MapCanvas({
         <Marker
           key={`s-${selected.id}`}
           position={[selected.lat, selected.lng]}
-          icon={pinIcon(selected.status, true, selected.flags.trainingStage === "trained")}
+          icon={pinIcon(
+            selected.status,
+            true,
+            selected.flags.trainingStage === "trained",
+            dualIds?.has(selected.id),
+          )}
           zIndexOffset={1000}
           eventHandlers={{ click: () => onSelect(selected.id) }}
         >
-          <Tooltip direction="top" offset={[0, -12]} permanent className="qads-tip">
+          <Tooltip
+            direction="top"
+            offset={[0, -12]}
+            permanent
+            className={dualIds?.has(selected.id) ? "qads-tip qads-tip-dual" : "qads-tip"}
+          >
             {selected.nameEn}
           </Tooltip>
         </Marker>

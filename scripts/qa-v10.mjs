@@ -64,7 +64,7 @@ await search.fill("Adel");
 await page.waitForTimeout(500);
 const adel = page.locator("button").filter({ hasText: /Adel/i }).first();
 if (await adel.count()) {
-  await adel.click();
+  await adel.click({ force: true });
   await page.waitForTimeout(600);
   await page.screenshot({ path: "/workspace/screenshots/map-adel.png" });
 }
@@ -100,7 +100,20 @@ if (await shifaBtn.count()) {
   const sbody = await page.locator("body").innerText();
   console.log("SHIFA MAP", sbody.slice(0, 700));
   console.log("SHIFA_USED", /Used-car|المستعمل/.test(sbody));
+  console.log("HAS_BOTH_CHIP", /Both markets|في السوقين/.test(sbody));
+  console.log("HAS_SALEH_LABEL", /Saleh Group/.test(sbody));
+  console.log("HAS_SARI_LABEL", /Al Sari/.test(sbody));
   await page.screenshot({ path: "/workspace/screenshots/map-shifa.png" });
+  const bothChip = page.locator("button").filter({ hasText: /Both markets|في السوقين/ }).first();
+  if (await bothChip.count()) {
+    await bothChip.click();
+    await page.waitForTimeout(800);
+    const bothBody = await page.locator("body").innerText();
+    console.log("BOTH FILTER", bothBody.match(/Showing\s+\d+|المعروض\s+\d+/)?.[0] ?? "none");
+    console.log("BOTH_SALEH", /Saleh Group/.test(bothBody));
+    console.log("BOTH_NUKHBA", /Nukhba|النخبة/.test(bothBody));
+    await page.screenshot({ path: "/workspace/screenshots/map-shifa-dual.png" });
+  }
   await search.fill("Haraj");
   await page.waitForTimeout(600);
   const haraj = page.locator("button").filter({ hasText: /Haraj|حراج/i }).first();
