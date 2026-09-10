@@ -33,12 +33,12 @@ import { betterAuth } from "better-auth";
 import { bearer, genericOAuth } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { getCookie } from "@tanstack/react-start/server";
-import { randomBytes } from "node:crypto";
 import { Pool } from "pg";
 import { ensureDbReady, getPglite } from "../db";
 import { emailAndPasswordEnabled } from "./email-password";
 import { GROK_PROVIDERS } from "./providers";
 import { pgliteDialect } from "./pglite-dialect";
+import { vercelDatabaseUrl } from "../deploy-env.server";
 import {
   GROK_ISSUER_DEFAULT,
   PREVIEW_ALLOWED_HOSTS,
@@ -48,20 +48,6 @@ import {
 
 // Kick (and share) PGLite bootstrap as soon as the auth server module loads.
 void ensureDbReady();
-
-/**
- * Preview secret must outlive module reloads: PGLite (and its session rows) is
- * stored on `globalThis`, so an HMR re-eval of this file must NOT mint a new
- * signing secret or every existing session becomes invalid mid-dev. Process
- * restart clears both the secret and PGLite together.
- */
-const globalAuthRef = globalThis as typeof globalThis & {
-  __grokAuthPreviewSecret__?: string;
-};
-function previewAuthSecret(): string {
-  globalAuthRef.__grokAuthPreviewSecret__ ??= randomBytes(32).toString("hex");
-  return globalAuthRef.__grokAuthPreviewSecret__;
-}
 
 /** Read an env var, treating empty/whitespace as unset. */
 const env = (key: string): string | undefined => {
@@ -124,7 +110,7 @@ const trustedOrigins: string[] = explicitBaseURL
       ...LOCAL_DEV_ORIGINS,
     ];
 
-const databaseUrl = env("DATABASE_URL");
+const databaseUrl = env("DATABASE_URL") ?? (env("VERCEL") ? vercelDatabaseUrl : undefined);
 
 // Static broker OAuth endpoints (skip OIDC discovery on every sign-in / callback).
 // Discovery would cost an extra network hop to the broker before the popup can
@@ -175,7 +161,7 @@ export const auth = betterAuth({
   baseURL,
   // Deployed apps inject BETTER_AUTH_SECRET. Preview: process-stable secret on
   // globalThis so HMR doesn't invalidate PGLite-backed sessions (see above).
-  secret: env("BETTER_AUTH_SECRET") ?? previewAuthSecret(),
+  secret: env("BETTER_AUTH_SECRET") ?? PREVIEW_CLIENT_SECRET,
   database,
 
   // CSRF / origin check for credentialed auth POSTs (email sign-up/sign-in, …).

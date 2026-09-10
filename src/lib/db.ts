@@ -1,4 +1,5 @@
 import { pendingMigrations } from "../../scripts/migration-plan.mjs";
+import { vercelDatabaseUrl } from "./deploy-env.server";
 
 /** Which database backend is active. */
 export type DbSource = "neon" | "pglite";
@@ -7,8 +8,13 @@ export type DbSource = "neon" | "pglite";
 // "unset" — otherwise production would silently run on the PGLite fallback.
 const rawDatabaseUrl =
   typeof process !== "undefined" ? process.env.DATABASE_URL : undefined;
+const onVercel = typeof process !== "undefined" && Boolean(process.env.VERCEL);
 const databaseUrl =
-  rawDatabaseUrl && rawDatabaseUrl.trim() ? rawDatabaseUrl : undefined;
+  rawDatabaseUrl && rawDatabaseUrl.trim()
+    ? rawDatabaseUrl
+    : onVercel
+      ? vercelDatabaseUrl
+      : undefined;
 
 /**
  * Active backend: real **Neon** when `DATABASE_URL` is set (deployed / configured
