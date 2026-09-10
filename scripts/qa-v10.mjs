@@ -126,12 +126,45 @@ if (await shifaBtn.count()) {
     console.log("HARAJ_USED_BADGE", /Used-car market|سوق المستعمل/.test(hsheet));
     await page.screenshot({ path: "/workspace/screenshots/dealer-haraj.png" });
   }
-  await search.fill("Nukhba");
-  await page.waitForTimeout(600);
-  const nukhba = page.locator("button").filter({ hasText: /Nukhba|النخبة/i }).first();
-  console.log("HAS_SHIFA_NUKHBA", (await nukhba.count()) > 0);
-  const shifaHud = sbody.match(/(\d+)\s*\/\s*(\d+)/);
-  console.log("SHIFA HUD", shifaHud ? shifaHud[0] : "none");
+  await search.fill("");
+  await page.waitForTimeout(300);
+
+  const allChip = page.locator(".qads-chips button").first();
+  if (await allChip.count()) {
+    await allChip.click();
+    await page.waitForTimeout(400);
+  }
+
+  const listBtn = page.getByRole("button", { name: /^List$|^قائمة$/ }).first();
+  console.log("HAS_LIST_BTN", (await listBtn.count()) > 0);
+  if (await listBtn.count()) {
+    await listBtn.click();
+    await page.waitForTimeout(800);
+    const listBody = await page.locator("body").innerText();
+    const listCol = page.locator("[data-list='1']");
+    console.log("HAS_LIST_COL", (await listCol.count()) > 0);
+    console.log("LIST_HAS_HARAJ", /Haraj Al Shifa/.test(listBody));
+    console.log("LIST_HAS_SALEH", /Saleh Group/.test(listBody));
+    await page.screenshot({ path: "/workspace/screenshots/map-shifa-list.png" });
+    const salehRow = listCol.locator("button").filter({ hasText: /Saleh Group/i }).first();
+    if (await salehRow.count()) {
+      await salehRow.click({ force: true });
+      await page.waitForTimeout(800);
+      const salehSheet = await page.locator("body").innerText();
+      console.log("LIST_SALEH_SHEET", salehSheet.slice(0, 900));
+      console.log("HAS_ROUGH_NOTES", /rough notes|ملاحظات أولية/i.test(salehSheet));
+      console.log("HAS_SALEH_INV", /Inventory:\s*140/.test(salehSheet));
+      console.log("HAS_SALEH_SIZE", /Showroom size:\s*2,?000/.test(salehSheet));
+      await page.screenshot({ path: "/workspace/screenshots/dealer-saleh-shifa.png" });
+    }
+    const harajRow = listCol.locator("button").filter({ hasText: /Haraj/i }).first();
+    if (await harajRow.count()) {
+      await harajRow.click({ force: true });
+      await page.waitForTimeout(600);
+      const hsheet = await page.locator("body").innerText();
+      console.log("LIST_HARAJ_POPUP", /Haraj Al Shifa/.test(hsheet) && /Start survey|بدء/.test(hsheet));
+    }
+  }
 }
 
 await search.fill("");

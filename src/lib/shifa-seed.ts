@@ -126,7 +126,7 @@ const SEED: SeedIn[] = [
     pos: SALEH,
     phone: "+966920022122",
     street: "7342 Ibn Sayyidah",
-    note: "Public GPS. Al Shifa branch. Qadisiyah trained desk is D0309 — do not merge the two sites.",
+    note: "Public GPS. Al Shifa branch — unwalked.\nRelated Qadisiyah desk (walked — do not copy onto this lot)\nD0309 Saleh Group for Cars\nInventory: 140\nShowroom size: 2,000 m²\nASP: 90,000 SAR\nMonthly sold: 130",
     needsGps: false,
     relatedSdId: "D0309",
     vehicleType: "mix",
@@ -247,7 +247,7 @@ const SEED: SeedIn[] = [
     nameAr: "معرض شلال نجد للسيارات",
     pos: around(SALEH, 20, -90),
     street: "Ibn Sayyidah",
-    note: "Street-level public listing. Confirm operator and GPS on site. Qadisiyah desk is D0052 Shalal Najd — do not merge the two sites.",
+    note: "Street-level public listing. Confirm operator and GPS on site.\nRelated Qadisiyah desk (walked — do not copy onto this lot)\nD0052 Shalal Najd Cars\nInventory: 75\nShowroom size: 2,000 m²\nASP: 70,000 SAR",
     relatedSdId: "D0052",
   },
   {
@@ -380,7 +380,7 @@ const SEED: SeedIn[] = [
     nameAr: "أحدث السيارات فرع الشفا",
     pos: around(HARAJ, -200, -80),
     street: "Al Imam Muslim",
-    note: "Public listing on Imam Muslim, west of the Ahmad Al Basri strip. Qadisiyah desk is D0180 Latest Cars — confirm same operator on site.",
+    note: "Public listing on Imam Muslim, west of the Ahmad Al Basri strip.\nRelated Qadisiyah desk (walked — do not copy onto this lot)\nD0180 Latest Cars Qadisiyah\nInventory: 130\nShowroom size: 1,500 m²\nASP: 95,000 SAR",
     relatedSdId: "D0180",
   },
   {
@@ -429,7 +429,7 @@ const SEED: SeedIn[] = [
     nameAr: "مسفر الشهراني للسيارات",
     pos: around(HARAJ, -250, 30),
     street: "Muhammad Ibn Hamad Abu Shaybah",
-    note: "Street-level public listing. Distinct from Ayed Saad Misfer (S0024) until proven otherwise. Qadisiyah desk is D0109.",
+    note: "Street-level public listing. Distinct from Ayed Saad Misfer (S0024) until proven otherwise.\nRelated Qadisiyah desk (walked — do not copy onto this lot)\nD0109 Misfer Al Shahrani Cars\nInventory: 65\nShowroom size: 1,000 m²\nASP: 75,000 SAR",
     relatedSdId: "D0109",
   },
   {
@@ -448,7 +448,7 @@ const SEED: SeedIn[] = [
     pos: around(HARAJ, -120, -100),
     phone: "+966533717314",
     street: "Al Shifa, Riyadh",
-    note: "Public phone (YallaMotor). Address is district-level only — pin to GPS on site. Qadisiyah desk is D0066 Khaled Cars — confirm same operator.",
+    note: "Public phone (YallaMotor). Address is district-level only — pin to GPS on site.\nRelated Qadisiyah desk (walked — do not copy onto this lot)\nD0066 Khaled Cars Showroom\nInventory: 100\nShowroom size: 2,000 m²\nASP: 70,000 SAR",
     relatedSdId: "D0066",
   },
   {
@@ -538,7 +538,7 @@ const SEED: SeedIn[] = [
     pos: around(HARAJ, 150, -50),
     phone: "+966532606914",
     street: "Al Shifa strip",
-    note: "Public phone. Branch listing — confirm GPS on site.",
+    note: "Public phone. Branch listing — unwalked.\nRamz Al Ikhtiyar — Al Shifa\nPublic listing (YallaMotor): 59 cars · 17 brands\nThis Al Shifa lot is unwalked. Confirm on site. Do not copy listing counts onto the survey.",
   },
   {
     sdId: "S0054",
@@ -563,7 +563,7 @@ const SEED: SeedIn[] = [
     nameAr: "معرض الساري فرع الشفا",
     pos: around(SALEH, 120, 10),
     street: "Al Shifa strip",
-    note: "Qadisiyah walked desk is D0146 Al Sari Cars. This is the named Shifa branch — unwalked.",
+    note: "Named Shifa branch — unwalked.\nRelated Qadisiyah desk (walked — do not copy onto this lot)\nD0146 Al Sari Cars\nInventory: 90\nShowroom size: 1,000 m²\nASP: 80,000 SAR\nBrands: Toyota, Lexus, Pickup, Nissan",
     relatedSdId: "D0146",
     vehicleType: "mix",
   },
@@ -573,7 +573,7 @@ const SEED: SeedIn[] = [
     nameAr: "دار النخبة للسيارات — الشفا",
     pos: around(SALEH, 150, -40),
     street: "Al Shifa strip",
-    note: "Qadisiyah walked desk is D0187 Dar Al Nukhba (new-only, declined induction). Named Shifa branch — unwalked. Confirm used vs mix on site. No volumes.",
+    note: "Named Shifa branch — unwalked. Confirm used vs mix on site.\nRelated Qadisiyah desk (walked — do not copy onto this lot)\nD0187 Dar Al Nukhba\nInventory: 94\nShowroom size: 1,400 m²\nASP: 200,000 SAR\nMonthly sold: 110\nBrands: Ford, GMC, Nissan, GAC",
     relatedSdId: "D0187",
     vehicleType: "mix",
   },
@@ -661,3 +661,10 @@ const SEED: SeedIn[] = [
 
 export const SHIFA_ROWS: CensusRow[] = SEED.map(row);
 export const SHIFA_COUNT = SHIFA_ROWS.length;
+
+/** Public directory snippets for display-only rough notes. Never copy into survey fields. */
+export const SHIFA_PUBLIC_SNIPPETS: Record<string, string> = {
+  S0053:
+    "Ramz Al Ikhtiyar — Al Shifa\nPublic listing (YallaMotor): 59 cars · 17 brands\nThis Al Shifa lot is unwalked. Confirm on site. Do not copy listing counts onto the survey.",
+};
+
