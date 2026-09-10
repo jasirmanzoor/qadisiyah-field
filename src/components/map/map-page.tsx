@@ -800,12 +800,15 @@ function DealerSheet({
   const brands = (survey?.mainBrands ?? []).slice(0, 4);
   const sd = dealer.flags.sdId ?? "";
   const publicSnippet = dealer.flags.market === "shifa" ? SHIFA_PUBLIC_SNIPPETS[sd] : undefined;
+  const lotPaste = dealer.flags.market === "shifa" ? formatThisLotPaste(dealer, survey) : "";
   const relatedPaste =
-    dealer.flags.market === "shifa" ? formatRelatedWalkedPaste(partner, partnerSurvey) : null;
-  const rough = collectRoughNotes({
+    dealer.flags.market === "shifa" ? formatRelatedWalkedPaste(partner, partnerSurvey, t.relatedWalked) : null;
+  const roughBody = collectRoughNotes({
+    nameEn: dealer.nameEn,
     seedNote: dealer.seedNote,
     surveyNotes: survey?.notes,
     publicSnippet,
+    lotPaste,
     relatedPaste,
   });
 
@@ -924,14 +927,11 @@ function DealerSheet({
         </div>
       ) : null}
 
-      {rough.body ? (
+      {roughBody ? (
         <div className="mb-3 rounded-xl bg-surface-2 px-3 py-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted">{t.roughNotes}</p>
-          {rough.hasRelated && dealer.flags.market === "shifa" && !RELATED_MARKER.test(rough.body) ? (
-            <p className="mt-1 text-xs text-status-amber">{t.relatedWalked}</p>
-          ) : null}
-          <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-fg">{rough.body}</p>
-          {dealer.flags.market === "shifa" && dealer.status === "not_visited" && !/this Al Shifa lot is unwalked/i.test(rough.body) ? (
+          <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-fg">{roughBody}</p>
+          {dealer.flags.market === "shifa" && dealer.status === "not_visited" && !/this Al Shifa lot is unwalked/i.test(roughBody) ? (
             <p className="mt-1 text-xs text-muted">{t.thisLotUnwalked}</p>
           ) : null}
         </div>
@@ -1023,7 +1023,43 @@ function uniqueBlobs(...parts: Array<string | null | undefined>): string[] {
   return out;
 }
 
-function formatRelatedWalkedPaste(partner: Dealership | null, survey?: SurveyPayload): string | null {
+function formatThisLotPaste(dealer: Dealership, survey?: SurveyPayload): string {
+  const inv = survey?.inventoryUnits;
+  const size = survey?.showroomSizeSqm;
+  const lines = [dealer.nameEn];
+  lines.push(`Inventory: ${inv != null ? formatNumber(inv) : "—"}`);
+  lines.push(`Showroom size: ${size != null ? `${formatNumber(size)} m²` : "—"}`);
+  if (inv != null && survey?.avgSellingPriceSar != null) {
+    lines.push(`ASP: ${formatSar(survey.avgSellingPriceSar)}`);
+  }
+  if (inv != null && survey?.monthlySoldExact != null) {
+    lines.push(`Monthly sold: ${formatNumber(survey.monthlySoldExact)}`);
+  }
+  return lines.join("\n");
+}
+
+function stripRelatedSection(text: string): string {
+  return text
+    .replace(/\n*Related Qadisiyah desk[\s\S]*$/i, "")
+    .replace(/\n*مكتب القادسية المرتبط[\s\S]*$/i, "")
+    .trim();
+}
+
+function stripLeadingLotPaste(text: string, nameEn: string): string {
+  if (!nameEn) return text;
+  const escaped = nameEn.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(
+    `^${escaped}\\s*\\nInventory:\\s*[^\\n]*\\nShowroom size:\\s*[^\\n]*(?:\\nASP:\\s*[^\\n]*)?(?:\\nMonthly sold:\\s*[^\\n]*)?\\n*`,
+    "i",
+  );
+  return text.replace(re, "").trim();
+}
+
+function formatRelatedWalkedPaste(
+  partner: Dealership | null,
+  survey?: SurveyPayload,
+  heading?: string,
+): string | null {
   if (!partner || !survey) return null;
   const inv = survey.inventoryUnits;
   const size = survey.showroomSizeSqm;
@@ -1031,7 +1067,10 @@ function formatRelatedWalkedPaste(partner: Dealership | null, survey?: SurveyPay
   const sold = survey.monthlySoldExact;
   const brands = (survey.mainBrands ?? []).filter(Boolean);
   if (inv == null && size == null && asp == null && sold == null) return null;
-  const lines = [`${partner.flags.sdId ?? ""} ${partner.nameEn}`.trim()];
+  const lines = [
+    heading || "Related Qadisiyah desk (walked — do not copy onto this lot)",
+    `${partner.flags.sdId ?? ""} ${partner.nameEn}`.trim(),
+  ];
   if (inv != null) lines.push(`Inventory: ${formatNumber(inv)}`);
   if (size != null) lines.push(`Showroom size: ${formatNumber(size)} m²`);
   if (asp != null) lines.push(`ASP: ${formatSar(asp)}`);
@@ -1041,21 +1080,28 @@ function formatRelatedWalkedPaste(partner: Dealership | null, survey?: SurveyPay
 }
 
 function collectRoughNotes(opts: {
+  nameEn?: string;
   seedNote?: string;
   surveyNotes?: string;
   publicSnippet?: string;
+  lotPaste?: string;
   relatedPaste?: string | null;
-}): { body: string; hasRelated: boolean } {
+}): string {
+  const nameEn = opts.nameEn ?? "";
   const seed = (opts.seedNote ?? "").trim();
   const survey = (opts.surveyNotes ?? "").trim();
   const snippet = (opts.publicSnippet ?? "").trim();
-  const skipSnippet = !snippet || seed.includes(snippet) || survey.includes(snippet) || /59 cars/i.test(seed);
-  const blobs = uniqueBlobs(seed, survey, skipSnippet ? "" : snippet);
-  let body = blobs.join("\n\n");
-  const alreadyRelated = RELATED_MARKER.test(body) || /Inventory:\s*\d+/.test(body);
+  const skipSnippet =
+    !snippet || seed.includes(snippet) || survey.includes(snippet) || /59 cars/i.test(seed);
+  const mapping = uniqueBlobs(seed, survey, skipSnippet ? "" : snippet)
+    .map((b) => stripLeadingLotPaste(stripRelatedSection(b), nameEn))
+    .filter(Boolean);
+  const mappingBody = uniqueBlobs(...mapping).join("\n\n");
+  const parts: string[] = [];
+  const lotPaste = opts.lotPaste?.trim() || "";
+  if (lotPaste) parts.push(lotPaste);
+  if (mappingBody) parts.push(mappingBody);
   const paste = opts.relatedPaste?.trim() || "";
-  if (paste && !alreadyRelated) {
-    body = [body, paste].filter(Boolean).join("\n\n");
-  }
-  return { body, hasRelated: alreadyRelated || Boolean(paste) };
+  if (paste) parts.push(paste);
+  return parts.join("\n\n");
 }

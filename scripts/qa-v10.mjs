@@ -122,8 +122,10 @@ if (await shifaBtn.count()) {
     await haraj.click();
     await page.waitForTimeout(800);
     const hsheet = await page.locator("body").innerText();
-    console.log("HARAJ SHEET", hsheet.slice(0, 600));
+    console.log("HARAJ SHEET", hsheet.slice(0, 700));
     console.log("HARAJ_USED_BADGE", /Used-car market|سوق المستعمل/.test(hsheet));
+    console.log("HARAJ_ROUGH", /rough notes|ملاحظات أولية/i.test(hsheet));
+    console.log("HARAJ_LOT_PASTE", /Inventory:\s*[—–-]/.test(hsheet) && /Showroom size:\s*[—–-]/.test(hsheet));
     await page.screenshot({ path: "/workspace/screenshots/dealer-haraj.png" });
   }
   await search.fill("");
@@ -163,6 +165,17 @@ if (await shifaBtn.count()) {
       await page.waitForTimeout(600);
       const hsheet = await page.locator("body").innerText();
       console.log("LIST_HARAJ_POPUP", /Haraj Al Shifa/.test(hsheet) && /Start survey|بدء/.test(hsheet));
+      console.log("LIST_HARAJ_LOT_PASTE", /Inventory:\s*[—–-]/.test(hsheet) && /Showroom size:\s*[—–-]/.test(hsheet));
+      await page.screenshot({ path: "/workspace/screenshots/dealer-haraj-list.png" });
+    }
+    const najoomRow = listCol.locator("button").filter({ hasText: /Najoom/i }).first();
+    if (await najoomRow.count()) {
+      await najoomRow.click({ force: true });
+      await page.waitForTimeout(600);
+      const nsheet = await page.locator("body").innerText();
+      console.log("NAJOOM_LOT_PASTE", /Najoom Al Shifa/.test(nsheet) && /Inventory:\s*[—–-]/.test(nsheet) && /Showroom size:\s*[—–-]/.test(nsheet));
+      console.log("NAJOOM_NO_QADS_INV", !/Inventory:\s*140/.test(nsheet));
+      await page.screenshot({ path: "/workspace/screenshots/dealer-najoom-shifa.png" });
     }
   }
 }

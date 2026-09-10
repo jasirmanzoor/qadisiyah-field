@@ -665,6 +665,7 @@ export const SHIFA_COUNT = SHIFA_ROWS.length;
 /** Public directory snippets for display-only rough notes. Never copy into survey fields. */
 export const SHIFA_PUBLIC_SNIPPETS: Record<string, string> = {
   S0053:
-    "Ramz Al Ikhtiyar — Al Shifa\nPublic listing (YallaMotor): 59 cars · 17 brands\nThis Al Shifa lot is unwalked. Confirm on site. Do not copy listing counts onto the survey.",
+    "Public listing (YallaMotor): 59 cars · 17 brands. Do not copy listing counts onto the survey.",
 };
+
 
