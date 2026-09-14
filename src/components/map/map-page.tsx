@@ -4,6 +4,7 @@ import { formatDistance, haversineM, MARKET_CENTERS, optimizeWalkOrder } from "@
 import { dealersInMarket, dealerMarket, dualPartner, isDualLocation } from "@/lib/markets";
 import { cn, formatNumber, formatPct, formatSar, formatSarCompact, mapsLink, telLink, uid, waLink } from "@/lib/utils";
 import type { Dealership, SurveyPayload } from "@/lib/types";
+import { AiSurveySheet } from "@/components/ai/ai-survey-sheet";
 import { Button } from "@/components/ui/button";
 import { Input, StatusBadge, FigureBadge, TrainingBadge } from "@/components/ui/field";
 import { ClientOnly } from "@/components/client-only";
@@ -64,6 +65,7 @@ export function MapPage() {
   const [planning, setPlanning] = useState(false);
   const [routeIds, setRouteIds] = useState<string[]>([]);
   const [adding, setAdding] = useState(false);
+  const [aiAdding, setAiAdding] = useState(false);
   const [newName, setNewName] = useState("");
   const [newNameAr, setNewNameAr] = useState("");
   const [newPhone, setNewPhone] = useState("");
@@ -766,8 +768,29 @@ export function MapPage() {
             <Button data-save-survey="1" onClick={() => void addDealer()} disabled={!newName.trim()}>
               {t.saveAndSurvey}
             </Button>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setAdding(false);
+                setAiAdding(true);
+              }}
+            >
+              {t.aiSurveyNewTitle}
+            </Button>
           </div>
         </div>
+      ) : null}
+
+      {aiAdding ? (
+        <AiSurveySheet
+          mode="new"
+          dealershipId={null}
+          onClose={() => setAiAdding(false)}
+          onSaved={(id) => {
+            setAiAdding(false);
+            void navigate({ to: "/survey/$id", params: { id } });
+          }}
+        />
       ) : null}
     </div>
   );
