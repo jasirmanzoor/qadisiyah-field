@@ -23,9 +23,9 @@ export function compressImage(file: File): Promise<string> {
 }
 
 /**
- * Analysis copy — larger and cleaner so signboard text, Arabic lettering,
- * price tags and badges survive compression.
+ * Analysis copy — keep signboard text readable without blowing the
+ * serverless request body (6 phone photos at 1600/0.82 overflow Seroval).
  */
 export function compressForAi(file: File): Promise<string> {
-  return drawToDataUrl(file, 1600, 0.82);
+  return drawToDataUrl(file, 1280, 0.68);
 }
