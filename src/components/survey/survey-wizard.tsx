@@ -1,8 +1,10 @@
 import { Link, useNavigate } from "@tanstack/react-router";
+import { AiSurveySheet } from "@/components/ai/ai-survey-sheet";
 import { Button } from "@/components/ui/button";
 import { ChipMulti, Choice, FigureBadge, Input, Label, SourceToggle, Textarea } from "@/components/ui/field";
 import { BANK_OPTIONS, BRAND_OPTIONS, FAIL_REASON_OPTIONS } from "@/lib/seed";
 import { COPY } from "@/lib/i18n";
+import { compressImage } from "@/lib/image";
 import { dealerMarket } from "@/lib/markets";
 import { canSubmitSurvey, SURVEY_STEPS } from "@/lib/survey-schema";
 import type { SurveyPayload, VisitStatus } from "@/lib/types";
@@ -12,19 +14,6 @@ import { usePrefs } from "@/stores/prefs";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { ChevronLeft, Mic, MicOff } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-
-async function compressImage(file: File): Promise<string> {
-  const bitmap = await createImageBitmap(file);
-  const max = 960;
-  const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return "";
-  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL("image/jpeg", 0.55);
-}
 
 export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
   const navigate = useNavigate();
@@ -43,6 +32,8 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
   const payload: SurveyPayload = record?.payload ?? {};
   const step = record?.step ?? 0;
   const photos = snapshot.photos.filter((p) => p.dealershipId === dealershipId);
+
+  const [aiOpen, setAiOpen] = useState(false);
 
   const timer = useRef<number | null>(null);
   function save(patch: Partial<SurveyPayload>, nextStep = step, status?: VisitStatus) {
@@ -75,7 +66,7 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
   const submitGate = canSubmitSurvey(payload);
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col bg-bg pt-[env(safe-area-inset-top)]">
+    <div className="relative flex h-full min-h-0 flex-1 flex-col bg-bg pt-[env(safe-area-inset-top)]">
       <div className="flex items-center gap-2 border-b border-border px-2 py-2">
         <button
           type="button"
@@ -109,6 +100,7 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
             payload={payload}
             gps={gps}
             photos={photos}
+            onRunAi={() => setAiOpen(true)}
             onDealer={(patch) => void upsertDealer({ ...dealer, ...patch, updatedAt: new Date().toISOString() })}
             onSave={save}
             onPhoto={async (file) => {
@@ -180,6 +172,9 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
       {step === SURVEY_STEPS.length - 1 && !submitGate.ok ? (
         <p className="px-4 pb-3 text-xs text-status-amber">{submitGate.reason}</p>
       ) : null}
+      {aiOpen ? (
+        <AiSurveySheet mode="existing" dealershipId={dealershipId} onClose={() => setAiOpen(false)} />
+      ) : null}
     </div>
   );
 }
@@ -199,6 +194,7 @@ function IdentityStep({
   gps,
   photos,
   onDealer,
+  onRunAi,
   onSave,
   onPhoto,
   onRemove,
@@ -208,6 +204,7 @@ function IdentityStep({
   gps: { lat: number; lng: number } | null;
   photos: { id: string; dataUrl: string }[];
   onDealer: (p: { nameEn?: string; nameAr?: string; lat?: number; lng?: number; listedPhone?: string }) => void;
+  onRunAi: () => void;
   onSave: (p: Partial<SurveyPayload>) => void;
   onPhoto: (file: File) => Promise<void>;
   onRemove: (id: string) => void;
@@ -243,6 +240,11 @@ function IdentityStep({
           value={dealer.listedPhone}
           onChange={(e) => onDealer({ listedPhone: e.target.value })}
         />
+      </FieldBlock>
+      <FieldBlock label={t.aiSurvey} hint={t.aiSurveyPhotosHint}>
+        <Button variant="secondary" onClick={onRunAi}>
+          {t.aiSurveyRun}
+        </Button>
       </FieldBlock>
       <FieldBlock label={t.fieldPhotos} hint={t.fieldPhotosHint}>
         <input
@@ -803,4 +805,3 @@ type SpeechRec = {
   start: () => void;
   stop: () => void;
 };
-
