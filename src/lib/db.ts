@@ -54,6 +54,7 @@ const globalRef = globalThis as typeof globalThis & {
   __pgSqlPromise__?: Promise<Sql>;
   __pgliteInstance__?: Promise<import("@electric-sql/pglite").PGlite>;
   __pgliteMigrateChain__?: Promise<void>;
+  __neonMigrateChain__?: Promise<void>;
 };
 
 /**
@@ -100,6 +101,42 @@ function createNeonSql(): Promise<Sql> {
     types.setTypeParser(OID_DATE, identity);
     types.setTypeParser(OID_INTERVAL, identity);
     const pool = new Pool({ connectionString: databaseUrl });
+    const pass = (globalRef.__neonMigrateChain__ ?? Promise.resolve())
+      .catch(() => undefined)
+      .then(async () => {
+        const client = await pool.connect();
+        try {
+          await client.query(
+            "create table if not exists _migrations (name text primary key, applied_at timestamptz not null default now())",
+          );
+          const migrations = import.meta.glob("/migrations/*.sql", {
+            query: "?raw",
+            import: "default",
+            eager: true,
+          }) as Record<string, string>;
+          const doneRows = await client.query<{ name: string }>("select name from _migrations");
+          const done = doneRows.rows.map((r) => r.name);
+          for (const { name, path } of pendingMigrations(Object.keys(migrations), done)) {
+            await client.query("BEGIN");
+            try {
+              await client.query(migrations[path]);
+              await client.query("INSERT INTO _migrations (name) VALUES ($1)", [name]);
+              await client.query("COMMIT");
+            } catch (err) {
+              try {
+                await client.query("ROLLBACK");
+              } catch {
+                /* keep original */
+              }
+              throw err;
+            }
+          }
+        } finally {
+          client.release();
+        }
+      });
+    globalRef.__neonMigrateChain__ = pass;
+    await pass;
     return toSql(async <T>(text: string, params: unknown[]) => {
       const res = await pool.query(text, params);
       return res.rows as T[];
