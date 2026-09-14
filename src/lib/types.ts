@@ -40,7 +40,16 @@ export type DealershipFlags = {
     | "mapping_seed"
     | "interpolated"
     | "related"
-    | "outlier_corrected";
+    | "outlier_corrected"
+    | "field_device_gps"
+    | "manual_pin"
+    | "existing_confirmed_pin"
+    | "public_map"
+    | "unknown";
+  gpsAccuracy?: number;
+  gpsTimestamp?: string;
+  gpsStatus?: "confirmed" | "needs_confirmation" | "unresolved";
+  lastAiRunAt?: string;
   street?: string;
   mapsUrl?: string;
   censusVersion?: number;
@@ -127,6 +136,11 @@ export type SurveyPayload = {
   buyerMix?: "saudi" | "expat" | "even" | "self_employed" | "";
   leadOnlinePct?: number | null;
   volumeFiguresAre?: "observed" | "self_reported" | "mixed" | "";
+  /** AI Field Survey additions — additive, optional, safe for older payloads. */
+  financeAvailable?: "yes" | "no" | "unknown" | "";
+  financeEvidence?: string;
+  aiFilled?: string[];
+  aiLastRunId?: string;
   openToPilot?: "yes" | "maybe" | "no" | "too_early" | "";
   notes?: string;
 };
@@ -245,4 +259,88 @@ export const EMPTY_SURVEY: SurveyPayload = {
   mainBrands: [],
   banksPartnered: [],
   leadOnlinePct: 0,
+};
+
+/* AI Field Survey Agent */
+
+export const AI_RUN_STAGES = [
+  "queued",
+  "analyzing_photos",
+  "extracting_text",
+  "detecting_vehicles",
+  "aggregating_evidence",
+  "researching",
+  "generating_results",
+  "completed",
+  "partial",
+  "failed",
+] as const;
+export type AiRunStage = (typeof AI_RUN_STAGES)[number];
+export type AiRunStatus = "queued" | "running" | "completed" | "partial" | "failed";
+
+export type AiConfidence = "high" | "medium" | "low" | "unknown";
+export type AiProposalStatus = "observed" | "estimated" | "needs_review" | "unknown";
+export type AiEvidenceSource = "photo" | "ocr" | "web" | "gps" | "manual" | "derived";
+export type AiProposalValue = string | number | boolean | string[] | null;
+export type AiDecision = "accepted" | "rejected" | "edited" | "kept_existing";
+
+export type AiGps = {
+  atShowroom: boolean;
+  lat: number | null;
+  lng: number | null;
+  accuracy: number | null;
+  source: string;
+  status: "confirmed" | "needs_confirmation" | "unresolved";
+};
+
+export type AiEvidenceRow = {
+  id: string;
+  runId: string;
+  proposalId: string | null;
+  fieldKey: string;
+  sourceType: AiEvidenceSource;
+  photoIndex: number | null;
+  sourceUrl: string | null;
+  text: string;
+  confidence: AiConfidence;
+};
+
+export type AiProposal = {
+  id: string;
+  runId: string;
+  dealershipId: string | null;
+  fieldKey: string;
+  label: string;
+  value: AiProposalValue;
+  existingValue: AiProposalValue;
+  confidence: AiConfidence;
+  status: AiProposalStatus;
+  sourceTypes: AiEvidenceSource[];
+  reasoning: string;
+  needsVerification: boolean;
+  decision: AiDecision | null;
+  evidence: AiEvidenceRow[];
+};
+
+export type AiRun = {
+  id: string;
+  dealershipId: string | null;
+  mode: "existing" | "new";
+  status: AiRunStatus;
+  stage: AiRunStage;
+  provider: string;
+  model: string;
+  photoCount: number;
+  gps: AiGps;
+  summary: string;
+  missingInformation: string[];
+  error: string | null;
+  applied: boolean;
+  startedAt: string;
+  completedAt: string | null;
+};
+
+export type AiRunBundle = {
+  run: AiRun;
+  proposals: AiProposal[];
 };
