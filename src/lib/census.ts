@@ -1,34 +1,15 @@
 import raw from "./census-data.json";
 import { SHIFA_ROWS } from "./shifa-seed";
-import type { CensusRow } from "./types";
+import { SHIFA_WALK_SEP15 } from "./shifa-walk-sep15";
+import type { CensusRow, DealershipFlags, SurveyPayload, VisitStatus } from "./types";
 
 /** August 2026 walking census (D0001–D0309) plus leftover mapping-only pins.
  *
- * Missing fields were filled only from observed patterns — financials were never invented:
- * GPS: GIS WKT POINT (lng lat) from the Autolink survey layer (v13) → latest sheet coords / maps links
- *      → mapping-roster name match → related/deep-survey copy → walking-order interpolation
- *      (flagged needsGps). Out-of-market GIS pins keep the Qadisiyah branch (D0065 Al Wadi).
- *      GIS live pins reopen a mind-map "closed" flag (D0069 Al Khiyar Al Badil).
- * Size: GIS showroom m² when 100–5000 and the row is not name-only; else modal 1,000 m².
- *      D0187 14,000 m² left at 1,400 (GIS itself flags a typo). D0228 trained desk keeps 1,500
- *      (GIS row is name-only).
- * Phone: sheet number, else mapping-roster match.
- * FPR: financed ÷ monthly sales when both exist.
- * ASP 10,000 on mixed/new stock (D0305, D0307) treated as a missing-zero typo → 100,000.
- * Visual fields (inventory, brands, size, salesmen) tagged observed; monthly volume tagged self-reported.
- * Training: Induction Sheet overlay (trained / hold / declined / unavailable / scheduled).
- * GIS identity: D0309 is Saleh Group (induction pin); D0151 is Swapcar closed (no WKT).
- * GIS reopen: D0069 Al Khiyar Al Badil has a live WKT pin (mind-map latlng was blank/closed).
- *
  * v14: Al Shifa (الشفا) used-car mapping seed (S0001+) is merged from shifa-seed.ts.
- *      Qadisiyah rows are tagged market=qadisiyah. Shifa has no invented financials.
- *      S0068–S0073 are 10 Sep 2026 visual walk (estimated floor counts, not VIN).
- *      Public listing counts stay in notes only (Ramz 59 on YallaMotor).
  * v15: S0074–S0084 Al Shifa floor notes 15 Sep 2026. Pins continue east of S0073.
  *      ASP / finance / salesmen filled only where the walk recorded them.
  */
 export type { CensusRow };
-
 
 type CensusFile = {
   version: number;
@@ -56,6 +37,75 @@ const data = raw as CensusFile;
 /** Roster sync version. Bump to force existing workspaces to insert new pins. */
 export const CENSUS_VERSION = 15;
 
+const CLUSTER = { lat: 24.5479261, lng: 46.6818955 };
+
+function around(eastM: number, northM: number) {
+  const latM = 111_320;
+  const lngM = 111_320 * Math.cos((CLUSTER.lat * Math.PI) / 180);
+  return {
+    lat: +(CLUSTER.lat + northM / latM).toFixed(7),
+    lng: +(CLUSTER.lng + eastM / lngM).toFixed(7),
+  };
+}
+
+function walkToRow(s: (typeof SHIFA_WALK_SEP15)[number]): CensusRow {
+  const pos = around(s.pos.eastM, s.pos.northM);
+  const w = s.walked;
+  const flags: DealershipFlags = {
+    sdId: s.sdId,
+    market: "shifa",
+    mappingOnly: true,
+    census: false,
+    gpsSource: "mapping_seed",
+    street: s.street,
+    mapsUrl: `https://www.google.com/maps?q=${pos.lat},${pos.lng}`,
+    censusVersion: CENSUS_VERSION,
+    needsGps: true,
+  };
+  const survey: SurveyPayload = {
+    visitDate: w?.visitDate ?? "",
+    surveyorName: w ? "visual census" : "",
+    visitStatus: w ? "partial" : "not_visited",
+    mainBrands: w?.mainBrands ?? [],
+    banksPartnered: [],
+    leadOnlinePct: 0,
+    authorisedDealer: "",
+    authorisedBrand: "",
+    vehicleType: "used_only",
+    street: s.street,
+    notes: s.note,
+    inventoryUnits: w?.inventoryUnits ?? null,
+    inventoryInside: w?.inventoryInside ?? null,
+    inventoryOutside: w?.inventoryOutside ?? null,
+    inventoryAgePctOver5: w?.inventoryAgePctOver5 ?? null,
+    inventoryBasis: w ? "estimated" : "",
+    inventorySource: w ? "observed" : "",
+    showroomSizeSqm: w?.showroomSizeSqm ?? null,
+    sizeBasis: w ? "estimated" : "",
+    showroomSizeSource: w ? "observed" : "",
+    avgSellingPriceSar: w?.avgSellingPriceSar ?? null,
+    avgPriceSource: w?.avgSellingPriceSar != null ? "self_reported" : "",
+    salesmenCount: w?.salesmenCount ?? null,
+    salesmenSource: w?.salesmenCount != null ? "observed" : "",
+    financeAvailable: w?.financeAvailable ?? "",
+    volumeFiguresAre: w ? "mixed" : "",
+  };
+  const status: VisitStatus = w ? "partial" : "not_visited";
+  return {
+    sdId: s.sdId,
+    nameEn: s.nameEn,
+    nameAr: s.nameAr,
+    lat: pos.lat,
+    lng: pos.lng,
+    phone: "",
+    note: s.note,
+    status,
+    flags,
+    survey,
+    step: 0,
+  };
+}
+
 function tagMarket(row: CensusRow, market: "qadisiyah" | "shifa"): CensusRow {
   return {
     ...row,
@@ -69,7 +119,9 @@ function tagMarket(row: CensusRow, market: "qadisiyah" | "shifa"): CensusRow {
 
 export const CENSUS_ROWS: CensusRow[] = data.rows.map((r) => tagMarket(r, "qadisiyah"));
 export const EXTRA_PINS: CensusRow[] = data.extra.map((r) => tagMarket(r, "qadisiyah"));
-export const SHIFA_PINS: CensusRow[] = SHIFA_ROWS.map((r) => tagMarket(r, "shifa"));
+export const SHIFA_PINS: CensusRow[] = [...SHIFA_ROWS, ...SHIFA_WALK_SEP15.map(walkToRow)].map((r) =>
+  tagMarket(r, "shifa"),
+);
 export const ALL_CENSUS: CensusRow[] = [...CENSUS_ROWS, ...EXTRA_PINS, ...SHIFA_PINS];
 
 export const CENSUS_STATS = {
