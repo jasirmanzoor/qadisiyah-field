@@ -24,6 +24,8 @@ import type { CensusRow } from "./types";
  *      Qadisiyah rows are tagged market=qadisiyah. Shifa has no invented financials.
  *      S0068–S0073 are 10 Sep 2026 visual walk (estimated floor counts, not VIN).
  *      Public listing counts stay in notes only (Ramz 59 on YallaMotor).
+ * v15: S0074–S0084 Al Shifa floor notes 15 Sep 2026. Pins continue east of S0073.
+ *      ASP / finance / salesmen filled only where the walk recorded them.
  */
 export type { CensusRow };
 
@@ -52,7 +54,7 @@ type CensusFile = {
 const data = raw as CensusFile;
 
 /** Roster sync version. Bump to force existing workspaces to insert new pins. */
-export const CENSUS_VERSION = 14;
+export const CENSUS_VERSION = 15;
 
 function tagMarket(row: CensusRow, market: "qadisiyah" | "shifa"): CensusRow {
   return {
