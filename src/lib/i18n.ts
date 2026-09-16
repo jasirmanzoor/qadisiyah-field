@@ -299,3 +299,4 @@ const en = {
   pinUpdated: "Pin moved",
   pasteCoords: "Paste coordinates",
 } as const;
+
