@@ -1,1 +1,1 @@
-PLACEHOLDER
+import { getSql } from "@/lib/db";
