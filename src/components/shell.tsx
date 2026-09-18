@@ -87,10 +87,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-dvh min-h-dvh flex-col bg-bg text-fg">
       {isSurvey ? null : (
-      <header className="sticky top-0 z-30 border-b border-border bg-bg/95 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-sm">
+      <header className="sticky top-0 z-30 border-b border-border/80 bg-bg/70 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-xl">
         <div className="flex items-center gap-2 px-3 py-2">
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold tracking-tight">{t.appName}</p>
+          <p className="truncate text-[13px] font-semibold uppercase tracking-[0.14em] text-fg">{t.appName}</p>
           <p className="truncate text-[11px] text-muted">
             {lang === "ar" ? MARKET_META[market].labelAr : MARKET_META[market].labelEn}
             {market === "shifa" ? ` · ${t.usedCarMarket}` : ""}
@@ -152,7 +152,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
 
       {isSurvey ? null : (
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-border bg-surface pb-[env(safe-area-inset-bottom)]">
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-border/80 bg-surface/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
         {nav.map((item) => {
           const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
           const Icon = item.icon;

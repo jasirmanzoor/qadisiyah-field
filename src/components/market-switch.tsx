@@ -15,7 +15,7 @@ export function MarketSwitch({
       role="tablist"
       aria-label={lang === "ar" ? "السوق" : "Market"}
       className={cn(
-        "grid grid-cols-2 gap-1 rounded-2xl bg-surface/95 p-1 shadow-[var(--shadow-border)] backdrop-blur-sm",
+        "qads-hud grid grid-cols-2 gap-1 rounded-2xl p-1",
         compact && "rounded-xl p-0.5",
       )}
     >
