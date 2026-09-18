@@ -4,6 +4,7 @@ import { Circle, MapContainer, Marker, Polyline, TileLayer, Tooltip, useMap, use
 import "leaflet/dist/leaflet.css";
 import { clusterByZoom, MARKET_CENTER } from "@/lib/geo";
 import type { Dealership } from "@/lib/types";
+import { usePrefs } from "@/stores/prefs";
 
 export type MapFocus = {
   lat: number;
@@ -45,7 +46,7 @@ function clusterIcon(count: number, fill: string) {
   if (hit) return hit;
   const icon = L.divIcon({
     className: "",
-            html: `<div class="qads-cluster" data-cluster="1" style="--cluster-fill:${fill};width:${size}px;height:${size}px">${count}</div>`,
+    html: `<div class="qads-cluster" data-cluster="1" style="--cluster-fill:${fill};width:${size}px;height:${size}px">${count}</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   });
@@ -145,6 +146,7 @@ export function MapCanvas({
   dualIds?: Set<string>;
   showDualLabels?: boolean;
 }) {
+  const theme = usePrefs((s) => s.theme);
   const [zoom, setZoom] = useState(15);
   const onZoom = useCallback((z: number) => setZoom(Math.round(z)), []);
 
@@ -188,8 +190,16 @@ export function MapCanvas({
           url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
           attribution="Esri"
         />
+      ) : theme === "dark" ? (
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution="CARTO"
+        />
       ) : (
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="OpenStreetMap" />
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          attribution="CARTO"
+        />
       )}
 
       {heat
