@@ -1,6 +1,7 @@
 import { COPY, trainingCopy } from "@/lib/i18n";
 import { dealerMarket } from "@/lib/markets";
-import { cn, formatDistance, formatNumber, formatPct, formatSarCompact, mapsLink, telLink, waLink } from "@/lib/utils";
+import { cn, formatNumber, formatPct, formatSarCompact, mapsLink, telLink, waLink } from "@/lib/utils";
+import { formatDistance } from "@/lib/geo";
 import type { Dealership, SurveyPayload } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input, StatusBadge, FigureBadge, TrainingBadge } from "@/components/ui/field";
