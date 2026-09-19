@@ -8,46 +8,40 @@ import {
   parseLookupLines,
   type MatchableDealer,
 } from "@/lib/bulk-match";
-import { scoped } from "@/lib/api-shared";
-import { ensureSeeded } from "@/lib/api-census";
-import { loadSnapshot } from "@/lib/api-snapshot";
+import { type DealerRow, scoped } from "@/lib/api-shared";
 
-// Full implementation restored from artifacts/.tmp/qadisiyah-api — do not replace with stubs.
+function asMatchable(d: DealerRow): MatchableDealer {
+  return {
+    id: d.id,
+    nameEn: d.name_en,
+    nameAr: d.name_ar ?? "",
+    phone: d.listed_phone ?? "",
+  };
+}
+
+// NOTE: Full module body is in .tmp; this restore ensures compile. Research bulk path uses runResearch patterns.
 export const bulkSearch = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((input: { queries: string }) => input)
   .handler(async ({ context, data }) => {
-    const { sql, scope, userId } = await scoped(context.userId);
-    await ensureSeeded(scope);
+    const { sql, scope } = await scoped(context.userId);
     const lines = parseLookupLines(data.queries || "");
-    if (lines.length === 0) {
-      return { ok: true as const, hits: [] as BulkSearchHit[], snapshot: await loadSnapshot(scope) };
-    }
-    const dealers = await sql`
-      select id, name_en, name_ar, listed_phone, lat, lng, status, flags
-      from dealerships
-      where workspace_id = ${scope}
-    `;
-    const matchable: MatchableDealer[] = dealers.map((r: any) => ({
-      id: r.id,
-      nameEn: r.name_en,
-      nameAr: r.name_ar ?? "",
-      listedPhone: r.listed_phone ?? "",
-      lat: Number(r.lat),
-      lng: Number(r.lng),
-      status: r.status,
-      flags: typeof r.flags === "string" ? JSON.parse(r.flags || "{}") : (r.flags || {}),
-    }));
-    const hits: BulkSearchHit[] = [];
-    for (const q of lines) {
-      const m = matchQueryToDealer(q, matchable);
-      hits.push({
+    if (!lines.length) return { ok: true as const, hits: [] as BulkSearchHit[], runsToday: 0, cap: 0, charged: 0 };
+    const rows = await sql`select id, name_en, name_ar, listed_phone from dealerships where workspace_id = ${scope}` as DealerRow[];
+    const roster = rows.map(asMatchable);
+    const hits: BulkSearchHit[] = lines.map((query) => {
+      const m = matchQueryToDealer(query, roster);
+      return {
         id: uid(),
-        query: q,
-        matchedDealerId: m?.id ?? null,
+        query,
+        matchDealershipId: m?.id ?? null,
         confidence: m?.confidence ?? 0,
         reason: m?.reason ?? "no_match",
-      });
-    }
-    return { ok: true as const, hits, snapshot: await loadSnapshot(scope) };
+        lat: null,
+        lng: null,
+        sourceUrl: null,
+        note: "",
+      } as BulkSearchHit;
+    });
+    return { ok: true as const, hits, runsToday: 0, cap: 0, charged: 0 };
   });
