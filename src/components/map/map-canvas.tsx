@@ -1,8 +1,8 @@
 import L from "leaflet";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Circle, MapContainer, Marker, Polyline, TileLayer, Tooltip, useMap, useMapEvents } from "react-leaflet";
+import { useEffect, useMemo } from "react";
+import { Circle, MapContainer, Marker, Polyline, TileLayer, Tooltip, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { clusterByZoom, MARKET_CENTER } from "@/lib/geo";
+import { MARKET_CENTER } from "@/lib/geo";
 import type { Dealership } from "@/lib/types";
 import { usePrefs } from "@/stores/prefs";
 
@@ -28,25 +28,10 @@ function pinIcon(status: string, selected: boolean, trained = false, dual = fals
   const key = `p:${status}:${selected ? 1 : 0}:${trained ? 1 : 0}:${dual ? 1 : 0}`;
   const hit = iconCache.get(key);
   if (hit) return hit;
-  const size = selected ? 22 : dual ? 20 : 18;
+  const size = selected ? 22 : dual ? 20 : 16;
   const icon = L.divIcon({
     className: "",
     html: `<div class="qads-pin qads-pin-${status} ${selected ? "qads-pin-selected" : ""} ${trained ? "qads-pin-trained" : ""} ${dual ? "qads-pin-dual" : ""}"></div>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-  });
-  iconCache.set(key, icon);
-  return icon;
-}
-
-function clusterIcon(count: number, fill: string) {
-  const size = count >= 40 ? 40 : count >= 12 ? 34 : 28;
-  const key = `c:${count}:${fill}:${size}`;
-  const hit = iconCache.get(key);
-  if (hit) return hit;
-  const icon = L.divIcon({
-    className: "",
-    html: `<div class="qads-cluster" data-cluster="1" style="--cluster-fill:${fill};width:${size}px;height:${size}px">${count}</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   });
@@ -91,17 +76,6 @@ function MapSizer() {
   return null;
 }
 
-function ZoomWatcher({ onZoom }: { onZoom: (z: number) => void }) {
-  const map = useMap();
-  useEffect(() => {
-    onZoom(map.getZoom());
-  }, [map, onZoom]);
-  useMapEvents({
-    zoomend: () => onZoom(map.getZoom()),
-  });
-  return null;
-}
-
 function FlyTo({ target }: { target: MapFocus | null }) {
   const map = useMap();
   useEffect(() => {
@@ -123,7 +97,6 @@ export function MapCanvas({
   dealers,
   selectedId,
   onSelect,
-  onCluster,
   satellite,
   me,
   route,
@@ -132,6 +105,7 @@ export function MapCanvas({
   origin = MARKET_CENTER,
   dualIds,
   showDualLabels = true,
+  dark = false,
 }: {
   dealers: Dealership[];
   selectedId: string | null;
@@ -145,24 +119,17 @@ export function MapCanvas({
   origin?: { lat: number; lng: number; zoom?: number };
   dualIds?: Set<string>;
   showDualLabels?: boolean;
+  dark?: boolean;
 }) {
   const theme = usePrefs((s) => s.theme);
-  const [zoom, setZoom] = useState(15);
-  const onZoom = useCallback((z: number) => setZoom(Math.round(z)), []);
-
+  const isDark = dark || theme === "dark";
   const routeIds = useMemo(() => new Set(route.map((d) => d.id)), [route]);
-
-  const clusters = useMemo(() => {
-    const rest = dealers.filter((d) => d.id !== selectedId && !routeIds.has(d.id) && !dualIds?.has(d.id));
-    return clusterByZoom(rest, zoom);
-  }, [dealers, selectedId, routeIds, zoom, dualIds]);
-
-  const labeledDealers = useMemo(
-    () => dealers.filter((d) => dualIds?.has(d.id) && d.id !== selectedId && !routeIds.has(d.id)),
-    [dealers, dualIds, selectedId, routeIds],
-  );
-
   const selected = dealers.find((d) => d.id === selectedId) ?? null;
+
+  const pins = useMemo(
+    () => dealers.filter((d) => d.id !== selectedId && !routeIds.has(d.id)),
+    [dealers, selectedId, routeIds],
+  );
 
   const path = useMemo(() => {
     const pts: [number, number][] = [];
@@ -183,14 +150,13 @@ export function MapCanvas({
       attributionControl={false}
     >
       <MapSizer />
-      <ZoomWatcher onZoom={onZoom} />
       <FlyTo target={focus} />
       {satellite ? (
         <TileLayer
           url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
           attribution="Esri"
         />
-      ) : theme === "dark" ? (
+      ) : isDark ? (
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution="CARTO"
@@ -218,54 +184,24 @@ export function MapCanvas({
         : null}
 
       {!heat
-        ? clusters.map((c) => {
-            if (c.items.length === 1) {
-              const d = c.items[0];
-              return (
-                <Marker
-                  key={d.id}
-                  position={[d.lat, d.lng]}
-                  icon={pinIcon(d.status, false, d.flags.trainingStage === "trained", dualIds?.has(d.id))}
-                  eventHandlers={{ click: () => onSelect(d.id) }}
-                />
-              );
-            }
-            const same = c.items.every((d) => d.status === c.items[0].status);
-            const fill = same ? statusFill(c.items[0].status) : "var(--primary)";
+        ? pins.map((d) => {
+            const dual = Boolean(dualIds?.has(d.id));
             return (
               <Marker
-                key={c.id}
-                position={[c.lat, c.lng]}
-                icon={clusterIcon(c.items.length, fill)}
-                zIndexOffset={200}
-                eventHandlers={{
-                  click: (e) => {
-                    L.DomEvent.stopPropagation(e.originalEvent);
-                    if (onCluster) onCluster(c.items, c.lat, c.lng);
-                    else onSelect(c.items[0].id);
-                  },
-                }}
-              />
+                key={d.id}
+                position={[d.lat, d.lng]}
+                icon={pinIcon(d.status, false, d.flags.trainingStage === "trained", dual)}
+                zIndexOffset={dual ? 600 : 0}
+                eventHandlers={{ click: () => onSelect(d.id) }}
+              >
+                {dual && showDualLabels ? (
+                  <Tooltip direction="top" offset={[0, -14]} permanent className="qads-tip qads-tip-dual">
+                    {d.nameEn}
+                  </Tooltip>
+                ) : null}
+              </Marker>
             );
           })
-        : null}
-
-      {!heat
-        ? labeledDealers.map((d) => (
-            <Marker
-              key={`dual-${d.id}`}
-              position={[d.lat, d.lng]}
-              icon={pinIcon(d.status, false, d.flags.trainingStage === "trained", true)}
-              zIndexOffset={600}
-              eventHandlers={{ click: () => onSelect(d.id) }}
-            >
-              {showDualLabels ? (
-                <Tooltip direction="top" offset={[0, -14]} permanent className="qads-tip qads-tip-dual">
-                  {d.nameEn}
-                </Tooltip>
-              ) : null}
-            </Marker>
-          ))
         : null}
 
       {route.map((d, i) => (
