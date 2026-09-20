@@ -27,7 +27,7 @@ export const bulkSearch = createServerFn({ method: "POST" })
     const { sql, scope } = await scoped(context.userId);
     const lines = parseLookupLines(data.queries || "");
     if (!lines.length) return { ok: true as const, hits: [] as BulkSearchHit[], runsToday: 0, cap: 0, charged: 0 };
-    const rows = await sql`select id, name_en, name_ar, listed_phone from dealerships where workspace_id = ${scope}` as DealerRow[];
+    const rows = await sql`select id, name_en, name_ar, listed_phone from dealerships where user_id = ${scope}` as DealerRow[];
     const roster = rows.map(asMatchable);
     const hits: BulkSearchHit[] = lines.map((query) => {
       const m = matchQueryToDealer(query, roster);
