@@ -127,7 +127,14 @@ export function MapCanvas({
   const selected = dealers.find((d) => d.id === selectedId) ?? null;
 
   const pins = useMemo(
-    () => dealers.filter((d) => d.id !== selectedId && !routeIds.has(d.id)),
+    () =>
+      dealers.filter(
+        (d) =>
+          d.id !== selectedId &&
+          !routeIds.has(d.id) &&
+          Number.isFinite(d.lat) &&
+          Number.isFinite(d.lng),
+      ),
     [dealers, selectedId, routeIds],
   );
 
@@ -169,7 +176,7 @@ export function MapCanvas({
       )}
 
       {heat
-        ? dealers.map((d) => (
+        ? dealers.filter((d) => Number.isFinite(d.lat) && Number.isFinite(d.lng)).map((d) => (
             <Circle
               key={`h-${d.id}`}
               center={[d.lat, d.lng]}
@@ -190,7 +197,7 @@ export function MapCanvas({
               <Marker
                 key={d.id}
                 position={[d.lat, d.lng]}
-                icon={pinIcon(d.status, false, d.flags.trainingStage === "trained", dual)}
+                icon={pinIcon(d.status, false, d.flags?.trainingStage === "trained", dual)}
                 zIndexOffset={dual ? 600 : 0}
                 eventHandlers={{ click: () => onSelect(d.id) }}
               >
@@ -214,14 +221,14 @@ export function MapCanvas({
         />
       ))}
 
-      {selected ? (
+      {selected && Number.isFinite(selected.lat) && Number.isFinite(selected.lng) ? (
         <Marker
           key={`s-${selected.id}`}
           position={[selected.lat, selected.lng]}
           icon={pinIcon(
             selected.status,
             true,
-            selected.flags.trainingStage === "trained",
+            selected.flags?.trainingStage === "trained",
             dualIds?.has(selected.id),
           )}
           zIndexOffset={1000}
