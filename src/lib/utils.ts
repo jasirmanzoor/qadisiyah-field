@@ -88,8 +88,10 @@ export function formatPct(n: number | null | undefined, digits = 0): string {
   return `${n.toLocaleString("en-SA", { maximumFractionDigits: digits, minimumFractionDigits: digits })}%`;
 }
 
-export function parseJson<T>(raw: string | null | undefined, fallback: T): T {
-  if (!raw) return fallback;
+export function parseJson<T>(raw: unknown, fallback: T): T {
+  if (raw == null || raw === "") return fallback;
+  if (typeof raw === "object") return raw as T;
+  if (typeof raw !== "string") return fallback;
   try {
     return JSON.parse(raw) as T;
   } catch {

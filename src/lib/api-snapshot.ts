@@ -9,14 +9,13 @@ import type {
   PhotoRecord,
   PipelineRow,
   PipelineStage,
-  ResearchSettings,
   ResearchTask,
   Snapshot,
   SurveyPayload,
   SurveyRecord,
   VisitStatus,
 } from "@/lib/types";
-import { parseJson, toBool, uid } from "@/lib/utils";
+import { parseJson, uid } from "@/lib/utils";
 import { loadTeam } from "@/lib/workspace";
 import { type DealerRow, mapDealer, scoped } from "@/lib/api-shared";
 import { ensureSeeded, ensureCensusCurrent } from "@/lib/api-census";
@@ -24,7 +23,6 @@ import { ensureSeeded, ensureCensusCurrent } from "@/lib/api-census";
 export async function loadSnapshot(workspaceId: string): Promise<Snapshot> {
   const sql = await getSql();
   await ensureSeeded(workspaceId);
-  // Picks up new/re-pinned Al Shifa dealers once per census version.
   await ensureCensusCurrent(workspaceId);
   const dealers = (await sql`select * from dealerships where user_id = ${workspaceId} order by name_en`) as DealerRow[];
   const surveys = await sql`select * from surveys where user_id = ${workspaceId}`;
@@ -36,32 +34,40 @@ export async function loadSnapshot(workspaceId: string): Promise<Snapshot> {
   const pipeline = await sql`select * from pipeline where user_id = ${workspaceId}`;
   const settingsRows = await sql`select * from research_settings where user_id = ${workspaceId} limit 1`;
 
-  const surveyByDealer: Record<string, SurveyRecord> = {};
+  const surveyList: SurveyRecord[] = [];
   for (const s of surveys as any[]) {
-    surveyByDealer[s.dealership_id] = {
+    surveyList.push({
+      id: String(s.id ?? s.dealership_id),
       dealershipId: s.dealership_id,
       payload: parseJson<SurveyPayload>(s.payload, {}),
+      step: Number(s.step ?? 0) || 0,
       updatedAt: String(s.updated_at),
-    };
+    });
   }
 
+  const settingsRow = (settingsRows[0] as any) || {};
   return {
     dealerships: dealers.map(mapDealer),
-    surveys: surveyByDealer,
+    surveys: surveyList,
     photos: (photos as any[]).map((p) => ({
       id: p.id,
       dealershipId: p.dealership_id,
-      url: p.url,
-      kind: p.kind,
-      createdAt: String(p.created_at),
+      dataUrl: p.url ?? p.data_url ?? "",
+      lat: p.lat ?? null,
+      lng: p.lng ?? null,
+      capturedAt: String(p.created_at ?? p.captured_at ?? ""),
     })) as PhotoRecord[],
     followups: (followups as any[]) as Followup[],
     tasks: (tasks as any[]) as ResearchTask[],
     findings: (findings as any[]) as AgentFinding[],
     notifications: (notifications as any[]) as AppNotification[],
     pipeline: (pipeline as any[]) as PipelineRow[],
-    research: (settingsRows[0] as any) || { runsToday: 0, cap: 20, runsDate: "" },
-    team: null,
+    settings: {
+      dailyCap: Number(settingsRow.cap ?? settingsRow.daily_cap ?? 20) || 20,
+      runsToday: Number(settingsRow.runs_today ?? settingsRow.runsToday ?? 0) || 0,
+      runsDate: settingsRow.runs_date ?? settingsRow.runsDate ?? null,
+    },
+    team: undefined,
   };
 }
 
