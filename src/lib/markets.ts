@@ -1,5 +1,6 @@
 import type { Dealership, MarketId, Snapshot } from "./types";
 import { MARKET_CENTERS } from "./geo";
+import { collapseShifaDuplicates } from "./shifa-dedupe";
 
 export type { MarketId };
 
@@ -38,13 +39,13 @@ export const MARKET_META: Record<
 
 /** Same operator with a desk in both markets. Shifa id first, Qadisiyah second. */
 export const DUAL_PAIRS: [string, string][] = [
-  ["S0004", "D0309"], // Saleh Group
-  ["S0056", "D0146"], // Al Sari
-  ["S0057", "D0187"], // Dar Al Nukhba
-  ["S0018", "D0052"], // Shalal Najd
-  ["S0040", "D0109"], // Misfer Al Shahrani
-  ["S0034", "D0180"], // Latest Cars
-  ["S0042", "D0066"], // Khaled Cars
+  ["S0004", "D0309"],
+  ["S0056", "D0146"],
+  ["S0057", "D0187"],
+  ["S0018", "D0052"],
+  ["S0040", "D0109"],
+  ["S0034", "D0180"],
+  ["S0042", "D0066"],
 ];
 
 const DUAL_OTHER = new Map<string, string>();
@@ -54,18 +55,20 @@ for (const [a, b] of DUAL_PAIRS) {
 }
 
 export function dealerMarket(d: Pick<Dealership, "lat" | "flags">): MarketId {
-  if (d.flags.market === "shifa") return "shifa";
-  if (d.flags.market === "qadisiyah") return "qadisiyah";
-  const sd = d.flags.sdId ?? "";
+  const flags = d.flags ?? {};
+  if (flags.market === "shifa") return "shifa";
+  if (flags.market === "qadisiyah") return "qadisiyah";
+  const sd = flags.sdId ?? "";
   if (sd.startsWith("S")) return "shifa";
   if (sd.startsWith("D")) return "qadisiyah";
-  // Field-added pins without a market tag: south Riyadh strip vs east Riyadh.
   if (d.lat < 24.62) return "shifa";
   return "qadisiyah";
 }
 
 export function dealersInMarket(dealers: Dealership[], market: MarketId): Dealership[] {
-  return dealers.filter((d) => dealerMarket(d) === market);
+  const scoped = dealers.filter((d) => !d.flags?.hidden && dealerMarket(d) === market);
+  if (market !== "shifa") return scoped;
+  return collapseShifaDuplicates(scoped);
 }
 
 export function sliceSnapshot(snapshot: Snapshot, market: MarketId): Snapshot {
@@ -82,19 +85,20 @@ export function sliceSnapshot(snapshot: Snapshot, market: MarketId): Snapshot {
 }
 
 export function marketCounts(dealers: Dealership[]): Record<MarketId, number> {
-  const out: Record<MarketId, number> = { qadisiyah: 0, shifa: 0 };
-  for (const d of dealers) out[dealerMarket(d)] += 1;
-  return out;
+  return {
+    qadisiyah: dealersInMarket(dealers, "qadisiyah").length,
+    shifa: dealersInMarket(dealers, "shifa").length,
+  };
 }
 
 export function sdKey(d: Pick<Dealership, "id" | "flags">): string {
-  if (d.flags.sdId) return d.flags.sdId;
+  if (d.flags?.sdId) return d.flags.sdId;
   const tail = d.id.split("::").pop() ?? d.id;
   return tail;
 }
 
 function partnerSd(d: Pick<Dealership, "id" | "flags">): string | null {
-  if (d.flags.relatedSdId) return d.flags.relatedSdId;
+  if (d.flags?.relatedSdId) return d.flags.relatedSdId;
   return DUAL_OTHER.get(sdKey(d)) ?? null;
 }
 
@@ -102,7 +106,7 @@ export function isDualLocation(d: Pick<Dealership, "id" | "flags">, all?: Dealer
   if (partnerSd(d)) return true;
   if (!all) return false;
   const sd = sdKey(d);
-  return all.some((x) => x.id !== d.id && x.flags.relatedSdId === sd);
+  return all.some((x) => x.id !== d.id && x.flags?.relatedSdId === sd);
 }
 
 export function dualPartner(d: Pick<Dealership, "id" | "flags">, all: Dealership[]): Dealership | null {
@@ -112,5 +116,5 @@ export function dualPartner(d: Pick<Dealership, "id" | "flags">, all: Dealership
     if (hit) return hit;
   }
   const sd = sdKey(d);
-  return all.find((x) => x.id !== d.id && x.flags.relatedSdId === sd) ?? null;
+  return all.find((x) => x.id !== d.id && x.flags?.relatedSdId === sd) ?? null;
 }
