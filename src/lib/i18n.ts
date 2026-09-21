@@ -93,6 +93,14 @@ const en = {
   authFilter: "Auth",
   closedFilter: "Closed",
   noPhoneFilter: "No phone",
+  synced: "Synced",
+  pendingSync: "Pending",
+  offline: "Offline",
+  team: "team",
+  arabic: "ع",
+  english: "EN",
+  light: "Light",
+  dark: "Dark",
 } as const;
 
 const ar: Record<keyof typeof en, string> = { ...en,
@@ -104,6 +112,10 @@ const ar: Record<keyof typeof en, string> = { ...en,
   save: "حفظ",
   cancel: "إلغاء",
   pinToGps: "تثبيت على موقعي",
+  synced: "متزامن",
+  pendingSync: "قيد المزامنة",
+  offline: "غير متصل",
+  team: "فريق",
 };
 
 export const COPY: Record<Lang, Record<keyof typeof en, string>> = { en, ar };
