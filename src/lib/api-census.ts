@@ -9,7 +9,6 @@ import {
 import { SHIFA_PINS } from "@/lib/census";
 import type { CensusRow } from "@/lib/types";
 
-/** First-run seed. Inserts the full census only when the roster is empty. */
 export async function ensureSeeded(workspaceId: string) {
   const sql = await getSql();
   const [{ count }] = (await sql`
@@ -26,19 +25,6 @@ export async function ensureSeeded(workspaceId: string) {
   }
 }
 
-/**
- * Re-apply the Al Shifa census over an already-seeded roster.
- *
- * Scope and rules are deliberate and narrow:
- *   - Al Shifa ONLY. Qadisiyah rows are never read or written here.
- *   - Existing dealer  -> overwrite lat/lng ONLY. Name, status, notes and every
- *                         survey row are left exactly as the field team left them.
- *   - Blank fields     -> filled from the census (name_ar, seed_note, flags) only
- *                         where the stored value is empty. Never overwrites content.
- *   - Missing dealer   -> inserted in full.
- *
- * Surveys are not touched under any branch.
- */
 export async function applyShifaCensus(workspaceId: string) {
   const sql = await getSql();
   const rows = SHIFA_PINS as CensusRow[];
@@ -51,7 +37,7 @@ export async function applyShifaCensus(workspaceId: string) {
     const existing = (await sql`
       select id, lat, lng, name_ar, seed_note, flags
       from dealerships where id = ${id} and user_id = ${workspaceId}
-    `) as { id: string; lat: number; lng: number; name_ar: string; seed_note: string; flags: string }[];
+    `) as { id: string; lat: number; lng: number; name_ar: string; seed_note: string; flags: unknown }[];
 
     if (existing.length === 0) {
       await sql`
@@ -64,15 +50,19 @@ export async function applyShifaCensus(workspaceId: string) {
     }
 
     const cur = existing[0];
-    const moved = cur.lat !== d.lat || cur.lng !== d.lng;
-    // Coordinates always win from the census. Text fields only fill blanks.
+    const raw = typeof cur.flags === "string" ? cur.flags : JSON.stringify(cur.flags ?? {});
+    const keepFieldGps =
+      raw.includes("field_device_gps") || raw.includes("manual_pin") || raw.includes("\"gpsSource\":\"survey\"") || raw.includes('"gpsSource":"survey"');
+    const nextLat = keepFieldGps ? Number(cur.lat) : d.lat;
+    const nextLng = keepFieldGps ? Number(cur.lng) : d.lng;
+    const moved = !keepFieldGps && (Number(cur.lat) !== d.lat || Number(cur.lng) !== d.lng);
     await sql`
       update dealerships set
-        lat = ${d.lat},
-        lng = ${d.lng},
+        lat = ${nextLat},
+        lng = ${nextLng},
         name_ar   = case when coalesce(name_ar, '')   = '' then ${d.nameAr ?? ""} else name_ar   end,
         seed_note = case when coalesce(seed_note, '') = '' then ${d.note ?? ""}   else seed_note end,
-        flags     = case when coalesce(flags, '') in ('', '{}') then ${flags}     else flags     end,
+        flags     = case when coalesce(flags::text, '') in ('', '{}') then ${flags}     else flags     end,
         updated_at = now()
       where id = ${id} and user_id = ${workspaceId}
     `;
@@ -98,12 +88,6 @@ async function sqlMarkApplied(workspaceId: string) {
   `;
 }
 
-/**
- * Runs the Al Shifa re-apply once per census version, per workspace.
- * Called on snapshot load, so an existing roster picks up new pins with no
- * user action. Failures are swallowed: a census hiccup must never block the
- * map from rendering the data already on hand.
- */
 export async function ensureCensusCurrent(workspaceId: string) {
   try {
     const sql = await getSql();
