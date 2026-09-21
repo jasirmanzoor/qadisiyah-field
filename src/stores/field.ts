@@ -19,7 +19,6 @@ import {
 import { enqueue, listQueue, loadLocalSnapshot, queueCount, removeQueue, saveLocalSnapshot } from "@/lib/offline";
 import { inferStatus } from "@/lib/survey-schema";
 import type {
-  AgentFinding,
   BulkSearchHit,
   Dealership,
   Followup,
@@ -33,6 +32,7 @@ import type {
 } from "@/lib/types";
 import { EMPTY_SURVEY } from "@/lib/types";
 import { uid } from "@/lib/utils";
+import { coerceSnapshot } from "./coerce-snapshot";
 
 const EMPTY: Snapshot = {
   dealerships: [],
@@ -121,22 +121,24 @@ export const useField = create<FieldState>((set, get) => ({
     set({ hydrating: true });
     const local = await loadLocalSnapshot().catch(() => null);
     const pending = await queueCount().catch(() => 0);
-    if (local) set({ snapshot: local, loaded: true, pending });
+    if (local) set({ snapshot: coerceSnapshot(local), loaded: true, pending });
     try {
-      const pending = typeof sessionStorage !== "undefined" ? sessionStorage.getItem("qads-join") : null;
-      if (pending) {
+      const joinCode = typeof sessionStorage !== "undefined" ? sessionStorage.getItem("qads-join") : null;
+      if (joinCode) {
         sessionStorage.removeItem("qads-join");
-        const joined = await apiJoinTeam({ data: { code: pending } });
+        const joined = await apiJoinTeam({ data: { code: joinCode } });
         if (joined.ok && "snapshot" in joined) {
-          set({ snapshot: joined.snapshot, loaded: true, lastError: null });
-          persist(joined.snapshot);
+          const snap = coerceSnapshot(joined.snapshot);
+          set({ snapshot: snap, loaded: true, lastError: null });
+          persist(snap);
           await get().flush();
           return;
         }
       }
       const remote = await pullSnapshot();
-      set({ snapshot: remote, loaded: true, lastError: null });
-      persist(remote);
+      const snap = coerceSnapshot(remote);
+      set({ snapshot: snap, loaded: true, lastError: null });
+      persist(snap);
       await get().flush();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Sync failed";
@@ -217,7 +219,8 @@ export const useField = create<FieldState>((set, get) => ({
 
   patchSurvey: async (dealershipId, patch, step, statusOverride) => {
     const snapshot = get().snapshot;
-    const existing = snapshot.surveys.find((s) => s.dealershipId === dealershipId);
+    const rows = Array.isArray(snapshot.surveys) ? snapshot.surveys : [];
+    const existing = rows.find((s) => s.dealershipId === dealershipId);
     const payload: SurveyPayload = { ...EMPTY_SURVEY, ...(existing?.payload ?? {}), ...patch };
     const dealer = snapshot.dealerships.find((d) => d.id === dealershipId);
     const status: VisitStatus =
@@ -231,8 +234,8 @@ export const useField = create<FieldState>((set, get) => ({
       updatedAt: new Date().toISOString(),
     };
     const surveys = existing
-      ? snapshot.surveys.map((s) => (s.dealershipId === dealershipId ? survey : s))
-      : [...snapshot.surveys, survey];
+      ? rows.map((s) => (s.dealershipId === dealershipId ? survey : s))
+      : [...rows, survey];
     const dealerships = snapshot.dealerships.map((d) =>
       d.id === dealershipId ? { ...d, status, updatedAt: survey.updatedAt } : d,
     );
@@ -331,10 +334,13 @@ export const useField = create<FieldState>((set, get) => ({
   },
 
   setCap: async (n) => {
-    const res = await updateResearchCap({ data: { dailyCap: n } });
+    const res = await updateResearchCap({ data: { cap: n } as { cap: number } });
     const snapshot = get().snapshot;
     set({
-      snapshot: { ...snapshot, settings: { ...snapshot.settings, dailyCap: res.dailyCap } },
+      snapshot: {
+        ...snapshot,
+        settings: { ...snapshot.settings, dailyCap: n },
+      },
     });
   },
 
@@ -342,8 +348,9 @@ export const useField = create<FieldState>((set, get) => ({
     try {
       const res = await apiJoinTeam({ data: { code } });
       if (!res.ok) return { ok: false, error: res.error };
-      set({ snapshot: res.snapshot, loaded: true, lastError: null });
-      persist(res.snapshot);
+      const snap = coerceSnapshot(res.snapshot);
+      set({ snapshot: snap, loaded: true, lastError: null });
+      persist(snap);
       return { ok: true };
     } catch (err) {
       return { ok: false, error: err instanceof Error ? err.message : "Join failed" };
@@ -354,8 +361,9 @@ export const useField = create<FieldState>((set, get) => ({
     try {
       const res = await apiRotateCode();
       if (!res.ok) return { ok: false, error: res.error };
-      set({ snapshot: res.snapshot, lastError: null });
-      persist(res.snapshot);
+      const snap = coerceSnapshot(res.snapshot);
+      set({ snapshot: snap, lastError: null });
+      persist(snap);
       return { ok: true };
     } catch (err) {
       return { ok: false, error: err instanceof Error ? err.message : "Could not rotate" };
@@ -397,5 +405,6 @@ export const useField = create<FieldState>((set, get) => ({
 }));
 
 export function surveyFor(snapshot: Snapshot, id: string): SurveyRecord | undefined {
-  return snapshot.surveys.find((s) => s.dealershipId === id);
+  const rows = Array.isArray(snapshot.surveys) ? snapshot.surveys : [];
+  return rows.find((s) => s.dealershipId === id);
 }
