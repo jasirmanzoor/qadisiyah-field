@@ -8,11 +8,7 @@ import {
 } from "@/lib/seed";
 import { SHIFA_PINS } from "@/lib/census";
 import type { CensusRow, DealershipFlags } from "@/lib/types";
-
-function isProtectedGps(flags: DealershipFlags | undefined): boolean {
-  const src = flags?.gpsSource;
-  return src === "field_device_gps" || src === "manual_pin" || src === "survey";
-}
+import { isProtectedGps } from "@/lib/types";
 
 function parseFlags(raw: unknown): DealershipFlags {
   if (!raw) return {};
@@ -55,10 +51,12 @@ export async function applyShifaCensus(workspaceId: string) {
     `) as { id: string; lat: number; lng: number; name_ar: string; seed_note: string; flags: unknown }[];
 
     if (existing.length === 0 && d.sdId) {
+      const prefixed = `${workspaceId}::${d.sdId}`;
       existing = (await sql`
         select id, lat, lng, name_ar, seed_note, flags
         from dealerships
-        where user_id = ${workspaceId} and flags->>'sdId' = ${d.sdId}
+        where user_id = ${workspaceId}
+          and (flags->>'sdId' = ${d.sdId} or id = ${prefixed})
         limit 1
       `) as typeof existing;
     }

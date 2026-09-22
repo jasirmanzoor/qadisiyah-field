@@ -21,6 +21,7 @@ import { inferStatus } from "@/lib/survey-schema";
 import type {
   BulkSearchHit,
   Dealership,
+  DealershipFlags,
   Followup,
   PhotoRecord,
   PipelineStage,
@@ -30,7 +31,7 @@ import type {
   SurveyRecord,
   VisitStatus,
 } from "@/lib/types";
-import { EMPTY_SURVEY } from "@/lib/types";
+import { EMPTY_SURVEY, isProtectedGps } from "@/lib/types";
 import { uid } from "@/lib/utils";
 import { coerceSnapshot } from "./coerce-snapshot";
 
@@ -98,6 +99,96 @@ function persist(snapshot: Snapshot) {
   void saveLocalSnapshot(snapshot);
 }
 
+function pickGpsFlags(flags: DealershipFlags | undefined): Partial<DealershipFlags> {
+  if (!flags) return {};
+  return {
+    gpsSource: flags.gpsSource,
+    gpsStatus: flags.gpsStatus,
+    gpsTimestamp: flags.gpsTimestamp,
+    gpsAccuracy: flags.gpsAccuracy,
+    needsGps: flags.needsGps,
+    mapsUrl: flags.mapsUrl,
+  };
+}
+
+function gpsStamp(d: Dealership): number {
+  return Date.parse(d.flags?.gpsTimestamp || d.updatedAt || "") || 0;
+}
+
+function keepLocalGps(local: Dealership, remote: Dealership): Dealership {
+  if (local.lat === remote.lat && local.lng === remote.lng) {
+    if (isProtectedGps(local.flags) && !isProtectedGps(remote.flags)) {
+      return { ...remote, flags: { ...remote.flags, ...pickGpsFlags(local.flags) } };
+    }
+    return remote;
+  }
+  const localProtected = isProtectedGps(local.flags);
+  const remoteProtected = isProtectedGps(remote.flags);
+  if (localProtected && (!remoteProtected || gpsStamp(local) >= gpsStamp(remote))) {
+    return {
+      ...remote,
+      lat: local.lat,
+      lng: local.lng,
+      flags: { ...remote.flags, ...pickGpsFlags(local.flags) },
+      updatedAt: local.updatedAt,
+    };
+  }
+  if (!remoteProtected && gpsStamp(local) > gpsStamp(remote)) {
+    return {
+      ...remote,
+      lat: local.lat,
+      lng: local.lng,
+      flags: { ...remote.flags, ...pickGpsFlags(local.flags) },
+      updatedAt: local.updatedAt,
+    };
+  }
+  return remote;
+}
+
+function pendingDealerIdsFromQueue(items: { op: string; payload: unknown }[]): Set<string> {
+  const ids = new Set<string>();
+  for (const item of items) {
+    if (item.op !== "upsertDealership") continue;
+    const raw = item.payload as Dealership & { dealer?: Dealership };
+    const d = raw?.dealer ?? raw;
+    if (d?.id) ids.add(d.id);
+    if (d?.flags?.sdId) ids.add(d.flags.sdId);
+  }
+  return ids;
+}
+
+function mergeSnapshot(local: Snapshot, remote: Snapshot, pendingIds: Set<string>): Snapshot {
+  const localById = new Map(local.dealerships.map((d) => [d.id, d]));
+  const localBySd = new Map(
+    local.dealerships.filter((d) => d.flags?.sdId).map((d) => [d.flags.sdId as string, d]),
+  );
+  const seen = new Set<string>();
+  const dealerships = remote.dealerships.map((r) => {
+    seen.add(r.id);
+    const l = localById.get(r.id) ?? (r.flags?.sdId ? localBySd.get(r.flags.sdId) : undefined);
+    if (!l) return r;
+    const pending =
+      pendingIds.has(r.id) ||
+      pendingIds.has(l.id) ||
+      (r.flags?.sdId ? pendingIds.has(r.flags.sdId) : false) ||
+      (l.flags?.sdId ? pendingIds.has(l.flags.sdId) : false);
+    if (pending) {
+      return {
+        ...r,
+        lat: l.lat,
+        lng: l.lng,
+        flags: { ...r.flags, ...pickGpsFlags(l.flags) },
+        updatedAt: l.updatedAt,
+      };
+    }
+    return keepLocalGps(l, r);
+  });
+  for (const l of local.dealerships) {
+    if (!seen.has(l.id)) dealerships.push(l);
+  }
+  return { ...remote, dealerships };
+}
+
 export const useField = create<FieldState>((set, get) => ({
   snapshot: EMPTY,
   loaded: false,
@@ -121,7 +212,14 @@ export const useField = create<FieldState>((set, get) => ({
     set({ hydrating: true });
     const local = await loadLocalSnapshot().catch(() => null);
     const pending = await queueCount().catch(() => 0);
-    if (local) set({ snapshot: coerceSnapshot(local), loaded: true, pending });
+    const memory = get().snapshot;
+    const localSnap =
+      memory.dealerships.length > 0
+        ? memory
+        : local
+          ? coerceSnapshot(local)
+          : null;
+    if (localSnap) set({ snapshot: localSnap, loaded: true, pending });
     try {
       const joinCode = typeof sessionStorage !== "undefined" ? sessionStorage.getItem("qads-join") : null;
       if (joinCode) {
@@ -135,10 +233,18 @@ export const useField = create<FieldState>((set, get) => ({
           return;
         }
       }
-      const remote = await pullSnapshot();
-      const snap = coerceSnapshot(remote);
-      set({ snapshot: snap, loaded: true, lastError: null });
-      persist(snap);
+      // Push any Save-pin writes first so the server copy is the one we just saved.
+      await get().flush();
+      const remote = coerceSnapshot(await pullSnapshot());
+      const queued = await listQueue().catch(() => []);
+      const pendingIds = pendingDealerIdsFromQueue(queued);
+      const current = get().snapshot;
+      const merged =
+        current.dealerships.length > 0
+          ? mergeSnapshot(current, remote, pendingIds)
+          : remote;
+      set({ snapshot: merged, loaded: true, lastError: null });
+      persist(merged);
       await get().flush();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Sync failed";
@@ -156,9 +262,12 @@ export const useField = create<FieldState>((set, get) => ({
       for (const item of items) {
         try {
           switch (item.op) {
-            case "upsertDealership":
-              await apiUpsertDealer({ data: item.payload as Dealership });
+            case "upsertDealership": {
+              const raw = item.payload as Dealership & { dealer?: Dealership };
+              const dealer = raw?.dealer ?? raw;
+              await apiUpsertDealer({ data: dealer });
               break;
+            }
             case "upsertSurvey":
               await apiUpsertSurvey({
                 data: item.payload as { survey: SurveyRecord; status: VisitStatus },
@@ -214,7 +323,7 @@ export const useField = create<FieldState>((set, get) => ({
     persist(next);
     await enqueue({ id: uid(), op: "upsertDealership", payload: d });
     set({ pending: await queueCount() });
-    void get().flush();
+    await get().flush();
   },
 
   patchSurvey: async (dealershipId, patch, step, statusOverride) => {

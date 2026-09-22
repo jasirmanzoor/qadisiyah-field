@@ -87,20 +87,49 @@ export const upsertDealership = createServerFn({ method: "POST" })
     const { sql, scope } = await scoped(context.userId);
     const d = ((data as { dealer?: Partial<Dealership> }).dealer ?? data) as Partial<Dealership> & { id?: string };
     const id = d.id || uid();
-    await sql`
-      insert into dealerships (id, user_id, name_en, name_ar, lat, lng, listed_phone, seed_note, status, flags, updated_at)
-      values (${id}, ${scope}, ${d.nameEn ?? ""}, ${d.nameAr ?? ""}, ${d.lat ?? 0}, ${d.lng ?? 0}, ${d.listedPhone ?? ""}, ${d.seedNote ?? ""}, ${d.status ?? "not_visited"}, ${JSON.stringify(d.flags ?? {})}, now())
-      on conflict (id) do update set
-        name_en = excluded.name_en,
-        name_ar = excluded.name_ar,
-        lat = excluded.lat,
-        lng = excluded.lng,
-        listed_phone = excluded.listed_phone,
-        seed_note = excluded.seed_note,
-        status = excluded.status,
-        flags = excluded.flags,
+    const flags = d.flags ?? {};
+    const sdId = flags.sdId || (id.includes("::") ? id.split("::").pop() : id) || id;
+    const prefixed = `${scope}::${sdId}`;
+    const payload = JSON.stringify(flags);
+    const lat = Number(d.lat);
+    const lng = Number(d.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      throw new Error("Invalid coordinates");
+    }
+
+    const updated = (await sql`
+      update dealerships set
+        name_en = coalesce(${d.nameEn ?? null}, name_en),
+        name_ar = coalesce(${d.nameAr ?? null}, name_ar),
+        lat = ${lat},
+        lng = ${lng},
+        listed_phone = coalesce(${d.listedPhone ?? null}, listed_phone),
+        seed_note = coalesce(${d.seedNote ?? null}, seed_note),
+        status = coalesce(${d.status ?? null}, status),
+        flags = ${payload},
         updated_at = now()
-    `;
+      where user_id = ${scope}
+        and (id = ${id} or id = ${sdId} or id = ${prefixed} or flags->>'sdId' = ${sdId})
+      returning id
+    `) as { id: string }[];
+
+    if (updated.length === 0) {
+      await sql`
+        insert into dealerships (id, user_id, name_en, name_ar, lat, lng, listed_phone, seed_note, status, flags, updated_at)
+        values (${id}, ${scope}, ${d.nameEn ?? ""}, ${d.nameAr ?? ""}, ${lat}, ${lng}, ${d.listedPhone ?? ""}, ${d.seedNote ?? ""}, ${d.status ?? "not_visited"}, ${payload}, now())
+        on conflict (id) do update set
+          name_en = excluded.name_en,
+          name_ar = excluded.name_ar,
+          lat = excluded.lat,
+          lng = excluded.lng,
+          listed_phone = excluded.listed_phone,
+          seed_note = excluded.seed_note,
+          status = excluded.status,
+          flags = excluded.flags,
+          updated_at = now()
+        where dealerships.user_id = ${scope}
+      `;
+    }
     return { ok: true as const, snapshot: await loadSnapshot(scope) };
   });
 

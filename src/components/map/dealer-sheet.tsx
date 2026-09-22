@@ -48,7 +48,7 @@ function DealerSheetBody({
     setLngDraft(formatCoord(dealer.lng));
     setPasteDraft(`${formatCoord(dealer.lat)}, ${formatCoord(dealer.lng)}`);
     setCoordError(false);
-  }, [dealer.id, dealer.lat, dealer.lng, editingCoords]);
+  }, [dealer.id, editingCoords]);
   const call = telLink(dealer.listedPhone);
   const wa = waLink(dealer.listedPhone);
   const maps = dealer.flags.mapsUrl || mapsLink(dealer.lat, dealer.lng, dealer.nameEn);

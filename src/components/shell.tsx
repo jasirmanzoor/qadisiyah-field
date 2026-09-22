@@ -33,9 +33,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [hydrate]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) return;
     void hydrateField();
-  }, [user, hydrateField]);
+  }, [user?.id, hydrateField]);
 
   useEffect(() => {
     const on = () => setOnline(true);

@@ -64,6 +64,18 @@ export type DealershipFlags = {
   market?: MarketId;
 };
 
+export function isProtectedGps(flags: DealershipFlags | undefined): boolean {
+  if (!flags) return false;
+  if (flags.gpsStatus === "confirmed") return true;
+  const src = flags.gpsSource;
+  return (
+    src === "field_device_gps" ||
+    src === "manual_pin" ||
+    src === "survey" ||
+    src === "existing_confirmed_pin"
+  );
+}
+
 export type Dealership = {
   id: string;
   nameEn: string;
