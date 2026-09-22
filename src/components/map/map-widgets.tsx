@@ -80,6 +80,7 @@ export function ListSheet({
 
 export function DealerRow({
   dealer,
+  serial,
   lang,
   subtitle,
   meta,
@@ -88,6 +89,7 @@ export function DealerRow({
   onClick,
 }: {
   dealer: Dealership;
+  serial?: number;
   lang: "en" | "ar";
   subtitle?: string;
   meta?: string;
@@ -107,12 +109,14 @@ export function DealerRow({
     >
       <span
         className={cn(
-          "qads-pin shrink-0",
+          "qads-pin-num qads-pin-row shrink-0",
           `qads-pin-${dealer.status}`,
           dealer.flags.trainingStage === "trained" && "qads-pin-trained",
           dual && "qads-pin-dual",
         )}
-      />
+      >
+        {serial ?? ""}
+      </span>
       <span className="min-w-0 flex-1">
         <span className={cn("block truncate text-sm font-medium", dual && "text-primary")}>{name}</span>
         {subtitle ? <span className="block truncate text-xs text-muted">{subtitle}</span> : null}

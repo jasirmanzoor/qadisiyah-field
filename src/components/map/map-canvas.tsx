@@ -1,8 +1,9 @@
 import L from "leaflet";
 import { useEffect, useMemo } from "react";
-import { Circle, MapContainer, Marker, Polyline, TileLayer, Tooltip, useMap } from "react-leaflet";
+import { Circle, MapContainer, Marker, Polyline, ScaleControl, TileLayer, Tooltip, useMap, ZoomControl } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { MARKET_CENTER } from "@/lib/geo";
+import { MAP_MAX_ZOOM, MAP_MIN_ZOOM, MARKET_CENTER } from "@/lib/geo";
+import { dealerSerials, pinBox } from "@/lib/serial";
 import type { Dealership } from "@/lib/types";
 import { usePrefs } from "@/stores/prefs";
 
@@ -24,16 +25,22 @@ function statusFill(status: string): string {
   return "var(--status-grey)";
 }
 
-function pinIcon(status: string, selected: boolean, trained = false, dual = false) {
-  const key = `p:${status}:${selected ? 1 : 0}:${trained ? 1 : 0}:${dual ? 1 : 0}`;
+function numberedIcon(
+  status: string,
+  n: number,
+  selected: boolean,
+  trained = false,
+  dual = false,
+) {
+  const key = `n:${status}:${n}:${selected ? 1 : 0}:${trained ? 1 : 0}:${dual ? 1 : 0}`;
   const hit = iconCache.get(key);
   if (hit) return hit;
-  const size = selected ? 22 : dual ? 20 : 16;
+  const { w, h } = pinBox(n, selected);
   const icon = L.divIcon({
     className: "",
-    html: `<div class="qads-pin qads-pin-${status} ${selected ? "qads-pin-selected" : ""} ${trained ? "qads-pin-trained" : ""} ${dual ? "qads-pin-dual" : ""}"></div>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
+    html: `<div class="qads-pin-num qads-pin-${status}${selected ? " qads-pin-selected" : ""}${trained ? " qads-pin-trained" : ""}${dual ? " qads-pin-dual" : ""}">${n}</div>`,
+    iconSize: [w, h],
+    iconAnchor: [w / 2, h / 2],
   });
   iconCache.set(key, icon);
   return icon;
@@ -106,6 +113,7 @@ export function MapCanvas({
   dualIds,
   showDualLabels = true,
   dark = false,
+  serials,
 }: {
   dealers: Dealership[];
   selectedId: string | null;
@@ -120,11 +128,13 @@ export function MapCanvas({
   dualIds?: Set<string>;
   showDualLabels?: boolean;
   dark?: boolean;
+  serials?: Map<string, number>;
 }) {
   const theme = usePrefs((s) => s.theme);
   const isDark = dark || theme === "dark";
   const routeIds = useMemo(() => new Set(route.map((d) => d.id)), [route]);
   const selected = dealers.find((d) => d.id === selectedId) ?? null;
+  const numbers = useMemo(() => serials ?? dealerSerials(dealers), [serials, dealers]);
 
   const pins = useMemo(
     () =>
@@ -151,6 +161,10 @@ export function MapCanvas({
     <MapContainer
       center={[origin.lat, origin.lng]}
       zoom={origin.zoom ?? 15}
+      minZoom={MAP_MIN_ZOOM}
+      maxZoom={MAP_MAX_ZOOM}
+      zoomSnap={0.5}
+      zoomDelta={0.5}
       className="z-0 h-full w-full"
       style={{ minHeight: 180, height: "100%" }}
       zoomControl={false}
@@ -158,6 +172,8 @@ export function MapCanvas({
     >
       <MapSizer />
       <FlyTo target={focus} />
+      <ZoomControl position="bottomleft" />
+      <ScaleControl imperial={false} position="bottomleft" />
       {satellite ? (
         <TileLayer
           url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
@@ -193,12 +209,13 @@ export function MapCanvas({
       {!heat
         ? pins.map((d) => {
             const dual = Boolean(dualIds?.has(d.id));
+            const n = numbers.get(d.id) ?? 0;
             return (
               <Marker
                 key={d.id}
                 position={[d.lat, d.lng]}
-                icon={pinIcon(d.status, false, d.flags?.trainingStage === "trained", dual)}
-                zIndexOffset={dual ? 600 : 0}
+                icon={numberedIcon(d.status, n, false, d.flags?.trainingStage === "trained", dual)}
+                zIndexOffset={dual ? 600 : n}
                 eventHandlers={{ click: () => onSelect(d.id) }}
               >
                 {dual && showDualLabels ? (
@@ -225,8 +242,9 @@ export function MapCanvas({
         <Marker
           key={`s-${selected.id}`}
           position={[selected.lat, selected.lng]}
-          icon={pinIcon(
+          icon={numberedIcon(
             selected.status,
+            numbers.get(selected.id) ?? 0,
             true,
             selected.flags?.trainingStage === "trained",
             dualIds?.has(selected.id),
@@ -236,11 +254,11 @@ export function MapCanvas({
         >
           <Tooltip
             direction="top"
-            offset={[0, -12]}
+            offset={[0, -14]}
             permanent
             className={dualIds?.has(selected.id) ? "qads-tip qads-tip-dual" : "qads-tip"}
           >
-            {selected.nameEn}
+            {`#${numbers.get(selected.id) ?? "·"} · ${selected.nameEn}`}
           </Tooltip>
         </Marker>
       ) : null}
