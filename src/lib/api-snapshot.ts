@@ -64,8 +64,8 @@ export async function loadSnapshot(workspaceId: string): Promise<Snapshot> {
     pipeline: (pipeline as any[]) as PipelineRow[],
     settings: {
       dailyCap: Number(settingsRow.cap ?? settingsRow.daily_cap ?? 20) || 20,
-      runsToday: Number(settingsRow.runs_today ?? settingsRow.runsToday ?? 0) || 0,
-      runsDate: settingsRow.runs_date ?? settingsRow.runsDate ?? null,
+      runsToday: Number(settingsRow.runsToday ?? settingsRow.runs_today ?? 0) || 0,
+      runsDate: settingsRow.runsDate ?? settingsRow.runs_date ?? null,
     },
     team: undefined,
   };
@@ -82,10 +82,10 @@ export const pullSnapshot = createServerFn({ method: "GET" })
 
 export const upsertDealership = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .validator((input: { dealer: Partial<Dealership> & { id?: string } }) => input)
+  .validator((input: { dealer?: Partial<Dealership> & { id?: string } } & Partial<Dealership>) => input)
   .handler(async ({ context, data }) => {
     const { sql, scope } = await scoped(context.userId);
-    const d = data.dealer;
+    const d = ((data as { dealer?: Partial<Dealership> }).dealer ?? data) as Partial<Dealership> & { id?: string };
     const id = d.id || uid();
     await sql`
       insert into dealerships (id, user_id, name_en, name_ar, lat, lng, listed_phone, seed_note, status, flags, updated_at)
