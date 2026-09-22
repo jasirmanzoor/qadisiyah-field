@@ -69,3 +69,15 @@
   backdrop-filter: blur(12px);
   border-radius: 0 0 6px 6px;
 }
+
+.leaflet-container {
+  background: var(--bg) !important;
+}
+.leaflet-container img.leaflet-tile,
+.leaflet-container .leaflet-tile {
+  max-width: none !important;
+  max-height: none !important;
+}
+.absolute.inset-0.z-0.isolate {
+  isolation: auto !important;
+}

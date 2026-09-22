@@ -1,6 +1,6 @@
 export const MARKET_CENTERS = {
   qadisiyah: { lat: 24.826, lng: 46.823, zoom: 15 },
-  shifa: { lat: 24.5458, lng: 46.6848, zoom: 16.5 },
+  shifa: { lat: 24.5458, lng: 46.6848, zoom: 17 },
 } as const;
 
 export const MARKET_CENTER = MARKET_CENTERS.qadisiyah;
@@ -63,7 +63,7 @@ export function bearingDeg(
   const x =
     Math.cos(toRad(a.lat)) * Math.sin(toRad(b.lat)) -
     Math.sin(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.cos(toRad(b.lng - a.lng));
-  return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
+  return ((Math.atan2(y, x) * 180 / Math.PI) + 360) % 360;
 }
 
 export type DealerCluster<T extends { id: string; lat: number; lng: number }> = {
