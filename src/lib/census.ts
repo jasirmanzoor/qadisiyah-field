@@ -2,9 +2,10 @@ import raw from "./census-data.json";
 import { SHIFA_ROWS } from "./shifa-seed";
 import { SHIFA_WALK_SEP15 } from "./shifa-walk-sep15";
 import { SHIFA_WALK_SEP20, SHIFA_WALK_PATCHES } from "./shifa-walk-sep20";
+import { applyCorridorFrontage } from "./shifa-corridor-frontage";
 import type { CensusRow, DealershipFlags, SurveyPayload, VisitStatus } from "./types";
 
-/** v16: 20 Sep 2026 Al Shifa walk. Patch existing pins + add S0085–S0108. */
+/** v17: Al Nukhba–Ramz Al Riyadh pins moved onto Ahmad Al Basri street frontage. */
 export type { CensusRow };
 
 type CensusFile = {
@@ -29,7 +30,7 @@ type CensusFile = {
 };
 
 const data = raw as CensusFile;
-export const CENSUS_VERSION = 16;
+export const CENSUS_VERSION = 17;
 const CLUSTER = { lat: 24.5479261, lng: 46.6818955 };
 
 function around(eastM: number, northM: number) {
@@ -127,9 +128,11 @@ function applyPatches(rows: CensusRow[]): CensusRow[] {
 
 export const CENSUS_ROWS: CensusRow[] = data.rows.map((r) => tagMarket(r, "qadisiyah"));
 export const EXTRA_PINS: CensusRow[] = data.extra.map((r) => tagMarket(r, "qadisiyah"));
-export const SHIFA_PINS: CensusRow[] = applyPatches([
-  ...SHIFA_ROWS, ...SHIFA_WALK_SEP15.map(walkToRow), ...SHIFA_WALK_SEP20.map(walkToRow),
-]).map((r) => tagMarket(r, "shifa"));
+export const SHIFA_PINS: CensusRow[] = applyCorridorFrontage(
+  applyPatches([
+    ...SHIFA_ROWS, ...SHIFA_WALK_SEP15.map(walkToRow), ...SHIFA_WALK_SEP20.map(walkToRow),
+  ]).map((r) => tagMarket(r, "shifa")),
+);
 export const ALL_CENSUS: CensusRow[] = [...CENSUS_ROWS, ...EXTRA_PINS, ...SHIFA_PINS];
 export const CENSUS_STATS = {
   ...data.stats,
