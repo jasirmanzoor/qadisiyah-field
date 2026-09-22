@@ -13,7 +13,6 @@ import {
 import { COPY } from "@/lib/i18n";
 import { MARKET_CENTERS } from "@/lib/geo";
 import { MARKET_META, isDualLocation, sliceSnapshot } from "@/lib/markets";
-import { MarketSwitch } from "@/components/market-switch";
 import { pilotScore } from "@/lib/scoring";
 import { formatNumber, formatPct, formatSar, formatSarCompact } from "@/lib/utils";
 import { useField, surveyFor } from "@/stores/field";
@@ -118,8 +117,6 @@ export function DashboardPage() {
           {observedOnly ? t.observedOnly : t.disclosedFigures}
         </button>
       </div>
-
-      <MarketSwitch />
 
       {market === "shifa" ? (
         <section className="rounded-2xl bg-surface p-4 shadow-[var(--shadow-border)]">

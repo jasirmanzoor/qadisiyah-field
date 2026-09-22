@@ -16,6 +16,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { lang, theme, market, setLang, setTheme, hydrate } = usePrefs();
   const t = COPY[lang];
   const hydrateField = useField((s) => s.hydrate);
+  const flushField = useField((s) => s.flush);
   const setOnline = useField((s) => s.setOnline);
   const setGps = useField((s) => s.setGps);
   const setGpsError = useField((s) => s.setGpsError);
@@ -91,11 +92,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-2 px-3 py-2">
         <div className="min-w-0 flex-1">
           <p className="truncate text-[13px] font-semibold uppercase tracking-[0.14em] text-fg">{t.appName}</p>
-          <p className="truncate text-[11px] text-muted">
+          <div className="truncate text-[11px] text-muted">
             {lang === "ar" ? MARKET_META[market].labelAr : MARKET_META[market].labelEn}
             {market === "shifa" ? ` · ${t.usedCarMarket}` : ""}
             {" · "}
-            {online ? (pending > 0 ? `${t.pendingSync} · ${pending}` : t.synced) : t.offline}
+            {online ? (
+              pending > 0 ? (
+                <button
+                  type="button"
+                  className="font-medium text-status-amber"
+                  onClick={() => void flushField()}
+                >
+                  {t.pendingSync} · {pending}
+                </button>
+              ) : (
+                t.synced
+              )
+            ) : (
+              t.offline
+            )}
             {team && team.members.length > 1 ? (
               <>
                 {" · "}
@@ -112,7 +127,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </>
             )}
             {gpsError ? ` · ${t.usingCenter}` : ""}
-          </p>
+          </div>
         </div>
         <button
           type="button"

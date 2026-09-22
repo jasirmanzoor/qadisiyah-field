@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Choice, Input, Textarea } from "@/components/ui/field";
 import { COPY } from "@/lib/i18n";
 import { dealersInMarket } from "@/lib/markets";
-import { MarketSwitch } from "@/components/market-switch";
 import { RESEARCH_SOURCE_OPTIONS } from "@/lib/seed";
 import { surveyCompleteness } from "@/lib/survey-schema";
 import type { ResearchTask } from "@/lib/types";
@@ -104,7 +103,6 @@ export function ResearchPage() {
   return (
     <div className="flex flex-col gap-4 overflow-auto px-4 py-4">
       <h1 className="text-xl font-semibold tracking-tight">{t.research}</h1>
-      <MarketSwitch />
       <section className="rounded-2xl bg-surface p-4 shadow-[var(--shadow-border)]">
         <p className="text-sm font-medium">{t.dailyCap}</p>
         <p className="mt-1 text-2xl font-semibold tabular-nums">
@@ -114,7 +112,7 @@ export function ResearchPage() {
         <div className="mt-2 flex items-center gap-2">
           <Input
             type="number"
-            className="max-w-28"
+            className="max-w-28 bg-surface-2"
             value={snapshot.settings.dailyCap}
             onChange={(e) => void setCap(Number(e.target.value) || 20)}
           />
@@ -256,7 +254,7 @@ export function ResearchPage() {
           </button>
         </div>
         <Input
-          className="mb-2"
+          className="mb-2 bg-surface-2"
           value={dealerQuery}
           onChange={(e) => setDealerQuery(e.target.value)}
           placeholder={t.filterDealers}

@@ -3,7 +3,6 @@ import { Input, StatusBadge } from "@/components/ui/field";
 import { COPY, trainingCopy } from "@/lib/i18n";
 import { haversineM, MARKET_CENTERS } from "@/lib/geo";
 import { sliceSnapshot } from "@/lib/markets";
-import { MarketSwitch } from "@/components/market-switch";
 import { PIPELINE_STAGES, type PipelineStage, type TeamInfo } from "@/lib/types";
 import { cn, formatJoinCode, inviteUrl, todayISO, uid } from "@/lib/utils";
 import { pilotScore } from "@/lib/scoring";
@@ -75,7 +74,6 @@ export function OpsPage() {
   return (
     <div className="flex flex-col gap-4 overflow-auto px-4 py-4">
       <h1 className="text-xl font-semibold tracking-tight">{t.ops}</h1>
-      <MarketSwitch />
 
       <TeamCard
         t={t}

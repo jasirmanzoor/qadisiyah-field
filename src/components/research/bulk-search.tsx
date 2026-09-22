@@ -203,13 +203,14 @@ export function BulkSearchPanel({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t.bulkPlaceholderLookup}
-          className="min-h-28"
+          className="min-h-28 bg-surface-2"
         />
       ) : (
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={market === "shifa" ? t.bulkPlaceholderDiscoverShifa : t.bulkPlaceholderDiscover}
+          className="bg-surface-2"
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();

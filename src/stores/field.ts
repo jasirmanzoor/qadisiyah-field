@@ -145,12 +145,34 @@ function keepLocalGps(local: Dealership, remote: Dealership): Dealership {
   return remote;
 }
 
+function unwrapDealer(payload: unknown): Dealership | null {
+  if (!payload || typeof payload !== "object") return null;
+  const raw = payload as Dealership & { dealer?: Dealership; data?: Dealership | { dealer?: Dealership } };
+  const nested = raw.dealer ?? (raw.data && typeof raw.data === "object" ? ((raw.data as { dealer?: Dealership }).dealer ?? raw.data) : undefined);
+  const d = (nested ?? raw) as Dealership;
+  if (!d || typeof d !== "object") return null;
+  return d;
+}
+
+function dealerQueueKey(payload: unknown): string | null {
+  const d = unwrapDealer(payload);
+  if (!d) return null;
+  return d.id || d.flags?.sdId || null;
+}
+
+function isPoisonError(message: string): boolean {
+  return /invalid coordinates|validation|not found|payload/i.test(message);
+}
+
+function isRetryableError(message: string): boolean {
+  return /network|failed to fetch|timeout|offline|503|502|504|429/i.test(message);
+}
+
 function pendingDealerIdsFromQueue(items: { op: string; payload: unknown }[]): Set<string> {
   const ids = new Set<string>();
   for (const item of items) {
     if (item.op !== "upsertDealership") continue;
-    const raw = item.payload as Dealership & { dealer?: Dealership };
-    const d = raw?.dealer ?? raw;
+    const d = unwrapDealer(item.payload);
     if (d?.id) ids.add(d.id);
     if (d?.flags?.sdId) ids.add(d.flags.sdId);
   }
@@ -259,51 +281,78 @@ export const useField = create<FieldState>((set, get) => ({
     set({ syncing: true });
     try {
       const items = await listQueue();
+      const lastDealerItem = new Map<string, string>();
       for (const item of items) {
+        if (item.op !== "upsertDealership") continue;
+        const key = dealerQueueKey(item.payload);
+        if (!key) continue;
+        const prev = lastDealerItem.get(key);
+        if (prev) await removeQueue(prev);
+        lastDealerItem.set(key, item.id);
+      }
+      const compact = await listQueue();
+      for (const item of compact) {
         try {
           switch (item.op) {
             case "upsertDealership": {
-              const raw = item.payload as Dealership & { dealer?: Dealership };
-              const dealer = raw?.dealer ?? raw;
+              const dealer = unwrapDealer(item.payload);
+              if (!dealer || !Number.isFinite(Number(dealer.lat)) || !Number.isFinite(Number(dealer.lng))) {
+                await removeQueue(item.id);
+                break;
+              }
               await apiUpsertDealer({ data: dealer });
+              await removeQueue(item.id);
               break;
             }
             case "upsertSurvey":
               await apiUpsertSurvey({
                 data: item.payload as { survey: SurveyRecord; status: VisitStatus },
               });
+              await removeQueue(item.id);
               break;
             case "addPhoto":
               await apiAddPhoto({ data: item.payload as PhotoRecord });
+              await removeQueue(item.id);
               break;
             case "deletePhoto":
               await apiDeletePhoto({ data: item.payload as { id: string } });
+              await removeQueue(item.id);
               break;
             case "upsertFollowup":
               await apiUpsertFollowup({ data: item.payload as Followup });
+              await removeQueue(item.id);
               break;
             case "upsertTask":
               await apiUpsertTask({ data: item.payload as ResearchTask });
+              await removeQueue(item.id);
               break;
             case "setFindingAccepted":
               await apiSetFinding({ data: item.payload as { id: string; accepted: boolean } });
+              await removeQueue(item.id);
               break;
             case "markNotificationRead":
               await apiMarkRead({ data: item.payload as { id: string } });
+              await removeQueue(item.id);
               break;
             case "setPipelineStage":
               await apiSetPipeline({
                 data: item.payload as { dealershipId: string; stage: PipelineStage },
               });
+              await removeQueue(item.id);
               break;
             default:
+              await removeQueue(item.id);
               break;
           }
-          await removeQueue(item.id);
         } catch (err) {
           const message = err instanceof Error ? err.message : "";
           if (message === "Unauthorized") throw err;
-          break;
+          if (isPoisonError(message)) {
+            await removeQueue(item.id);
+            continue;
+          }
+          if (isRetryableError(message)) break;
+          continue;
         }
       }
       set({ pending: await queueCount() });
