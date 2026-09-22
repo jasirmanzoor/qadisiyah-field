@@ -1,3 +1,4 @@
+import "@/styles-pins.css";
 import { cn } from "@/lib/utils";
 import type { Dealership } from "@/lib/types";
 import { X } from "lucide-react";
@@ -107,16 +108,27 @@ export function DealerRow({
         selected && "bg-surface-2",
       )}
     >
-      <span
-        className={cn(
-          "qads-pin-num qads-pin-row shrink-0",
-          `qads-pin-${dealer.status}`,
-          dealer.flags.trainingStage === "trained" && "qads-pin-trained",
-          dual && "qads-pin-dual",
-        )}
-      >
-        {serial ?? ""}
-      </span>
+      {serial != null ? (
+        <span
+          className={cn(
+            "qads-pin-num qads-pin-row shrink-0",
+            `qads-pin-${dealer.status}`,
+            dealer.flags.trainingStage === "trained" && "qads-pin-trained",
+            dual && "qads-pin-dual",
+          )}
+        >
+          {serial}
+        </span>
+      ) : (
+        <span
+          className={cn(
+            "qads-pin shrink-0",
+            `qads-pin-${dealer.status}`,
+            dealer.flags.trainingStage === "trained" && "qads-pin-trained",
+            dual && "qads-pin-dual",
+          )}
+        />
+      )}
       <span className="min-w-0 flex-1">
         <span className={cn("block truncate text-sm font-medium", dual && "text-primary")}>{name}</span>
         {subtitle ? <span className="block truncate text-xs text-muted">{subtitle}</span> : null}
