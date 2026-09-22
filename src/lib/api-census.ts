@@ -7,7 +7,22 @@ import {
   seedId,
 } from "@/lib/seed";
 import { SHIFA_PINS } from "@/lib/census";
-import type { CensusRow } from "@/lib/types";
+import type { CensusRow, DealershipFlags } from "@/lib/types";
+
+function isProtectedGps(flags: DealershipFlags | undefined): boolean {
+  const src = flags?.gpsSource;
+  return src === "field_device_gps" || src === "manual_pin" || src === "survey";
+}
+
+function parseFlags(raw: unknown): DealershipFlags {
+  if (!raw) return {};
+  if (typeof raw === "object") return raw as DealershipFlags;
+  try {
+    return JSON.parse(String(raw) || "{}") as DealershipFlags;
+  } catch {
+    return {};
+  }
+}
 
 export async function ensureSeeded(workspaceId: string) {
   const sql = await getSql();
@@ -34,10 +49,19 @@ export async function applyShifaCensus(workspaceId: string) {
   for (const d of rows) {
     const id = seedId(d);
     const flags = JSON.stringify(d.flags ?? {});
-    const existing = (await sql`
+    let existing = (await sql`
       select id, lat, lng, name_ar, seed_note, flags
       from dealerships where id = ${id} and user_id = ${workspaceId}
     `) as { id: string; lat: number; lng: number; name_ar: string; seed_note: string; flags: unknown }[];
+
+    if (existing.length === 0 && d.sdId) {
+      existing = (await sql`
+        select id, lat, lng, name_ar, seed_note, flags
+        from dealerships
+        where user_id = ${workspaceId} and flags->>'sdId' = ${d.sdId}
+        limit 1
+      `) as typeof existing;
+    }
 
     if (existing.length === 0) {
       await sql`
@@ -50,21 +74,36 @@ export async function applyShifaCensus(workspaceId: string) {
     }
 
     const cur = existing[0];
-    const raw = typeof cur.flags === "string" ? cur.flags : JSON.stringify(cur.flags ?? {});
-    const keepFieldGps =
-      raw.includes("field_device_gps") || raw.includes("manual_pin") || raw.includes("\"gpsSource\":\"survey\"") || raw.includes('"gpsSource":"survey"');
-    const nextLat = keepFieldGps ? Number(cur.lat) : d.lat;
-    const nextLng = keepFieldGps ? Number(cur.lng) : d.lng;
-    const moved = !keepFieldGps && (Number(cur.lat) !== d.lat || Number(cur.lng) !== d.lng);
+    const prevFlags = parseFlags(cur.flags);
+    const keepFieldGps = isProtectedGps(prevFlags);
+    if (keepFieldGps) continue;
+
+    const merged: DealershipFlags = {
+      ...prevFlags,
+      ...d.flags,
+      mapsUrl: d.flags.mapsUrl || prevFlags.mapsUrl,
+      gpsSource: d.flags.gpsSource ?? prevFlags.gpsSource,
+      gpsStatus: d.flags.gpsStatus ?? prevFlags.gpsStatus,
+      needsGps: d.flags.needsGps ?? prevFlags.needsGps,
+      censusVersion: CENSUS_VERSION,
+      street: d.flags.street || prevFlags.street,
+      trainingPriority: prevFlags.trainingPriority,
+      trainingStage: prevFlags.trainingStage,
+      trainingNote: prevFlags.trainingNote,
+      failedSession: prevFlags.failedSession,
+    };
+    if (d.flags.needsGps === false) merged.needsGps = false;
+
+    const moved = Number(cur.lat) !== d.lat || Number(cur.lng) !== d.lng;
     await sql`
       update dealerships set
-        lat = ${nextLat},
-        lng = ${nextLng},
+        lat = ${d.lat},
+        lng = ${d.lng},
         name_ar   = case when coalesce(name_ar, '')   = '' then ${d.nameAr ?? ""} else name_ar   end,
         seed_note = case when coalesce(seed_note, '') = '' then ${d.note ?? ""}   else seed_note end,
-        flags     = case when coalesce(flags::text, '') in ('', '{}') then ${flags}     else flags     end,
+        flags     = ${JSON.stringify(merged)},
         updated_at = now()
-      where id = ${id} and user_id = ${workspaceId}
+      where id = ${cur.id} and user_id = ${workspaceId}
     `;
     if (moved) repinned++;
   }

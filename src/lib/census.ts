@@ -5,7 +5,7 @@ import { SHIFA_WALK_SEP20, SHIFA_WALK_PATCHES } from "./shifa-walk-sep20";
 import { applyCorridorFrontage } from "./shifa-corridor-frontage";
 import type { CensusRow, DealershipFlags, SurveyPayload, VisitStatus } from "./types";
 
-/** v17: Al Nukhba–Ramz Al Riyadh pins moved onto Ahmad Al Basri street frontage. */
+/** v18: 16 field GPS pins from the Al Nukhba–Ramz Al Riyadh line. */
 export type { CensusRow };
 
 type CensusFile = {
@@ -30,7 +30,7 @@ type CensusFile = {
 };
 
 const data = raw as CensusFile;
-export const CENSUS_VERSION = 17;
+export const CENSUS_VERSION = 18;
 const CLUSTER = { lat: 24.5479261, lng: 46.6818955 };
 
 function around(eastM: number, northM: number) {
