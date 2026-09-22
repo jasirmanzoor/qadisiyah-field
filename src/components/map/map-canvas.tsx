@@ -17,6 +17,20 @@ export type MapFocus = {
 
 const iconCache = new Map<string, L.DivIcon>();
 
+const TILE = {
+  minZoom: MAP_MIN_ZOOM,
+  maxZoom: MAP_MAX_ZOOM,
+  maxNativeZoom: 19,
+  keepBuffer: 8,
+  updateWhenZooming: true,
+  updateWhenIdle: false,
+  detectRetina: false as const,
+};
+
+function coarsePointer() {
+  return typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+}
+
 function statusFill(status: string): string {
   if (status === "completed") return "var(--status-green)";
   if (status === "partial") return "var(--status-amber)";
@@ -70,14 +84,18 @@ const meIcon = L.divIcon({
 function MapSizer() {
   const map = useMap();
   useEffect(() => {
-    const run = () => map.invalidateSize();
+    const run = () => map.invalidateSize({ animate: false });
     const a = window.setTimeout(run, 50);
     const b = window.setTimeout(run, 350);
     window.addEventListener("resize", run);
+    map.on("zoomend", run);
+    map.on("moveend", run);
     return () => {
       window.clearTimeout(a);
       window.clearTimeout(b);
       window.removeEventListener("resize", run);
+      map.off("zoomend", run);
+      map.off("moveend", run);
     };
   }, [map]);
   return null;
@@ -87,15 +105,14 @@ function FlyTo({ target }: { target: MapFocus | null }) {
   const map = useMap();
   useEffect(() => {
     if (!target) return;
-    const zoom = target.zoom ?? Math.max(map.getZoom(), 16);
+    const zoom = Math.round(target.zoom ?? Math.max(map.getZoom(), 16));
     const offsetY = target.padBottom ? Math.round(map.getSize().y * 0.2) : 0;
     const point = map.project([target.lat, target.lng], zoom);
     point.y += offsetY;
     const latlng = map.unproject(point, zoom);
     const reduce =
       typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) map.setView(latlng, zoom, { animate: false });
-    else map.flyTo(latlng, zoom, { duration: 0.45 });
+    map.setView(latlng, zoom, { animate: !reduce && !coarsePointer() });
   }, [target, map]);
   return null;
 }
@@ -135,6 +152,7 @@ export function MapCanvas({
   const routeIds = useMemo(() => new Set(route.map((d) => d.id)), [route]);
   const selected = dealers.find((d) => d.id === selectedId) ?? null;
   const numbers = useMemo(() => serials ?? dealerSerials(dealers), [serials, dealers]);
+  const touch = useMemo(() => coarsePointer(), []);
 
   const pins = useMemo(
     () =>
@@ -160,13 +178,16 @@ export function MapCanvas({
   return (
     <MapContainer
       center={[origin.lat, origin.lng]}
-      zoom={origin.zoom ?? 15}
+      zoom={Math.round(origin.zoom ?? 15)}
       minZoom={MAP_MIN_ZOOM}
       maxZoom={MAP_MAX_ZOOM}
-      zoomSnap={0.5}
-      zoomDelta={0.5}
+      zoomSnap={1}
+      zoomDelta={1}
+      fadeAnimation={false}
+      zoomAnimation={!touch}
+      markerZoomAnimation={!touch}
       className="z-0 h-full w-full"
-      style={{ minHeight: 180, height: "100%" }}
+      style={{ minHeight: 180, height: "100%", background: "var(--bg)" }}
       zoomControl={false}
       attributionControl={false}
     >
@@ -178,16 +199,21 @@ export function MapCanvas({
         <TileLayer
           url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
           attribution="Esri"
+          {...TILE}
         />
       ) : isDark ? (
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
+          subdomains="abcd"
           attribution="CARTO"
+          {...TILE}
         />
       ) : (
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
+          subdomains="abcd"
           attribution="CARTO"
+          {...TILE}
         />
       )}
 
