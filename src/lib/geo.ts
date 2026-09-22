@@ -1,10 +1,12 @@
 export const MARKET_CENTERS = {
   qadisiyah: { lat: 24.826, lng: 46.823, zoom: 15 },
-  shifa: { lat: 24.5496, lng: 46.6813, zoom: 16 },
+  shifa: { lat: 24.5458, lng: 46.6848, zoom: 16.5 },
 } as const;
 
 export const MARKET_CENTER = MARKET_CENTERS.qadisiyah;
 export const DEFAULT_ZOOM = 15;
+export const MAP_MIN_ZOOM = 13;
+export const MAP_MAX_ZOOM = 19;
 
 export function haversineM(
   a: { lat: number; lng: number },
