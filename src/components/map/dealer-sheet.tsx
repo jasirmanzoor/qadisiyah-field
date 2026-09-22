@@ -6,10 +6,9 @@ import type { Dealership, SurveyPayload } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input, StatusBadge, FigureBadge, TrainingBadge } from "@/components/ui/field";
 import { usePrefs } from "@/stores/prefs";
-import { SHIFA_PUBLIC_SNIPPETS } from "@/lib/shifa-seed";
 import { Navigation, Phone, MessageCircle, MapPinned, Crosshair, Copy, Check, Pencil, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { formatCoord, parseCoordPair, parseCoords, collectRoughNotes, formatThisLotPaste, formatRelatedWalkedPaste } from "./map-notes";
+import { formatCoord, parseCoordPair, parseCoords, collectRoughNotes, formatThisLotPaste } from "./map-notes";
 
 export function DealerSheet(props: {
   dealer: Dealership;
@@ -34,7 +33,7 @@ export function DealerSheet(props: {
 }
 
 function DealerSheetBody({
-  dealer, partner, partnerSurvey, distance, source, survey, canPinGps, editingCoords, gps,
+  dealer, partner, distance, source, survey, canPinGps, editingCoords, gps,
   onClose, onSurvey, onPinGps, onEditCoords, onCancelCoords, onSaveCoords, onMarkClosed, onOpenPartner,
 }: Parameters<typeof DealerSheet>[0]) {
   const { lang } = usePrefs();
@@ -55,11 +54,8 @@ function DealerSheetBody({
   const maps = dealer.flags.mapsUrl || mapsLink(dealer.lat, dealer.lng, dealer.nameEn);
   const hasSurvey = dealer.status !== "not_visited";
   const brands = (survey?.mainBrands ?? []).slice(0, 4);
-  const sd = dealer.flags.sdId ?? "";
-  const publicSnippet = dealer.flags.market === "shifa" ? SHIFA_PUBLIC_SNIPPETS[sd] : undefined;
-  const lotPaste = dealer.flags.market === "shifa" ? formatThisLotPaste(dealer, survey) : "";
-  const relatedPaste = dealer.flags.market === "shifa" ? formatRelatedWalkedPaste(partner, partnerSurvey, t.relatedWalked) : null;
-  const roughBody = collectRoughNotes({ nameEn: dealer.nameEn, seedNote: dealer.seedNote, surveyNotes: survey?.notes, publicSnippet, lotPaste, relatedPaste });
+  const lotPaste = formatThisLotPaste(dealer, survey);
+  const roughBody = collectRoughNotes({ lotPaste });
   const stats = [
     survey?.inventoryUnits != null ? { k: t.stock, v: formatNumber(survey.inventoryUnits) } : null,
     survey?.inventoryInside != null ? { k: t.inventoryInside, v: formatNumber(survey.inventoryInside) } : null,
@@ -143,7 +139,6 @@ function DealerSheetBody({
             <button type="button" onClick={() => void copyNotes()} className="flex min-h-10 items-center gap-1 px-1 text-xs font-semibold text-primary">{copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}{copied ? t.copied : t.copyNotes}</button>
           </div>
           <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-fg">{roughBody}</p>
-          {dealer.flags.market === "shifa" && dealer.status === "not_visited" && !/this Al Shifa lot is unwalked/i.test(roughBody) ? <p className="mt-1 text-xs text-muted">{t.thisLotUnwalked}</p> : null}
         </div>
       ) : null}
       {dealer.listedPhone ? <p className="mb-3 text-sm tabular-nums text-muted">{dealer.listedPhone}</p> : <p className="mb-3 text-sm text-faint">{t.noPhone}</p>}

@@ -1,3 +1,4 @@
+import { ALL_CENSUS } from "@/lib/census";
 import { formatNumber } from "@/lib/utils";
 import type { Dealership, SurveyPayload } from "@/lib/types";
 
@@ -22,7 +23,15 @@ export function parseCoords(latRaw: string, lngRaw: string): { lat: number; lng:
 }
 
 const CENSUS_PROSE =
-  /visual count|gps still needs a tap|floor notes \d+|asp band|not vin|pin placed east|not filed|cars visible in frame|through closed gate|confirm on site|do not copy d\d|seed pin is still|public maps pin:/i;
+  /visual count|gps still needs a tap|floor notes \d+|asp band|not vin|pin placed east|not filed|cars visible in frame|through closed gate|confirm on site|do not copy d\d|seed pin is still|public maps pin:|field gps locked|license on fascia|related qadisiyah desk|this al shifa lot is unwalked|distinct from s\d/i;
+
+const CENSUS_BY_SD = (() => {
+  const m = new Map<string, SurveyPayload>();
+  for (const r of ALL_CENSUS) {
+    if (r.sdId && r.survey) m.set(r.sdId, r.survey);
+  }
+  return m;
+})();
 
 function extractMapsUrl(text: string): string | null {
   const m = text.match(/https:\/\/(?:maps\.app\.goo\.gl|www\.google\.com\/maps)[^\s,;]+/i);
@@ -42,59 +51,73 @@ function cleanSurveyNotes(text: string): string {
   return t;
 }
 
-/** WhatsApp-style field card. Only filed values — never invent dashes or ASP bands. */
+function num(a?: number | null, b?: number | null): number | null {
+  if (a != null && Number.isFinite(a)) return a;
+  if (b != null && Number.isFinite(b)) return b;
+  return null;
+}
+
+function filed(dealer: Dealership, live?: SurveyPayload): {
+  inv: number | null;
+  size: number | null;
+  asp: number | null;
+  age: number | null;
+  brands: string[];
+  vehicleType: SurveyPayload["vehicleType"] | "";
+  finance: SurveyPayload["financeAvailable"] | "";
+  extra: string;
+  maps: string;
+} {
+  const seed = dealer.flags.sdId ? CENSUS_BY_SD.get(dealer.flags.sdId) : undefined;
+  const brands = (live?.mainBrands?.length ? live.mainBrands : seed?.mainBrands ?? []).filter(Boolean);
+  const maps =
+    extractMapsUrl(dealer.seedNote || "") ||
+    extractMapsUrl(live?.notes || "") ||
+    extractMapsUrl(seed?.notes || "") ||
+    dealer.flags.mapsUrl ||
+    "";
+  return {
+    inv: num(live?.inventoryUnits, seed?.inventoryUnits),
+    size: num(live?.showroomSizeSqm, seed?.showroomSizeSqm),
+    asp: num(live?.avgSellingPriceSar, seed?.avgSellingPriceSar),
+    age: num(live?.inventoryAgePctOver5, seed?.inventoryAgePctOver5),
+    brands,
+    vehicleType: live?.vehicleType || seed?.vehicleType || "",
+    finance: live?.financeAvailable || seed?.financeAvailable || "",
+    extra: cleanSurveyNotes(live?.notes ?? ""),
+    maps,
+  };
+}
+
+/** WhatsApp-style field card. Only filed / walked values — never dashes, ASP bands, or census prose. */
 export function formatThisLotPaste(dealer: Dealership, survey?: SurveyPayload): string {
+  const f = filed(dealer, survey);
+  const hasFacts =
+    f.inv != null ||
+    f.size != null ||
+    f.asp != null ||
+    f.brands.length > 0 ||
+    f.age != null ||
+    f.finance === "yes" ||
+    f.finance === "no" ||
+    Boolean(f.extra);
+  if (!hasFacts) return "";
+
   const lines: string[] = [];
   const title = (dealer.nameAr || dealer.nameEn).trim();
   if (title) lines.push(title);
-
-  const maps =
-    extractMapsUrl(dealer.seedNote || "") ||
-    extractMapsUrl(survey?.notes || "") ||
-    dealer.flags.mapsUrl ||
-    (Number.isFinite(dealer.lat) && Number.isFinite(dealer.lng)
-      ? `https://www.google.com/maps?q=${dealer.lat},${dealer.lng}`
-      : "");
-  if (maps) lines.push(maps);
-
-  const inv = survey?.inventoryUnits;
-  if (inv != null) lines.push(`${formatNumber(inv)} cars in Inv`);
-
-  const size = survey?.showroomSizeSqm;
-  if (size != null) lines.push(`${formatNumber(size)} mtrs`);
-
-  if (survey?.vehicleType === "used_only") lines.push("Used cars");
-  else if (survey?.vehicleType === "new_only") lines.push("New cars");
-  else if (survey?.vehicleType === "mix") lines.push("New and used");
-
-  const brands = (survey?.mainBrands ?? []).filter(Boolean);
-  if (brands.length) lines.push(brands.join(" , "));
-
-  if (survey?.avgSellingPriceSar != null) {
-    lines.push(`ASP - ${compactAsp(survey.avgSellingPriceSar)}`);
-  }
-
-  const age = survey?.inventoryAgePctOver5;
-  if (age != null) {
-    lines.push(`${100 - age}% <5yr old , ${age}% >5 yr old`);
-  }
-
-  if (survey?.financeAvailable === "no") lines.push("All cash only deals");
-  else if (survey?.financeAvailable === "yes") lines.push("Finance available");
-
-  const extra = cleanSurveyNotes(survey?.notes ?? "");
-  if (extra) lines.push(extra);
-
-  const hasFacts =
-    inv != null ||
-    size != null ||
-    survey?.avgSellingPriceSar != null ||
-    brands.length > 0 ||
-    age != null ||
-    survey?.financeAvailable === "yes" ||
-    survey?.financeAvailable === "no" ||
-    Boolean(extra);
-  if (!hasFacts) return "";
+  if (f.maps) lines.push(f.maps);
+  if (f.inv != null) lines.push(`${formatNumber(f.inv)} cars in Inv`);
+  if (f.size != null) lines.push(`${formatNumber(f.size)} mtrs`);
+  if (f.vehicleType === "used_only") lines.push("Used cars");
+  else if (f.vehicleType === "new_only") lines.push("New cars");
+  else if (f.vehicleType === "mix") lines.push("New and used");
+  if (f.brands.length) lines.push(f.brands.join(", "));
+  if (f.asp != null) lines.push(`ASP - ${compactAsp(f.asp)}`);
+  if (f.age != null) lines.push(`${100 - f.age}% <5yr old , ${f.age}% >5 yr old`);
+  if (f.finance === "no") lines.push("All cash only deals");
+  else if (f.finance === "yes") lines.push("Finance available");
+  if (f.extra) lines.push(f.extra);
   return lines.join("\n");
 }
 
