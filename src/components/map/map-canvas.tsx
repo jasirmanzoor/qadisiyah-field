@@ -1,11 +1,11 @@
 import L from "leaflet";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Circle, MapContainer, Marker, Polyline, ScaleControl, TileLayer, Tooltip, useMap, ZoomControl } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import "@/styles-pins.css";
 import { MAP_MAX_ZOOM, MAP_MIN_ZOOM, MARKET_CENTER } from "@/lib/geo";
 import { dealerSerials, pinBox } from "@/lib/serial";
 import type { Dealership } from "@/lib/types";
-import { usePrefs } from "@/stores/prefs";
 
 export type MapFocus = {
   lat: number;
@@ -21,11 +21,17 @@ const TILE = {
   minZoom: MAP_MIN_ZOOM,
   maxZoom: MAP_MAX_ZOOM,
   maxNativeZoom: 19,
-  keepBuffer: 8,
-  updateWhenZooming: true,
-  updateWhenIdle: false,
+  keepBuffer: 12,
+  updateWhenZooming: false,
+  updateWhenIdle: true,
   detectRetina: false as const,
 };
+
+const ESRI_STREET =
+  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}";
+const ESRI_SAT =
+  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
+const OSM = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 function coarsePointer() {
   return typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
@@ -85,20 +91,56 @@ function MapSizer() {
   const map = useMap();
   useEffect(() => {
     const run = () => map.invalidateSize({ animate: false });
-    const a = window.setTimeout(run, 50);
-    const b = window.setTimeout(run, 350);
+    const a = window.setTimeout(run, 80);
+    const b = window.setTimeout(run, 400);
     window.addEventListener("resize", run);
-    map.on("zoomend", run);
-    map.on("moveend", run);
+    window.addEventListener("orientationchange", run);
     return () => {
       window.clearTimeout(a);
       window.clearTimeout(b);
       window.removeEventListener("resize", run);
-      map.off("zoomend", run);
-      map.off("moveend", run);
+      window.removeEventListener("orientationchange", run);
     };
   }, [map]);
   return null;
+}
+
+function StreetTiles() {
+  const [fallback, setFallback] = useState(false);
+  const fails = useRef(0);
+  return (
+    <TileLayer
+      key={fallback ? "osm" : "esri-street"}
+      url={fallback ? OSM : ESRI_STREET}
+      attribution={fallback ? "OSM" : "Esri"}
+      {...TILE}
+      eventHandlers={{
+        tileerror: () => {
+          fails.current += 1;
+          if (fails.current >= 4) setFallback(true);
+        },
+      }}
+    />
+  );
+}
+
+function SatTiles() {
+  const [fallback, setFallback] = useState(false);
+  const fails = useRef(0);
+  return (
+    <TileLayer
+      key={fallback ? "osm" : "esri-sat"}
+      url={fallback ? OSM : ESRI_SAT}
+      attribution={fallback ? "OSM" : "Esri"}
+      {...TILE}
+      eventHandlers={{
+        tileerror: () => {
+          fails.current += 1;
+          if (fails.current >= 4) setFallback(true);
+        },
+      }}
+    />
+  );
 }
 
 function FlyTo({ target }: { target: MapFocus | null }) {
@@ -129,7 +171,6 @@ export function MapCanvas({
   origin = MARKET_CENTER,
   dualIds,
   showDualLabels = true,
-  dark = false,
   serials,
 }: {
   dealers: Dealership[];
@@ -147,12 +188,9 @@ export function MapCanvas({
   dark?: boolean;
   serials?: Map<string, number>;
 }) {
-  const theme = usePrefs((s) => s.theme);
-  const isDark = dark || theme === "dark";
   const routeIds = useMemo(() => new Set(route.map((d) => d.id)), [route]);
   const selected = dealers.find((d) => d.id === selectedId) ?? null;
   const numbers = useMemo(() => serials ?? dealerSerials(dealers), [serials, dealers]);
-  const touch = useMemo(() => coarsePointer(), []);
 
   const pins = useMemo(
     () =>
@@ -184,10 +222,10 @@ export function MapCanvas({
       zoomSnap={1}
       zoomDelta={1}
       fadeAnimation={false}
-      zoomAnimation={!touch}
-      markerZoomAnimation={!touch}
+      zoomAnimation={false}
+      markerZoomAnimation={false}
       className="z-0 h-full w-full"
-      style={{ minHeight: 180, height: "100%", background: "var(--bg)" }}
+      style={{ minHeight: 180, height: "100%", background: "#d8d2c6" }}
       zoomControl={false}
       attributionControl={false}
     >
@@ -195,27 +233,7 @@ export function MapCanvas({
       <FlyTo target={focus} />
       <ZoomControl position="bottomleft" />
       <ScaleControl imperial={false} position="bottomleft" />
-      {satellite ? (
-        <TileLayer
-          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-          attribution="Esri"
-          {...TILE}
-        />
-      ) : isDark ? (
-        <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
-          subdomains="abcd"
-          attribution="CARTO"
-          {...TILE}
-        />
-      ) : (
-        <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
-          subdomains="abcd"
-          attribution="CARTO"
-          {...TILE}
-        />
-      )}
+      {satellite ? <SatTiles /> : <StreetTiles />}
 
       {heat
         ? dealers.filter((d) => Number.isFinite(d.lat) && Number.isFinite(d.lng)).map((d) => (

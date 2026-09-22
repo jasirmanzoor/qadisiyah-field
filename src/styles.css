@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./styles-pins.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -217,8 +218,8 @@ html.dark {
   inset: 0;
   z-index: 1;
   background:
-    linear-gradient(180deg, color-mix(in oklab, var(--bg) 55%, transparent) 0%, transparent 18%),
-    linear-gradient(0deg, color-mix(in oklab, var(--bg) 48%, transparent) 0%, transparent 22%);
+    linear-gradient(180deg, color-mix(in oklab, var(--bg) 28%, transparent) 0%, transparent 12%),
+    linear-gradient(0deg, color-mix(in oklab, var(--bg) 22%, transparent) 0%, transparent 14%);
 }
 
 .qads-pin {

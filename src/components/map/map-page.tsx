@@ -208,7 +208,7 @@ export function MapPage() {
 
   return (
     <div className="relative min-h-0 flex-1 bg-bg">
-      <div className="absolute inset-0 z-0 isolate">
+      <div className="qads-map-host absolute inset-0 z-0">
         <ClientOnly fallback={<div className="grid h-full place-items-center text-sm text-muted">Loading map…</div>}>
           <Suspense fallback={<div className="grid h-full place-items-center text-sm text-muted">Loading map…</div>}>
             <MapCanvas key={market} dealers={mapDealers} selectedId={selectedId} onSelect={onSelect} onCluster={onCluster} satellite={satellite} me={gps} route={routeDealers} focus={focus} origin={marketCenter} dualIds={dualIds} showDualLabels={market === "shifa" && filter === "dual"} />
