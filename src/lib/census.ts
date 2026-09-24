@@ -3,6 +3,7 @@ import { SHIFA_ROWS } from "./shifa-seed";
 import { SHIFA_WALK_SEP15 } from "./shifa-walk-sep15";
 import { SHIFA_WALK_SEP20, SHIFA_WALK_PATCHES } from "./shifa-walk-sep20";
 import { applyCorridorFrontage } from "./shifa-corridor-frontage";
+import { SHIFA_ROUGH_NOTES } from "./shifa-rough-notes";
 import type { CensusRow, DealershipFlags, SurveyPayload, VisitStatus } from "./types";
 
 /** v18: 16 field GPS pins from the Al Nukhba–Ramz Al Riyadh line. */
@@ -126,12 +127,45 @@ function applyPatches(rows: CensusRow[]): CensusRow[] {
   });
 }
 
+/** Sheet figures for unvisited lots only. Rough notes text — pins, status, and visited surveys stay as they are. */
+function applyUnvisitedRoughNotes(rows: CensusRow[]): CensusRow[] {
+  return rows.map((r) => {
+    if (r.status !== "not_visited") return r;
+    const note = SHIFA_ROUGH_NOTES[r.sdId];
+    if (!note) return r;
+    const survey: SurveyPayload = {
+      ...(r.survey ?? {
+        visitDate: "",
+        surveyorName: "",
+        mainBrands: [],
+        banksPartnered: [],
+        leadOnlinePct: 0,
+      }),
+      visitStatus: "not_visited",
+      vehicleType: note.vehicleType || r.survey?.vehicleType || "",
+      mainBrands: note.mainBrands?.length ? note.mainBrands : r.survey?.mainBrands ?? [],
+      inventoryUnits: note.inventoryUnits ?? r.survey?.inventoryUnits ?? null,
+      inventoryInside: note.inventoryInside ?? r.survey?.inventoryInside ?? null,
+      inventoryOutside: note.inventoryOutside ?? r.survey?.inventoryOutside ?? null,
+      inventoryAgePctOver5: note.inventoryAgePctOver5 ?? r.survey?.inventoryAgePctOver5 ?? null,
+      showroomSizeSqm: note.showroomSizeSqm ?? r.survey?.showroomSizeSqm ?? null,
+      avgSellingPriceSar: note.avgSellingPriceSar ?? r.survey?.avgSellingPriceSar ?? null,
+      avgPriceSource: note.avgSellingPriceSar != null ? "self_reported" : r.survey?.avgPriceSource ?? "",
+      inventoryBasis: note.inventoryUnits != null ? "estimated" : r.survey?.inventoryBasis ?? "",
+      inventorySource: note.inventoryUnits != null ? "observed" : r.survey?.inventorySource ?? "",
+    };
+    return { ...r, survey };
+  });
+}
+
 export const CENSUS_ROWS: CensusRow[] = data.rows.map((r) => tagMarket(r, "qadisiyah"));
 export const EXTRA_PINS: CensusRow[] = data.extra.map((r) => tagMarket(r, "qadisiyah"));
-export const SHIFA_PINS: CensusRow[] = applyCorridorFrontage(
-  applyPatches([
-    ...SHIFA_ROWS, ...SHIFA_WALK_SEP15.map(walkToRow), ...SHIFA_WALK_SEP20.map(walkToRow),
-  ]).map((r) => tagMarket(r, "shifa")),
+export const SHIFA_PINS: CensusRow[] = applyUnvisitedRoughNotes(
+  applyCorridorFrontage(
+    applyPatches([
+      ...SHIFA_ROWS, ...SHIFA_WALK_SEP15.map(walkToRow), ...SHIFA_WALK_SEP20.map(walkToRow),
+    ]).map((r) => tagMarket(r, "shifa")),
+  ),
 );
 export const ALL_CENSUS: CensusRow[] = [...CENSUS_ROWS, ...EXTRA_PINS, ...SHIFA_PINS];
 export const CENSUS_STATS = {
