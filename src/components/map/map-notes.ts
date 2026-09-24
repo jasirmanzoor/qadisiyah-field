@@ -1,4 +1,5 @@
 import { ALL_CENSUS } from "@/lib/census";
+import { SHIFA_SOCIALS } from "@/lib/shifa-socials";
 import { formatNumber } from "@/lib/utils";
 import type { Dealership, SurveyPayload } from "@/lib/types";
 
@@ -51,6 +52,18 @@ function cleanSurveyNotes(text: string): string {
   return t;
 }
 
+function socialLines(sdId?: string): string[] {
+  if (!sdId) return [];
+  const s = SHIFA_SOCIALS[sdId];
+  if (!s) return [];
+  const lines: string[] = [];
+  if (s.insta) lines.push(`Insta ${s.insta}`);
+  if (s.tiktok) lines.push(`TikTok ${s.tiktok}`);
+  if (s.snap) lines.push(`Snap ${s.snap}`);
+  if (s.web) lines.push(`Web ${s.web}`);
+  return lines;
+}
+
 function num(a?: number | null, b?: number | null): number | null {
   if (a != null && Number.isFinite(a)) return a;
   if (b != null && Number.isFinite(b)) return b;
@@ -92,6 +105,7 @@ function filed(dealer: Dealership, live?: SurveyPayload): {
 /** WhatsApp-style field card. Only filed / walked values — never dashes, ASP bands, or census prose. */
 export function formatThisLotPaste(dealer: Dealership, survey?: SurveyPayload): string {
   const f = filed(dealer, survey);
+  const socials = socialLines(dealer.flags.sdId);
   const hasFacts =
     f.inv != null ||
     f.size != null ||
@@ -100,7 +114,8 @@ export function formatThisLotPaste(dealer: Dealership, survey?: SurveyPayload): 
     f.age != null ||
     f.finance === "yes" ||
     f.finance === "no" ||
-    Boolean(f.extra);
+    Boolean(f.extra) ||
+    socials.length > 0;
   if (!hasFacts) return "";
 
   const lines: string[] = [];
@@ -118,6 +133,7 @@ export function formatThisLotPaste(dealer: Dealership, survey?: SurveyPayload): 
   if (f.finance === "no") lines.push("All cash only deals");
   else if (f.finance === "yes") lines.push("Finance available");
   if (f.extra) lines.push(f.extra);
+  lines.push(...socials);
   return lines.join("\n");
 }
 
