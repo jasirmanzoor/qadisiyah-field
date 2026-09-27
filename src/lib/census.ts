@@ -4,9 +4,10 @@ import { SHIFA_WALK_SEP15 } from "./shifa-walk-sep15";
 import { SHIFA_WALK_SEP20, SHIFA_WALK_PATCHES } from "./shifa-walk-sep20";
 import { applyCorridorFrontage } from "./shifa-corridor-frontage";
 import { SHIFA_ROUGH_NOTES } from "./shifa-rough-notes";
+import { SHIFA_FLOOR_NEW, SHIFA_FLOOR_SEP27 } from "./shifa-floor-sep27";
 import type { CensusRow, DealershipFlags, SurveyPayload, VisitStatus } from "./types";
 
-/** v18: 16 field GPS pins from the Al Nukhba–Ramz Al Riyadh line. */
+/** v19: 27 Sep floor figures. Existing pins are not moved. */
 export type { CensusRow };
 
 type CensusFile = {
@@ -31,7 +32,7 @@ type CensusFile = {
 };
 
 const data = raw as CensusFile;
-export const CENSUS_VERSION = 18;
+export const CENSUS_VERSION = 19;
 const CLUSTER = { lat: 24.5479261, lng: 46.6818955 };
 
 function around(eastM: number, northM: number) {
@@ -158,13 +159,80 @@ function applyUnvisitedRoughNotes(rows: CensusRow[]): CensusRow[] {
   });
 }
 
+function applyFloor(rows: CensusRow[]): CensusRow[] {
+  const byId = new Map(SHIFA_FLOOR_SEP27.map((p) => [p.sdId, p]));
+  const next = rows.map((r) => {
+    const p = byId.get(r.sdId);
+    if (!p) return r;
+    const hasFigures = Object.keys(p.survey).length > 0;
+    const survey: SurveyPayload = {
+      ...r.survey,
+      ...p.survey,
+      visitDate: hasFigures ? "2026-09-27" : r.survey.visitDate,
+      visitStatus: hasFigures ? (p.status ?? "partial") : r.survey.visitStatus,
+      notes: p.note || r.survey.notes,
+    };
+    return {
+      ...r,
+      status: hasFigures ? (p.status ?? "partial") : r.status,
+      survey,
+      flags: { ...r.flags, floor27: true },
+    };
+  });
+  for (const n of SHIFA_FLOOR_NEW) {
+    const status = n.status ?? "partial";
+    next.push(tagMarket({
+      sdId: n.sdId,
+      nameEn: n.nameEn,
+      nameAr: n.nameAr,
+      lat: n.lat,
+      lng: n.lng,
+      phone: "",
+      note: n.note ?? "",
+      status,
+      step: 0,
+      flags: {
+        sdId: n.sdId,
+        market: "shifa",
+        mapsUrl: `https://www.google.com/maps?q=${n.lat},${n.lng}`,
+        needsGps: n.needsGps ?? false,
+        floor27: true,
+        gpsSource: "mapping_seed",
+      },
+      survey: {
+        visitDate: status === "partial" ? "2026-09-27" : "",
+        visitStatus: status,
+        mainBrands: n.survey.mainBrands ?? [],
+        banksPartnered: [],
+        leadOnlinePct: 0,
+        notes: n.note ?? "",
+        vehicleType: n.survey.vehicleType ?? "",
+        inventoryUnits: n.survey.inventoryUnits ?? null,
+        inventoryInside: n.survey.inventoryInside ?? null,
+        inventoryOutside: n.survey.inventoryOutside ?? null,
+        inventoryAgePctOver5: n.survey.inventoryAgePctOver5 ?? null,
+        showroomSizeSqm: n.survey.showroomSizeSqm ?? null,
+        avgSellingPriceSar: n.survey.avgSellingPriceSar ?? null,
+        financeAvailable: n.survey.financeAvailable ?? "",
+        salesmenCount: n.survey.salesmenCount ?? null,
+        monthlySoldExact: n.survey.monthlySoldExact ?? null,
+        monthlyFinancedExact: n.survey.monthlyFinancedExact ?? null,
+        fpr: n.survey.fpr ?? null,
+      },
+    }, "shifa"));
+  }
+  return next;
+}
+
 export const CENSUS_ROWS: CensusRow[] = data.rows.map((r) => tagMarket(r, "qadisiyah"));
 export const EXTRA_PINS: CensusRow[] = data.extra.map((r) => tagMarket(r, "qadisiyah"));
-export const SHIFA_PINS: CensusRow[] = applyUnvisitedRoughNotes(
+export const SHIFA_PINS: CensusRow[] = applyFloor(
+  applyUnvisitedRoughNotes(
   applyCorridorFrontage(
     applyPatches([
       ...SHIFA_ROWS, ...SHIFA_WALK_SEP15.map(walkToRow), ...SHIFA_WALK_SEP20.map(walkToRow),
     ]).map((r) => tagMarket(r, "shifa")),
+  ),
   ),
 );
 export const ALL_CENSUS: CensusRow[] = [...CENSUS_ROWS, ...EXTRA_PINS, ...SHIFA_PINS];

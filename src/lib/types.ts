@@ -62,6 +62,8 @@ export type DealershipFlags = {
   trainingNote?: string;
   failedSession?: string;
   market?: MarketId;
+  /** Set when 27 Sep floor figures were filed. Not a pin. */
+  floor27?: boolean;
 };
 
 export function isProtectedGps(flags: DealershipFlags | undefined): boolean {

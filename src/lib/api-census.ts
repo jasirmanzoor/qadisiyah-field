@@ -80,9 +80,9 @@ export async function applyShifaCensus(workspaceId: string) {
       ...prevFlags,
       ...d.flags,
       mapsUrl: d.flags.mapsUrl || prevFlags.mapsUrl,
-      gpsSource: d.flags.gpsSource ?? prevFlags.gpsSource,
-      gpsStatus: d.flags.gpsStatus ?? prevFlags.gpsStatus,
-      needsGps: d.flags.needsGps ?? prevFlags.needsGps,
+      gpsSource: prevFlags.gpsSource ?? d.flags.gpsSource,
+      gpsStatus: prevFlags.gpsStatus ?? d.flags.gpsStatus,
+      needsGps: prevFlags.needsGps ?? d.flags.needsGps,
       censusVersion: CENSUS_VERSION,
       street: d.flags.street || prevFlags.street,
       trainingPriority: prevFlags.trainingPriority,
@@ -90,23 +90,68 @@ export async function applyShifaCensus(workspaceId: string) {
       trainingNote: prevFlags.trainingNote,
       failedSession: prevFlags.failedSession,
     };
-    if (d.flags.needsGps === false) merged.needsGps = false;
+    if (prevFlags.needsGps === false) merged.needsGps = false;
 
-    const moved = Number(cur.lat) !== d.lat || Number(cur.lng) !== d.lng;
     await sql`
       update dealerships set
-        lat = ${d.lat},
-        lng = ${d.lng},
         name_ar   = case when coalesce(name_ar, '')   = '' then ${d.nameAr ?? ""} else name_ar   end,
         seed_note = case when coalesce(seed_note, '') = '' then ${d.note ?? ""}   else seed_note end,
         flags     = ${JSON.stringify(merged)},
         updated_at = now()
       where id = ${cur.id} and user_id = ${workspaceId}
     `;
-    if (moved) repinned++;
   }
 
+  await applyFloorSurveys(workspaceId, rows);
+
   return { inserted, repinned, total: rows.length };
+}
+
+async function applyFloorSurveys(workspaceId: string, rows: CensusRow[]) {
+  const sql = await getSql();
+  for (const d of rows) {
+    if (!d.flags?.floor27) continue;
+    let existing = (await sql`
+      select id, status from dealerships where id = ${seedId(d)} and user_id = ${workspaceId}
+    `) as { id: string; status: string }[];
+    if (existing.length === 0 && d.sdId) {
+      const prefixed = `${workspaceId}::${d.sdId}`;
+      existing = (await sql`
+        select id, status from dealerships
+        where user_id = ${workspaceId}
+          and (flags->>'sdId' = ${d.sdId} or id = ${prefixed})
+        limit 1
+      `) as typeof existing;
+    }
+    if (existing.length === 0) continue;
+    const dealerId = existing[0].id;
+    const current = (await sql`
+      select payload from surveys where user_id = ${workspaceId} and dealership_id = ${dealerId} limit 1
+    `) as { payload: unknown }[];
+    const prev = parseFlags(current[0]?.payload) as Record<string, unknown>;
+    const patch = Object.fromEntries(
+      Object.entries(d.survey ?? {}).filter(([, v]) => {
+        if (v == null || v === "") return false;
+        if (Array.isArray(v) && v.length === 0) return false;
+        return true;
+      }),
+    );
+    const merged = { ...prev, ...patch };
+    const payload = JSON.stringify(merged);
+    const surveyId = `${workspaceId}::${d.sdId}`;
+    await sql`
+      insert into surveys (id, user_id, dealership_id, payload, step, updated_at)
+      values (${surveyId}, ${workspaceId}, ${dealerId}, ${payload}, 4, now())
+      on conflict (user_id, dealership_id) do update
+        set payload = ${payload}, updated_at = now()
+    `;
+    if (d.status === "partial" && existing[0].status === "not_visited") {
+      await sql`
+        update dealerships set status = 'partial', updated_at = now()
+        where id = ${dealerId} and user_id = ${workspaceId}
+      `;
+    }
+  }
 }
 
 export async function applyCensus(workspaceId: string) {
