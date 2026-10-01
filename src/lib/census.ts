@@ -7,7 +7,7 @@ import { SHIFA_ROUGH_NOTES } from "./shifa-rough-notes";
 import { SHIFA_FLOOR_NEW, SHIFA_FLOOR_SEP27 } from "./shifa-floor-sep27";
 import type { CensusRow, DealershipFlags, SurveyPayload, VisitStatus } from "./types";
 
-/** v20: 1 Oct Al Shifa doors. Qadisiyah rows are not rewritten. */
+/** v21: 1 Oct Al Shifa doors painted on the client roster. Qadisiyah rows are not rewritten. */
 export type { CensusRow };
 
 type CensusFile = {
@@ -32,7 +32,7 @@ type CensusFile = {
 };
 
 const data = raw as CensusFile;
-export const CENSUS_VERSION = 20;
+export const CENSUS_VERSION = 21;
 const CLUSTER = { lat: 24.5479261, lng: 46.6818955 };
 
 function around(eastM: number, northM: number) {

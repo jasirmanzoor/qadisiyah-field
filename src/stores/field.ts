@@ -34,6 +34,7 @@ import type {
 import { EMPTY_SURVEY, isProtectedGps } from "@/lib/types";
 import { uid } from "@/lib/utils";
 import { coerceSnapshot } from "./coerce-snapshot";
+import { shifaFloorSurvey } from "@/lib/shifa-floor-overlay";
 
 const EMPTY: Snapshot = {
   dealerships: [],
@@ -564,5 +565,5 @@ export const useField = create<FieldState>((set, get) => ({
 
 export function surveyFor(snapshot: Snapshot, id: string): SurveyRecord | undefined {
   const rows = Array.isArray(snapshot.surveys) ? snapshot.surveys : [];
-  return rows.find((s) => s.dealershipId === id);
+  return rows.find((s) => s.dealershipId === id) ?? shifaFloorSurvey(id);
 }

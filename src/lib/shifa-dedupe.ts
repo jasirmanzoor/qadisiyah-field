@@ -50,7 +50,7 @@ export function isQadisiyahRow(d: {
 export function canonicalSd(d: { id: string; flags?: DealershipFlags }): string | null {
   const flags = d.flags ?? {};
   const raw = flags.sdId || d.id;
-  return /^S\d{4}$/.test(raw) ? raw : null;
+  return /^S[A-Z0-9]+$/.test(raw) ? raw : null;
 }
 
 /** Collapse duplicate Shifa pins for the map HUD. Never drops a unique S-id. */

@@ -1,6 +1,7 @@
 import type { Dealership, MarketId, Snapshot } from "./types";
 import { MARKET_CENTERS } from "./geo";
 import { collapseShifaDuplicates } from "./shifa-dedupe";
+import { overlayMissingShifa } from "./shifa-floor-overlay";
 
 export type { MarketId };
 
@@ -69,7 +70,7 @@ export function dealerMarket(d: Pick<Dealership, "lat" | "flags">): MarketId {
 export function dealersInMarket(dealers: Dealership[], market: MarketId): Dealership[] {
   const scoped = dealers.filter((d) => !d.flags?.hidden && dealerMarket(d) === market);
   if (market !== "shifa") return scoped;
-  return collapseShifaDuplicates(scoped);
+  return collapseShifaDuplicates(overlayMissingShifa(scoped));
 }
 
 export function sliceSnapshot(snapshot: Snapshot, market: MarketId): Snapshot {
