@@ -18,7 +18,7 @@ import { IconTool, LegendDots, ListSheet, DealerRow } from "./map-widgets";
 import { DealerSheet } from "./dealer-sheet";
 
 const MapCanvas = lazy(() => import("./map-canvas").then((m) => ({ default: m.MapCanvas })));
-type FilterId = "all" | "unvisited" | "partial" | "needsGps" | "noPhone" | "closed" | "authorised" | "trained" | "induction" | "dual";
+type FilterId = "all" | "unvisited" | "partial" | "deep" | "needsGps" | "noPhone" | "closed" | "authorised" | "trained" | "induction" | "dual";
 const NEAR_LIMIT = 12;
 
 export function MapPage() {
@@ -69,12 +69,30 @@ export function MapPage() {
     setFocus({ lat: marketCenter.lat, lng: marketCenter.lng, zoom: marketCenter.zoom, nonce: Date.now() });
   }, [market, marketCenter.lat, marketCenter.lng, marketCenter.zoom]);
 
+  const surveyByDealer = useMemo(() => {
+    const m = new Map<string, (typeof snapshot.surveys)[number]["payload"]>();
+    for (const s of snapshot.surveys) m.set(s.dealershipId, s.payload);
+    return m;
+  }, [snapshot.surveys]);
+  const isDeep = (id: string) => {
+    const p = surveyByDealer.get(id);
+    if (!p) return false;
+    return p.fpr != null || p.monthlySoldExact != null || p.monthlyFinancedExact != null || Boolean(p.avgMonthlySold) || Boolean(p.avgMonthlyFinanced);
+  };
+  const isPartialBasic = (d: Dealership) => {
+    if (d.status === "closed" || isDeep(d.id)) return false;
+    if (d.status === "partial") return true;
+    const p = surveyByDealer.get(d.id);
+    if (!p) return false;
+    return p.inventoryUnits != null || (p.mainBrands?.length ?? 0) > 0 || p.avgSellingPriceSar != null;
+  };
   const counts = useMemo(() => {
     const all = roster;
-    const c = { all: all.length, unvisited: 0, partial: 0, needsGps: 0, noPhone: 0, closed: 0, authorised: 0, walked: 0, completed: 0, trained: 0, induction: 0, dual: 0 };
+    const c = { all: all.length, unvisited: 0, partial: 0, deep: 0, needsGps: 0, noPhone: 0, closed: 0, authorised: 0, walked: 0, completed: 0, trained: 0, induction: 0, dual: 0 };
     for (const d of all) {
       if (d.status === "not_visited") c.unvisited += 1;
-      if (d.status === "partial") c.partial += 1;
+      if (market === "shifa" ? isPartialBasic(d) : d.status === "partial") c.partial += 1;
+      if (isDeep(d.id)) c.deep += 1;
       if (d.status === "completed") c.completed += 1;
       if (d.status === "closed") c.closed += 1;
       if (d.flags.needsGps) c.needsGps += 1;
@@ -86,7 +104,7 @@ export function MapPage() {
       if (dualIds.has(d.id)) c.dual += 1;
     }
     return c;
-  }, [roster, dualIds]);
+  }, [roster, dualIds, market, surveyByDealer]);
 
   const brandsById = useMemo(() => {
     const m = new Map<string, string[]>();
@@ -96,7 +114,8 @@ export function MapPage() {
 
   const dealers = useMemo(() => roster.filter((d) => {
     if (filter === "unvisited") return d.status === "not_visited";
-    if (filter === "partial") return d.status === "partial";
+    if (filter === "partial") return market === "shifa" ? isPartialBasic(d) : d.status === "partial";
+    if (filter === "deep") return isDeep(d.id);
     if (filter === "needsGps") return Boolean(d.flags.needsGps);
     if (filter === "noPhone") return !d.listedPhone.trim();
     if (filter === "closed") return d.status === "closed";
@@ -105,7 +124,7 @@ export function MapPage() {
     if (filter === "induction") return Boolean(d.flags.trainingStage || d.flags.trainingPriority);
     if (filter === "dual") return dualIds.has(d.id);
     return true;
-  }), [roster, filter, dualIds]);
+  }), [roster, filter, dualIds, market, surveyByDealer]);
 
   const selected = dealers.find((d) => d.id === selectedId) ?? snapshot.dealerships.find((d) => d.id === selectedId) ?? null;
   const survey = selected ? surveyFor(snapshot, selected.id) : undefined;
@@ -198,13 +217,21 @@ export function MapPage() {
     const nxt = rest.length ? rest.reduce((best, d) => (haversineM(origin, d) < haversineM(origin, best) ? d : best)) : null;
     if (nxt) pickDealer(nxt.id); else setSelectedId(null);
   }
-  const filters: { id: FilterId; label: string; count: number }[] = [
+  const qadisiyahFilters: { id: FilterId; label: string; count: number }[] = [
     { id: "all", label: t.filterAll, count: counts.all }, { id: "dual", label: t.bothMarkets, count: counts.dual },
     { id: "unvisited", label: t.unvisited, count: counts.unvisited }, { id: "partial", label: t.partialFilter, count: counts.partial },
     { id: "needsGps", label: t.needsGps, count: counts.needsGps }, { id: "noPhone", label: t.noPhoneFilter, count: counts.noPhone },
     { id: "closed", label: t.closedFilter, count: counts.closed }, { id: "authorised", label: t.authFilter, count: counts.authorised },
     { id: "trained", label: t.trainedFilter, count: counts.trained }, { id: "induction", label: t.inductionFilter, count: counts.induction },
-  ].filter((f): f is { id: FilterId; label: string; count: number } => f.id === "all" || f.id === "dual" || !(market === "shifa" && f.count === 0));
+  ];
+  const shifaFilters: { id: FilterId; label: string; count: number }[] = [
+    { id: "all", label: t.filterAll, count: counts.all },
+    { id: "dual", label: t.bothMarkets, count: counts.dual },
+    { id: "partial", label: t.partialFilter, count: counts.partial },
+    { id: "deep", label: t.deepDived, count: counts.deep },
+    { id: "closed", label: t.closedFilter, count: counts.closed },
+  ];
+  const filters = market === "shifa" ? shifaFilters : qadisiyahFilters;
 
   return (
     <div className="relative min-h-0 flex-1 bg-bg">

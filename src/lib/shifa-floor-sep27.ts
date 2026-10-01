@@ -39,6 +39,8 @@ export type FloorNew = {
   nameAr: string;
   lat: number;
   lng: number;
+  phone?: string;
+  mapsUrl?: string;
   needsGps?: boolean;
   status?: VisitStatus;
   note?: string;
@@ -51,6 +53,8 @@ const OCT_AS_NEW: FloorNew[] = SHIFA_FLOOR_OCT01.map((n) => ({
   nameAr: n.nameAr,
   lat: n.lat,
   lng: n.lng,
+  phone: n.phone,
+  mapsUrl: n.mapsUrl,
   status: n.status ?? "partial",
   note: n.note,
   survey: n.survey,

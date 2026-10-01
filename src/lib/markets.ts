@@ -46,6 +46,7 @@ export const DUAL_PAIRS: [string, string][] = [
   ["S0040", "D0109"],
   ["S0034", "D0180"],
   ["S0042", "D0066"],
+  ["S14SBR", "D0006"],
 ];
 
 const DUAL_OTHER = new Map<string, string>();

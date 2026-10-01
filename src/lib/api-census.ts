@@ -64,7 +64,7 @@ export async function applyShifaCensus(workspaceId: string) {
     if (existing.length === 0) {
       await sql`
         insert into dealerships (id, user_id, name_en, name_ar, lat, lng, listed_phone, seed_note, status, flags)
-        values (${id}, ${workspaceId}, ${d.nameEn}, ${d.nameAr ?? ""}, ${d.lat}, ${d.lng}, ${""}, ${d.note ?? ""}, ${d.status ?? "not_visited"}, ${flags})
+        values (${id}, ${workspaceId}, ${d.nameEn}, ${d.nameAr ?? ""}, ${d.lat}, ${d.lng}, ${d.phone ?? ""}, ${d.note ?? ""}, ${d.status ?? "not_visited"}, ${flags})
         on conflict (id) do nothing
       `;
       inserted++;
@@ -145,7 +145,12 @@ async function applyFloorSurveys(workspaceId: string, rows: CensusRow[]) {
       on conflict (user_id, dealership_id) do update
         set payload = ${payload}, updated_at = now()
     `;
-    if (d.status === "partial" && existing[0].status === "not_visited") {
+    if (d.status === "closed" && existing[0].status !== "closed") {
+      await sql`
+        update dealerships set status = 'closed', updated_at = now()
+        where id = ${dealerId} and user_id = ${workspaceId}
+      `;
+    } else if (d.status === "partial" && existing[0].status === "not_visited") {
       await sql`
         update dealerships set status = 'partial', updated_at = now()
         where id = ${dealerId} and user_id = ${workspaceId}

@@ -7,7 +7,7 @@ import { SHIFA_ROUGH_NOTES } from "./shifa-rough-notes";
 import { SHIFA_FLOOR_NEW, SHIFA_FLOOR_SEP27 } from "./shifa-floor-sep27";
 import type { CensusRow, DealershipFlags, SurveyPayload, VisitStatus } from "./types";
 
-/** v19: 27 Sep floor figures. Existing pins are not moved. */
+/** v20: 1 Oct Al Shifa doors. Qadisiyah rows are not rewritten. */
 export type { CensusRow };
 
 type CensusFile = {
@@ -32,7 +32,7 @@ type CensusFile = {
 };
 
 const data = raw as CensusFile;
-export const CENSUS_VERSION = 19;
+export const CENSUS_VERSION = 20;
 const CLUSTER = { lat: 24.5479261, lng: 46.6818955 };
 
 function around(eastM: number, northM: number) {
@@ -187,20 +187,20 @@ function applyFloor(rows: CensusRow[]): CensusRow[] {
       nameAr: n.nameAr,
       lat: n.lat,
       lng: n.lng,
-      phone: "",
+      phone: n.phone ?? "",
       note: n.note ?? "",
       status,
       step: 0,
       flags: {
         sdId: n.sdId,
         market: "shifa",
-        mapsUrl: `https://www.google.com/maps?q=${n.lat},${n.lng}`,
+        mapsUrl: n.mapsUrl || `https://www.google.com/maps?q=${n.lat},${n.lng}`,
         needsGps: n.needsGps ?? false,
         floor27: true,
         gpsSource: "mapping_seed",
       },
       survey: {
-        visitDate: status === "partial" ? "2026-09-27" : "",
+        visitDate: status === "partial" ? (n.sdId.startsWith("S14") ? "2026-10-01" : "2026-09-27") : "",
         visitStatus: status,
         mainBrands: n.survey.mainBrands ?? [],
         banksPartnered: [],
