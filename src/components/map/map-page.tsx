@@ -2,6 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { COPY, STATUS_LABEL } from "@/lib/i18n";
 import { formatDistance, haversineM, MARKET_CENTERS, optimizeWalkOrder } from "@/lib/geo";
 import { dealersInMarket, dealerMarket, dualPartner, isDualLocation } from "@/lib/markets";
+import { buildExcelXml, downloadBlob } from "@/lib/export";
 import { cn, uid } from "@/lib/utils";
 import type { Dealership } from "@/lib/types";
 import { AiSurveySheet } from "@/components/ai/ai-survey-sheet";
@@ -11,7 +12,7 @@ import { ClientOnly } from "@/components/client-only";
 import { useField, surveyFor } from "@/stores/field";
 import { usePrefs } from "@/stores/prefs";
 import { SHIFA_CORRIDOR_ORDER, shifaCorridor } from "@/lib/shifa-seed";
-import { MapPinPlus, LocateFixed, Route as RouteIcon, Satellite, Map as MapIcon, Search, X, List as ListIcon, ChevronRight } from "lucide-react";
+import { MapPinPlus, LocateFixed, Route as RouteIcon, Satellite, Map as MapIcon, Search, X, List as ListIcon, ChevronRight, FileSpreadsheet } from "lucide-react";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { MapFocus } from "./map-canvas";
 import { IconTool, LegendDots, ListSheet, DealerRow } from "./map-widgets";
@@ -178,6 +179,14 @@ export function MapPage() {
   const sheetOpen = Boolean(selected || nearMe || planning || adding || cluster);
   const walkedPct = counts.all ? Math.round((counts.walked / counts.all) * 100) : 0;
   function flyTo(d: { lat: number; lng: number }, zoom = 17) { setFocus({ lat: d.lat, lng: d.lng, zoom, nonce: Date.now(), padBottom: true }); }
+  function exportListExcel() {
+    const surveys = listRows.flatMap((d) => {
+      const live = surveyFor(snapshot, d.id) ?? (d.flags.sdId ? surveyFor(snapshot, d.flags.sdId) : undefined);
+      return live ? [{ ...live, dealershipId: d.id }] : [];
+    });
+    const xml = buildExcelXml(listRows, surveys, snapshot.photos);
+    downloadBlob(`${market}-survey-${listRows.length}.xls`, "application/vnd.ms-excel", xml);
+  }
   function pickDealer(id: string) {
     const d = roster.find((x) => x.id === id) ?? snapshot.dealerships.find((x) => x.id === id);
     setSelectedId(id); setEditingCoords(false); setNearMe(false); setCluster(null); setAdding(false);
@@ -282,6 +291,11 @@ export function MapPage() {
                 ) : listGroups ? listGroups.map((g) => (
                   <div key={g.key}><p className="sticky top-0 z-10 bg-surface px-3 py-1.5 text-xs font-semibold text-muted">{g.key}<span className="ms-1.5 tabular-nums opacity-80">{g.items.length}</span></p>{g.items.map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} selected={d.id === selectedId} meta={formatDistance(haversineM(origin, d))} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, STATUS_LABEL[lang][d.status]].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} />)}</div>
                 )) : listRows.map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} selected={d.id === selectedId} meta={formatDistance(haversineM(origin, d))} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, STATUS_LABEL[lang][d.status]].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} />)}
+              </div>
+              <div className="border-t border-border px-3 py-2">
+                <button type="button" onClick={exportListExcel} disabled={listRows.length === 0} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 text-sm font-semibold text-primary-fg disabled:opacity-40">
+                  <FileSpreadsheet className="size-4" />{t.exportExcel}<span className="tabular-nums opacity-80">{listRows.length}</span>
+                </button>
               </div>
             </div>
           ) : null}

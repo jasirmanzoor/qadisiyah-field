@@ -67,9 +67,25 @@ export function shifaFloorSurvey(sdId: string): SurveyRecord | undefined {
   };
 }
 
-/** Paint walked doors the server roster has not inserted yet. Never replaces an existing sdId. */
+function normName(value: string): string {
+  return value.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
+}
+
+/** Paint walked doors the server roster has not inserted yet. Never replaces an existing sdId or the same name. */
 export function overlayMissingShifa(dealers: Dealership[]): Dealership[] {
-  const have = new Set(dealers.map((d) => d.flags?.sdId || d.id));
-  const extra = shifaFloorDealers().filter((d) => !have.has(d.id) && !have.has(d.flags.sdId || ""));
+  const have = new Set<string>();
+  for (const d of dealers) {
+    if (d.id) have.add(d.id);
+    if (d.flags?.sdId) have.add(d.flags.sdId);
+    const en = normName(d.nameEn || "");
+    const ar = normName(d.nameAr || "");
+    if (en) have.add(en);
+    if (ar) have.add(ar);
+  }
+  const extra = shifaFloorDealers().filter((d) => {
+    const en = normName(d.nameEn);
+    const ar = normName(d.nameAr);
+    return !have.has(d.id) && !have.has(d.flags.sdId || "") && !have.has(en) && !have.has(ar);
+  });
   return extra.length ? [...dealers, ...extra] : dealers;
 }
