@@ -6,13 +6,29 @@ import { BANK_OPTIONS, BRAND_OPTIONS, FAIL_REASON_OPTIONS } from "@/lib/seed";
 import { COPY } from "@/lib/i18n";
 import { compressImage } from "@/lib/image";
 import { dealerMarket } from "@/lib/markets";
-import { canSubmitSurvey, SURVEY_STEPS } from "@/lib/survey-schema";
+import { canSubmitSurvey, isDeepDived, isSurveyedShowroom, surveyCompleteness, SURVEY_STEPS } from "@/lib/survey-schema";
 import type { SurveyPayload, VisitStatus } from "@/lib/types";
 import { todayISO, uid } from "@/lib/utils";
 import { useField, surveyFor } from "@/stores/field";
 import { usePrefs } from "@/stores/prefs";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
-import { ChevronLeft, Mic, MicOff } from "lucide-react";
+import {
+  Banknote,
+  Camera,
+  Car,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardCheck,
+  MapPinned,
+  Mic,
+  MicOff,
+  Ruler,
+  StickyNote,
+  Trash2,
+  Users,
+  X,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
@@ -26,6 +42,8 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
   const upsertDealer = useField((s) => s.upsertDealer);
   const addPhoto = useField((s) => s.addPhoto);
   const removePhoto = useField((s) => s.removePhoto);
+  const reorderPhotos = useField((s) => s.reorderPhotos);
+  const loaded = useField((s) => s.loaded);
 
   const dealer = snapshot.dealerships.find((d) => d.id === dealershipId);
   const record = surveyFor(snapshot, dealershipId);
@@ -34,13 +52,28 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
   const photos = snapshot.photos.filter((p) => p.dealershipId === dealershipId);
 
   const [aiOpen, setAiOpen] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   const timer = useRef<number | null>(null);
   function save(patch: Partial<SurveyPayload>, nextStep = step, status?: VisitStatus) {
+    setSaveState("saving");
     if (timer.current) window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => {
-      void patchSurvey(dealershipId, patch, nextStep, status);
+      void patchSurvey(dealershipId, patch, nextStep, status)
+        .then(() => setSaveState("saved"))
+        .catch(() => setSaveState("error"));
     }, 250);
+  }
+
+  async function saveNow() {
+    if (timer.current) window.clearTimeout(timer.current);
+    setSaveState("saving");
+    try {
+      await patchSurvey(dealershipId, {}, step);
+      setSaveState("saved");
+    } catch {
+      setSaveState("error");
+    }
   }
 
   useEffect(() => {
@@ -54,6 +87,16 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
     void patchSurvey(dealershipId, patch);
   }, [dealer, dealershipId, payload.visitDate, payload.surveyorName, payload.visitStatus, payload.vehicleType, patchSurvey, user]);
 
+  if (!loaded) {
+    return (
+      <div className="flex flex-1 flex-col gap-3 bg-bg p-4 pt-[max(1rem,env(safe-area-inset-top))]">
+        <div className="h-14 animate-pulse rounded-2xl bg-surface-2" />
+        <div className="h-24 animate-pulse rounded-2xl bg-surface-2" />
+        <div className="h-40 animate-pulse rounded-2xl bg-surface-2" />
+      </div>
+    );
+  }
+
   if (!dealer) {
     return (
       <div className="p-6 text-sm text-muted">
@@ -64,36 +107,71 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
 
   const stepMeta = SURVEY_STEPS[step];
   const submitGate = canSubmitSurvey(payload);
+  const completeness = surveyCompleteness(payload);
+  const progress = Math.round((completeness.filled / completeness.total) * 100);
+  const deep = isDeepDived(payload);
+  const surveyed = isSurveyedShowroom(dealer.status, payload);
+  const saveLabel = saveState === "saving" ? t.saving : saveState === "error" ? t.saveFailed : saveState === "saved" ? t.autoSaved : t.save;
 
   return (
-    <div className="relative flex h-full min-h-0 flex-1 flex-col bg-bg pt-[env(safe-area-inset-top)]">
+    <div className="relative mx-auto flex h-full min-h-0 w-full max-w-3xl flex-1 flex-col bg-bg pt-[env(safe-area-inset-top)]">
       <div className="flex items-center gap-2 border-b border-border px-2 py-2">
         <button
           type="button"
           aria-label={step === 0 ? t.map : t.back}
-          className="grid size-12 place-items-center"
+          className="grid size-12 shrink-0 place-items-center rounded-xl"
           onClick={() => (step === 0 ? navigate({ to: "/" }) : void patchSurvey(dealershipId, {}, step - 1))}
         >
-          <ChevronLeft className="size-5" />
+          <ChevronLeft className="size-6" />
         </button>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold">{dealer.nameEn}</p>
-          <p className="text-[11px] text-muted">
+          <p className="truncate text-lg font-semibold tracking-tight">{dealer.nameEn}</p>
+          <p className="truncate text-xs text-muted">
             {dealer.flags.sdId ? `${dealer.flags.sdId} · ` : ""}
             {dealerMarket(dealer) === "shifa" ? `${t.usedCarMarket} · ` : ""}
-            {step + 1}/{SURVEY_STEPS.length} · {lang === "ar" ? stepMeta.titleAr : stepMeta.titleEn}
+            {lang === "ar" ? stepMeta.titleAr : stepMeta.titleEn}
           </p>
         </div>
-        <span className="pe-3 text-[11px] text-muted">{t.autoSaved}</span>
+        <span
+          className={`me-1 shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
+            deep
+              ? "bg-status-amber/15 text-status-amber"
+              : surveyed
+                ? "bg-primary/12 text-primary"
+                : "bg-surface-2 text-muted"
+          }`}
+        >
+          {deep ? t.deepDived : surveyed ? t.surveyedCat : dealer.status.replace("_", " ")}
+        </span>
       </div>
-      <div className="h-1 bg-surface-2">
-        <div
-          className="h-full bg-primary transition-[width] duration-200"
-          style={{ width: `${((step + 1) / SURVEY_STEPS.length) * 100}%` }}
-        />
+      <div className="flex items-center gap-2 px-3 pt-2">
+        <p className="shrink-0 text-xs font-semibold uppercase tracking-wide text-muted">
+          {t.fieldsProgress} {completeness.filled}/{completeness.total}
+        </p>
+        <div className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-surface-2">
+          <div className="h-full rounded-full bg-primary transition-[width] duration-200" style={{ width: `${progress}%` }} />
+        </div>
+      </div>
+      <div className="qads-chips flex gap-1 overflow-x-auto px-3 py-2">
+        {SURVEY_STEPS.map((s, i) => {
+          const on = i === step;
+          return (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => void patchSurvey(dealershipId, {}, i)}
+              className={`shrink-0 rounded-full px-3 py-2 text-xs font-semibold ${
+                on ? "bg-primary text-primary-fg" : i < step ? "bg-primary/12 text-primary" : "bg-surface text-muted shadow-[var(--shadow-border)]"
+              }`}
+            >
+              {i + 1} {lang === "ar" ? s.titleAr : s.titleEn}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="flex-1 overflow-auto px-4 py-4 pb-8">
+      <div className="flex-1 overflow-auto px-3 py-2 pb-4">
+        <div key={step} className="insight-swap">
         {step === 0 ? (
           <IdentityStep
             dealer={dealer}
@@ -116,6 +194,7 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
               });
             }}
             onRemove={(id) => void removePhoto(id)}
+            onReorder={(ids) => reorderPhotos(dealershipId, ids)}
           />
         ) : null}
         {step === 1 ? <VisitStep payload={payload} onSave={save} /> : null}
@@ -142,23 +221,26 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
               });
             }}
             onRemove={(id) => void removePhoto(id)}
+            onReorder={(ids) => reorderPhotos(dealershipId, ids)}
           />
         ) : null}
+        </div>
       </div>
 
-      <div className="z-10 flex shrink-0 gap-2 border-t border-border bg-bg px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        {step > 0 ? (
-          <Button variant="secondary" className="flex-1" onClick={() => void patchSurvey(dealershipId, {}, step - 1)}>
-            {t.back}
-          </Button>
-        ) : null}
+      {step === SURVEY_STEPS.length - 1 && !submitGate.ok ? (
+        <p className="mx-3 mb-2 rounded-xl bg-status-amber/15 px-3 py-2 text-sm font-medium text-status-amber">{submitGate.reason}</p>
+      ) : null}
+      <div className="z-10 grid shrink-0 grid-cols-[minmax(0,0.8fr)_minmax(0,1.4fr)] gap-2 border-t border-border bg-bg px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <Button variant="secondary" onClick={() => void saveNow()}>
+          {saveState === "saved" ? <Check className="size-4" /> : null}
+          {saveLabel}
+        </Button>
         {step < SURVEY_STEPS.length - 1 ? (
-          <Button className="flex-1" onClick={() => void patchSurvey(dealershipId, {}, step + 1)}>
-            {t.next}
+          <Button onClick={() => void patchSurvey(dealershipId, {}, step + 1)}>
+            {t.continueStep}
           </Button>
         ) : (
           <Button
-            className="flex-1"
             disabled={!submitGate.ok}
             onClick={async () => {
               await patchSurvey(dealershipId, payload, step, "completed");
@@ -169,9 +251,6 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
           </Button>
         )}
       </div>
-      {step === SURVEY_STEPS.length - 1 && !submitGate.ok ? (
-        <p className="px-4 pb-3 text-xs text-status-amber">{submitGate.reason}</p>
-      ) : null}
       {aiOpen ? (
         <AiSurveySheet mode="existing" dealershipId={dealershipId} onClose={() => setAiOpen(false)} />
       ) : null}
@@ -179,11 +258,180 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
   );
 }
 
-function FieldBlock({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function FieldBlock({
+  label,
+  hint,
+  icon,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
-    <section className="mb-5 flex flex-col gap-2">
-      <Label hint={hint}>{label}</Label>
+    <section className="inspect-card mb-3 flex flex-col gap-2">
+      <Label hint={hint}>
+        <span className="inline-flex items-center gap-2">
+          {icon}
+          {label}
+        </span>
+      </Label>
       {children}
+    </section>
+  );
+}
+
+function EvidenceGallery({
+  photos,
+  onPhoto,
+  onRemove,
+  onReorder,
+}: {
+  photos: { id: string; dataUrl: string }[];
+  onPhoto: (file: File) => Promise<void>;
+  onRemove: (id: string) => void;
+  onReorder: (ids: string[]) => void;
+}) {
+  const t = COPY[usePrefs((s) => s.lang)];
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const libraryRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(0);
+  const [preview, setPreview] = useState<string | null>(null);
+
+  async function take(list: FileList | null) {
+    if (!list?.length) return;
+    const files = Array.from(list);
+    setBusy((n) => n + files.length);
+    for (const file of files) {
+      try {
+        await onPhoto(file);
+      } finally {
+        setBusy((n) => Math.max(0, n - 1));
+      }
+    }
+  }
+
+  function move(id: string, dir: -1 | 1) {
+    const ids = photos.map((p) => p.id);
+    const i = ids.indexOf(id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= ids.length) return;
+    const next = ids.slice();
+    const [item] = next.splice(i, 1);
+    next.splice(j, 0, item);
+    onReorder(next);
+  }
+
+  const open = photos.find((p) => p.id === preview) ?? null;
+
+  return (
+    <section className="inspect-card mb-3">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <p className="inspect-kicker">
+          <Camera className="size-4" />
+          {t.evidence}
+        </p>
+        <span className="text-xs font-semibold tabular-nums text-muted">{photos.length}</span>
+      </div>
+      <p className="mb-3 text-sm text-muted">{t.fieldPhotosHint}</p>
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => {
+          void take(e.target.files);
+          e.target.value = "";
+        }}
+      />
+      <input
+        ref={libraryRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          void take(e.target.files);
+          e.target.value = "";
+        }}
+      />
+      <div className="grid grid-cols-2 gap-2">
+        <Button variant="secondary" onClick={() => cameraRef.current?.click()}>
+          <Camera className="size-4" />
+          {t.takePhoto}
+        </Button>
+        <Button variant="secondary" onClick={() => libraryRef.current?.click()}>
+          {busy ? t.saving : t.photoLibrary}
+        </Button>
+      </div>
+      {photos.length === 0 ? (
+        <div className="mt-3 rounded-xl border border-dashed border-border-strong px-3 py-6 text-center">
+          <p className="text-base font-semibold">{t.photoEmpty}</p>
+          <p className="mt-1 text-sm text-muted">{t.addPhotos}</p>
+        </div>
+      ) : (
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {photos.map((p, index) => (
+            <div key={p.id} className="overflow-hidden rounded-xl bg-surface-2 shadow-[var(--shadow-border)]">
+              <button type="button" className="block w-full" onClick={() => setPreview(p.id)} aria-label={t.evidence}>
+                <img src={p.dataUrl} alt="" className="aspect-square w-full object-cover" />
+              </button>
+              <div className="grid grid-cols-3">
+                <button
+                  type="button"
+                  className="grid min-h-11 place-items-center text-muted disabled:opacity-30"
+                  disabled={index === 0}
+                  onClick={() => move(p.id, -1)}
+                  aria-label={t.earlier}
+                >
+                  <ChevronLeft className="size-4" />
+                </button>
+                <button
+                  type="button"
+                  className="grid min-h-11 place-items-center text-danger"
+                  onClick={() => onRemove(p.id)}
+                  aria-label={t.deletePhoto}
+                >
+                  <Trash2 className="size-4" />
+                </button>
+                <button
+                  type="button"
+                  className="grid min-h-11 place-items-center text-muted disabled:opacity-30"
+                  disabled={index === photos.length - 1}
+                  onClick={() => move(p.id, 1)}
+                  aria-label={t.later}
+                >
+                  <ChevronRight className="size-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {open ? (
+        <div className="evidence-lightbox fixed inset-0 z-50 flex flex-col bg-fg/95 text-bg">
+          <div className="flex items-center justify-between px-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
+            <button type="button" className="grid size-12 place-items-center" onClick={() => setPreview(null)} aria-label={t.back}>
+              <X className="size-6" />
+            </button>
+            <button
+              type="button"
+              className="min-h-12 rounded-xl px-4 text-sm font-semibold text-danger"
+              onClick={() => {
+                onRemove(open.id);
+                setPreview(null);
+              }}
+            >
+              {t.deletePhoto}
+            </button>
+          </div>
+          <button type="button" className="flex min-h-0 flex-1 items-center justify-center p-3" onClick={() => setPreview(null)}>
+            <img src={open.dataUrl} alt="" className="max-h-full max-w-full object-contain" />
+          </button>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -198,6 +446,7 @@ function IdentityStep({
   onSave,
   onPhoto,
   onRemove,
+  onReorder,
 }: {
   dealer: { nameEn: string; nameAr: string; lat: number; lng: number; listedPhone: string };
   payload: SurveyPayload;
@@ -208,9 +457,9 @@ function IdentityStep({
   onSave: (p: Partial<SurveyPayload>) => void;
   onPhoto: (file: File) => Promise<void>;
   onRemove: (id: string) => void;
+  onReorder: (ids: string[]) => void;
 }) {
   const t = COPY[usePrefs((s) => s.lang)];
-  const fileRef = useRef<HTMLInputElement>(null);
   const over5 = payload.inventoryAgePctOver5 ?? 50;
 
   function setSplit(inside: number | null, outside: number | null) {
@@ -227,116 +476,128 @@ function IdentityStep({
 
   return (
     <div data-field-capture="1">
-      <FieldBlock label={t.nameEn}>
-        <Input className="bg-surface-2" value={dealer.nameEn} onChange={(e) => onDealer({ nameEn: e.target.value })} />
-      </FieldBlock>
-      <FieldBlock label={t.nameAr}>
-        <Input dir="rtl" className="bg-surface-2" value={dealer.nameAr} onChange={(e) => onDealer({ nameAr: e.target.value })} />
-      </FieldBlock>
-      <FieldBlock label={t.phone}>
-        <Input
-          className="bg-surface-2"
-          type="tel"
-          value={dealer.listedPhone}
-          onChange={(e) => onDealer({ listedPhone: e.target.value })}
-        />
-      </FieldBlock>
-      <FieldBlock label={t.aiSurvey} hint={t.aiSurveyPhotosHint}>
-        <Button variant="secondary" onClick={onRunAi}>
-          {t.aiSurveyRun}
-        </Button>
-      </FieldBlock>
-      <FieldBlock label={t.fieldPhotos} hint={t.fieldPhotosHint}>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) void onPhoto(f);
-            e.target.value = "";
-          }}
-        />
-        <Button variant="secondary" onClick={() => fileRef.current?.click()}>
-          {t.photos}
-        </Button>
-        {photos.length ? (
-          <div className="mt-2 grid grid-cols-3 gap-2">
-            {photos.map((p) => (
-              <button key={p.id} type="button" className="relative overflow-hidden rounded-lg" onClick={() => onRemove(p.id)}>
-                <img src={p.dataUrl} alt="" className="aspect-square w-full object-cover" />
-              </button>
-            ))}
-          </div>
-        ) : null}
-      </FieldBlock>
-      <FieldBlock label={`${t.sizeSqm} (m²)`}>
-        <Input
-          type="number"
-          inputMode="numeric"
-          className="bg-surface-2"
-          value={payload.showroomSizeSqm ?? ""}
-          onChange={(e) =>
-            onSave({
-              showroomSizeSqm: e.target.value === "" ? null : Number(e.target.value),
-              showroomSizeSource: "observed",
-              sizeBasis: payload.sizeBasis || "estimated",
-            })
-          }
-        />
-      </FieldBlock>
-      <div className="mb-5 grid grid-cols-2 gap-2">
-        <FieldBlock label={t.inventoryInside}>
-          <Input
-            type="number"
-            inputMode="numeric"
-            className="bg-surface-2"
-            value={payload.inventoryInside ?? ""}
-            onChange={(e) =>
-              setSplit(e.target.value === "" ? null : Number(e.target.value), payload.inventoryOutside ?? null)
-            }
-          />
-        </FieldBlock>
-        <FieldBlock label={t.inventoryOutside}>
-          <Input
-            type="number"
-            inputMode="numeric"
-            className="bg-surface-2"
-            value={payload.inventoryOutside ?? ""}
-            onChange={(e) =>
-              setSplit(payload.inventoryInside ?? null, e.target.value === "" ? null : Number(e.target.value))
-            }
-          />
-        </FieldBlock>
-      </div>
-      <FieldBlock label={t.inventoryAgeOver5}>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          step={5}
-          value={payload.inventoryAgePctOver5 ?? 50}
-          onChange={(e) => onSave({ inventoryAgePctOver5: Number(e.target.value) })}
-          className="w-full accent-primary"
-        />
-        <p className="text-sm tabular-nums text-muted">
-          {over5}% {t.inventoryAgeOver5} · {100 - over5}% {t.inventoryAgeUnder5}
+      <section className="inspect-card mb-3">
+        <p className="inspect-kicker mb-3">
+          <ClipboardCheck className="size-4" />
+          {t.floorCheck}
         </p>
-      </FieldBlock>
-      <FieldBlock label="Used / new / mix">
+        <div className="flex flex-col gap-2">
+          <Input className="bg-surface-2" value={dealer.nameEn} aria-label={t.nameEn} onChange={(e) => onDealer({ nameEn: e.target.value })} />
+          <Input dir="rtl" className="bg-surface-2" value={dealer.nameAr} aria-label={t.nameAr} onChange={(e) => onDealer({ nameAr: e.target.value })} />
+          <Input
+            className="bg-surface-2"
+            type="tel"
+            aria-label={t.phone}
+            value={dealer.listedPhone}
+            onChange={(e) => onDealer({ listedPhone: e.target.value })}
+          />
+        </div>
+      </section>
+      <button
+        type="button"
+        className="inspect-card mb-3 flex min-h-14 w-full items-center gap-3 text-start"
+        disabled={!gps}
+        onClick={() => gps && onDealer({ lat: gps.lat, lng: gps.lng })}
+      >
+        <MapPinned className="size-5 shrink-0 text-primary" />
+        <span className="min-w-0 flex-1">
+          <span className="block text-xs font-semibold uppercase tracking-wide text-muted">{t.location}</span>
+          <span className="block truncate text-base font-semibold tabular-nums">
+            {dealer.lat.toFixed(5)}, {dealer.lng.toFixed(5)}
+          </span>
+        </span>
+        <span className="shrink-0 text-sm font-semibold text-primary">{t.updateGps}</span>
+      </button>
+      <EvidenceGallery photos={photos} onPhoto={onPhoto} onRemove={onRemove} onReorder={onReorder} />
+      <section className="inspect-card mb-3">
+        <div className="mb-3 grid grid-cols-3 gap-2">
+          <Metric
+            label={t.stock}
+            value={payload.inventoryUnits ?? ""}
+            readOnly
+          />
+          <Metric
+            label={t.inventoryInside}
+            value={payload.inventoryInside ?? ""}
+            onChange={(n) => setSplit(n, payload.inventoryOutside ?? null)}
+          />
+          <Metric
+            label={t.inventoryOutside}
+            value={payload.inventoryOutside ?? ""}
+            onChange={(n) => setSplit(payload.inventoryInside ?? null, n)}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <Metric
+            icon={<Ruler className="size-3.5" />}
+            label={t.sizeSqm}
+            suffix="m²"
+            value={payload.showroomSizeSqm ?? ""}
+            onChange={(n) =>
+              onSave({
+                showroomSizeSqm: n,
+                showroomSizeSource: "observed",
+                sizeBasis: payload.sizeBasis || "estimated",
+              })
+            }
+          />
+          <Metric
+            icon={<Banknote className="size-3.5" />}
+            label="ASP"
+            value={payload.avgSellingPriceSar ?? ""}
+            onChange={(n) => onSave({ avgSellingPriceSar: n, avgPriceSource: "observed" })}
+          />
+          <Metric
+            icon={<Users className="size-3.5" />}
+            label={t.salesMenLabel}
+            value={payload.salesmenCount ?? ""}
+            onChange={(n) => onSave({ salesmenCount: n })}
+          />
+          <div className="rounded-xl bg-surface-2 px-2 py-2">
+            <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted">
+              <Car className="size-3.5" />
+              {t.inventoryAgeOver5}
+            </p>
+            <p className="mt-1 text-lg font-semibold tabular-nums">{over5}%</p>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={5}
+              value={payload.inventoryAgePctOver5 ?? 50}
+              onChange={(e) => onSave({ inventoryAgePctOver5: Number(e.target.value) })}
+              className="mt-1 w-full accent-primary"
+              aria-label={t.inventoryAgeOver5}
+            />
+          </div>
+        </div>
+      </section>
+      <FieldBlock label="Used / new / mix" icon={<Car className="size-4 text-primary" />}>
         <Choice
+          columns={2}
           value={payload.vehicleType}
           onChange={(id) => onSave({ vehicleType: id as SurveyPayload["vehicleType"] })}
           options={[
             { id: "used_only", label: "Used" },
             { id: "new_only", label: "New" },
             { id: "mix", label: "Mix" },
+            { id: "commercial", label: "Commercial" },
           ]}
         />
       </FieldBlock>
-      <FieldBlock label="Brands" hint="Tap to toggle. Type and press Enter for others.">
+      <FieldBlock label={t.financeLabel} icon={<Banknote className="size-4 text-primary" />}>
+        <Choice
+          columns={3}
+          value={payload.financeAvailable}
+          onChange={(id) => onSave({ financeAvailable: id as SurveyPayload["financeAvailable"] })}
+          options={[
+            { id: "yes", label: "Yes" },
+            { id: "no", label: "No" },
+            { id: "unknown", label: "Unknown" },
+          ]}
+        />
+      </FieldBlock>
+      <FieldBlock label="Brands" hint="Tap to toggle. Type and press Enter for others." icon={<Car className="size-4 text-primary" />}>
         <ChipMulti
           options={BRAND_OPTIONS}
           value={payload.mainBrands ?? []}
@@ -344,35 +605,54 @@ function IdentityStep({
           allowCustom
         />
       </FieldBlock>
-      <FieldBlock label="Average selling price (SAR)">
-        <Input
-          type="number"
-          inputMode="numeric"
-          className="bg-surface-2"
-          value={payload.avgSellingPriceSar ?? ""}
-          onChange={(e) =>
-            onSave({
-              avgSellingPriceSar: e.target.value === "" ? null : Number(e.target.value),
-              avgPriceSource: "observed",
-            })
-          }
-        />
-      </FieldBlock>
-      <FieldBlock label="Latitude / Longitude">
-        <p className="text-sm tabular-nums text-muted">
-          {dealer.lat.toFixed(6)}, {dealer.lng.toFixed(6)}
-        </p>
-        <Button variant="secondary" disabled={!gps} onClick={() => gps && onDealer({ lat: gps.lat, lng: gps.lng })}>
-          {t.updateGps}
+      <FieldBlock label={t.aiSurvey} hint={t.aiSurveyPhotosHint}>
+        <Button variant="secondary" onClick={onRunAi}>
+          {t.aiSurveyRun}
         </Button>
       </FieldBlock>
     </div>
   );
 }
 
+function Metric({
+  label,
+  value,
+  suffix,
+  icon,
+  readOnly,
+  onChange,
+}: {
+  label: string;
+  value: number | string;
+  suffix?: string;
+  icon?: React.ReactNode;
+  readOnly?: boolean;
+  onChange?: (n: number | null) => void;
+}) {
+  return (
+    <label className="rounded-xl bg-surface-2 px-2 py-2">
+      <span className="flex items-center gap-1 truncate text-xs font-semibold uppercase tracking-wide text-muted">
+        {icon}
+        {label}
+      </span>
+      <span className="mt-1 flex items-baseline gap-1">
+        <input
+          type="number"
+          inputMode="numeric"
+          readOnly={readOnly}
+          className="w-full bg-transparent text-xl font-semibold tabular-nums tracking-tight text-fg outline-none read-only:opacity-80"
+          value={value}
+          onChange={(e) => onChange?.(e.target.value === "" ? null : Number(e.target.value))}
+        />
+        {suffix ? <span className="text-xs text-muted">{suffix}</span> : null}
+      </span>
+    </label>
+  );
+}
+
 function VisitStep({ payload, onSave }: { payload: SurveyPayload; onSave: (p: Partial<SurveyPayload>) => void }) {
   return (
-    <FieldBlock label="Visit status">
+    <FieldBlock label="Visit status" icon={<ClipboardCheck className="size-4 text-primary" />}>
       <Choice
         value={payload.visitStatus}
         onChange={(id) => onSave({ visitStatus: id as VisitStatus })}
@@ -434,6 +714,7 @@ function BusinessStep({ payload, onSave }: { payload: SurveyPayload; onSave: (p:
             { id: "new_only", label: "New only" },
             { id: "used_only", label: "Used only" },
             { id: "mix", label: "Mix" },
+            { id: "commercial", label: "Commercial" },
           ]}
         />
       </FieldBlock>
@@ -468,7 +749,7 @@ function PeopleStep({ payload, onSave }: { payload: SurveyPayload; onSave: (p: P
       <FieldBlock label="Decision maker, if different">
         <Input value={payload.decisionMaker ?? ""} onChange={(e) => onSave({ decisionMaker: e.target.value })} />
       </FieldBlock>
-      <FieldBlock label="Number of salesmen">
+      <FieldBlock label="Number of salesmen" icon={<Users className="size-4 text-primary" />}>
         <Input
           type="number"
           inputMode="numeric"
@@ -588,11 +869,27 @@ function CommercialStep({ payload, onSave }: { payload: SurveyPayload; onSave: (
 }
 
 function FinancingStep({ payload, onSave }: { payload: SurveyPayload; onSave: (p: Partial<SurveyPayload>) => void }) {
+  const t = COPY[usePrefs((s) => s.lang)];
   return (
     <>
-      <div className="mb-4 rounded-2xl bg-primary/10 p-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-primary">Most important — financing pain</p>
+      <div className="inspect-card mb-3">
+        <p className="inspect-kicker text-primary">
+          <Banknote className="size-4" />
+          Most important — financing pain
+        </p>
       </div>
+      <FieldBlock label={t.financeLabel} icon={<Banknote className="size-4 text-primary" />}>
+        <Choice
+          columns={3}
+          value={payload.financeAvailable}
+          onChange={(id) => onSave({ financeAvailable: id as SurveyPayload["financeAvailable"] })}
+          options={[
+            { id: "yes", label: "Yes" },
+            { id: "no", label: "No" },
+            { id: "unknown", label: "Unknown" },
+          ]}
+        />
+      </FieldBlock>
       <FieldBlock label="Financing enquiries LOST per month">
         <Input
           type="number"
@@ -687,15 +984,16 @@ function QualityStep({
   onSave,
   onPhoto,
   onRemove,
+  onReorder,
 }: {
   payload: SurveyPayload;
   photos: { id: string; dataUrl: string }[];
   onSave: (p: Partial<SurveyPayload>) => void;
   onPhoto: (file: File) => Promise<void>;
   onRemove: (id: string) => void;
+  onReorder: (ids: string[]) => void;
 }) {
   const t = COPY[usePrefs((s) => s.lang)];
-  const fileRef = useRef<HTMLInputElement>(null);
   const [listening, setListening] = useState(false);
   const recRef = useRef<{ stop: () => void } | null>(null);
 
@@ -743,31 +1041,8 @@ function QualityStep({
           ]}
         />
       </FieldBlock>
-      <FieldBlock label={t.photos} hint="Camera, auto-geotagged, compressed for offline sync.">
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) void onPhoto(f);
-            e.target.value = "";
-          }}
-        />
-        <Button variant="secondary" onClick={() => fileRef.current?.click()}>
-          Add photo
-        </Button>
-        <div className="mt-2 grid grid-cols-3 gap-2">
-          {photos.map((p) => (
-            <button key={p.id} type="button" className="relative overflow-hidden rounded-lg" onClick={() => onRemove(p.id)}>
-              <img src={p.dataUrl} alt="" className="aspect-square w-full object-cover" />
-            </button>
-          ))}
-        </div>
-      </FieldBlock>
-      <FieldBlock label={t.notes}>
+      <EvidenceGallery photos={photos} onPhoto={onPhoto} onRemove={onRemove} onReorder={onReorder} />
+      <FieldBlock label={t.notes} icon={<StickyNote className="size-4 text-primary" />}>
         <Textarea value={payload.notes ?? ""} onChange={(e) => onSave({ notes: e.target.value })} />
         <div className="flex gap-2">
           <Button

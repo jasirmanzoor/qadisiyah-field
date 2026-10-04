@@ -14,8 +14,10 @@ import { COPY } from "@/lib/i18n";
 import { MARKET_CENTERS } from "@/lib/geo";
 import { MARKET_META, isDualLocation, sliceSnapshot } from "@/lib/markets";
 import { pilotScore } from "@/lib/scoring";
+import { isDeepDived, isSurveyedShowroom } from "@/lib/survey-schema";
 import { formatNumber, formatPct, formatSar, formatSarCompact } from "@/lib/utils";
 import { useField, surveyFor } from "@/stores/field";
+import { displaySurvey } from "@/components/map/map-notes";
 import { usePrefs } from "@/stores/prefs";
 import { RefreshCw } from "lucide-react";
 import { lazy, Suspense, useMemo, useState } from "react";
@@ -48,6 +50,17 @@ export function DashboardPage() {
   const [cat, setCat] = useState<InsightCategory | "all">("all");
   const [insightId, setInsightId] = useState<string | null>(null);
   const [swapKey, setSwapKey] = useState(0);
+
+  const coverage = useMemo(() => {
+    let surveyed = 0;
+    let deep = 0;
+    for (const d of snapshot.dealerships) {
+      const payload = displaySurvey(d, surveyFor(snapshot, d.id)?.payload);
+      if (isDeepDived(payload)) deep += 1;
+      if (isSurveyedShowroom(d.status, payload)) surveyed += 1;
+    }
+    return { pins: snapshot.dealerships.length, surveyed, deep };
+  }, [snapshot]);
 
   const engine = useMemo(
     () =>
@@ -116,6 +129,11 @@ export function DashboardPage() {
         >
           {observedOnly ? t.observedOnly : t.disclosedFigures}
         </button>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <StatCard label={t.pinsEstablished} value={formatNumber(coverage.pins)} />
+        <StatCard label={t.surveyedCat} value={formatNumber(coverage.surveyed)} />
+        <StatCard label={t.deepDived} value={formatNumber(coverage.deep)} />
       </div>
 
       {market === "shifa" ? (

@@ -62,6 +62,8 @@ export type DealershipFlags = {
   trainingNote?: string;
   failedSession?: string;
   market?: MarketId;
+  /** Floor records the walk marked hidden (duplicate door). */
+  hidden?: boolean;
   /** Set when 27 Sep floor figures were filed. Not a pin. */
   floor27?: boolean;
 };
@@ -114,7 +116,7 @@ export type SurveyPayload = {
   showroomSizeSqm?: number | null;
   sizeBasis?: "measured" | "estimated" | "dealer_stated" | "";
   showroomSizeSource?: FigureSource | "";
-  vehicleType?: "new_only" | "used_only" | "mix" | "";
+  vehicleType?: "new_only" | "used_only" | "mix" | "commercial" | "";
   inventoryAgeMix?: "2020plus" | "2015_2020" | "pre2015" | "wide" | "";
   pocName?: string;
   pocRole?: string;

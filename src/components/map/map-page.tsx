@@ -3,6 +3,7 @@ import { COPY, STATUS_LABEL } from "@/lib/i18n";
 import { formatDistance, haversineM, MARKET_CENTERS, optimizeWalkOrder } from "@/lib/geo";
 import { dealersInMarket, dealerMarket, dualPartner, isDualLocation } from "@/lib/markets";
 import { buildExcelXml, downloadBlob } from "@/lib/export";
+import { isDeepDived, isSurveyedShowroom } from "@/lib/survey-schema";
 import { cn, uid } from "@/lib/utils";
 import type { Dealership } from "@/lib/types";
 import { AiSurveySheet } from "@/components/ai/ai-survey-sheet";
@@ -17,9 +18,10 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { MapFocus } from "./map-canvas";
 import { IconTool, LegendDots, ListSheet, DealerRow } from "./map-widgets";
 import { DealerSheet } from "./dealer-sheet";
+import { displaySurvey } from "./map-notes";
 
 const MapCanvas = lazy(() => import("./map-canvas").then((m) => ({ default: m.MapCanvas })));
-type FilterId = "all" | "unvisited" | "partial" | "deep" | "needsGps" | "noPhone" | "closed" | "authorised" | "trained" | "induction" | "dual";
+type FilterId = "all" | "surveyed" | "unvisited" | "partial" | "deep" | "needsGps" | "noPhone" | "closed" | "authorised" | "trained" | "induction" | "dual";
 const NEAR_LIMIT = 12;
 
 export function MapPage() {
@@ -71,15 +73,17 @@ export function MapPage() {
   }, [market, marketCenter.lat, marketCenter.lng, marketCenter.zoom]);
 
   const surveyByDealer = useMemo(() => {
+    const live = new Map<string, (typeof snapshot.surveys)[number]["payload"]>();
+    for (const s of snapshot.surveys) live.set(s.dealershipId, s.payload);
     const m = new Map<string, (typeof snapshot.surveys)[number]["payload"]>();
-    for (const s of snapshot.surveys) m.set(s.dealershipId, s.payload);
+    for (const d of roster) {
+      const merged = displaySurvey(d, live.get(d.id));
+      if (merged) m.set(d.id, merged);
+    }
     return m;
-  }, [snapshot.surveys]);
-  const isDeep = (id: string) => {
-    const p = surveyByDealer.get(id);
-    if (!p) return false;
-    return p.fpr != null || p.monthlySoldExact != null || p.monthlyFinancedExact != null || Boolean(p.avgMonthlySold) || Boolean(p.avgMonthlyFinanced);
-  };
+  }, [snapshot.surveys, roster]);
+  const isDeep = (id: string) => isDeepDived(surveyByDealer.get(id));
+  const isSurveyed = (d: Dealership) => isSurveyedShowroom(d.status, surveyByDealer.get(d.id));
   const isPartialBasic = (d: Dealership) => {
     if (d.status === "closed" || isDeep(d.id)) return false;
     if (d.status === "partial") return true;
@@ -89,8 +93,9 @@ export function MapPage() {
   };
   const counts = useMemo(() => {
     const all = roster;
-    const c = { all: all.length, unvisited: 0, partial: 0, deep: 0, needsGps: 0, noPhone: 0, closed: 0, authorised: 0, walked: 0, completed: 0, trained: 0, induction: 0, dual: 0 };
+    const c = { all: all.length, surveyed: 0, unvisited: 0, partial: 0, deep: 0, needsGps: 0, noPhone: 0, closed: 0, authorised: 0, walked: 0, completed: 0, trained: 0, induction: 0, dual: 0 };
     for (const d of all) {
+      if (isSurveyed(d)) c.surveyed += 1;
       if (d.status === "not_visited") c.unvisited += 1;
       if (market === "shifa" ? isPartialBasic(d) : d.status === "partial") c.partial += 1;
       if (isDeep(d.id)) c.deep += 1;
@@ -114,6 +119,7 @@ export function MapPage() {
   }, [snapshot.surveys]);
 
   const dealers = useMemo(() => roster.filter((d) => {
+    if (filter === "surveyed") return isSurveyed(d);
     if (filter === "unvisited") return d.status === "not_visited";
     if (filter === "partial") return market === "shifa" ? isPartialBasic(d) : d.status === "partial";
     if (filter === "deep") return isDeep(d.id);
@@ -128,7 +134,7 @@ export function MapPage() {
   }), [roster, filter, dualIds, market, surveyByDealer]);
 
   const selected = dealers.find((d) => d.id === selectedId) ?? snapshot.dealerships.find((d) => d.id === selectedId) ?? null;
-  const survey = selected ? surveyFor(snapshot, selected.id) : undefined;
+  const survey = selected ? displaySurvey(selected, surveyFor(snapshot, selected.id)?.payload) : undefined;
   const partner = selected ? dualPartner(selected, snapshot.dealerships) : null;
   const partnerSurvey = partner ? surveyFor(snapshot, partner.id)?.payload : undefined;
   const mapDealers = useMemo(() => (selected && !dealers.some((d) => d.id === selected.id) ? [...dealers, selected] : dealers), [dealers, selected]);
@@ -177,7 +183,8 @@ export function MapPage() {
   }, [origin, routeDealers]);
   const nearbyDupes = useMemo(() => (adding ? roster.filter((d) => haversineM(origin, d) < 40).slice(0, 3) : []), [adding, roster, origin]);
   const sheetOpen = Boolean(selected || nearMe || planning || adding || cluster);
-  const walkedPct = counts.all ? Math.round((counts.walked / counts.all) * 100) : 0;
+  const surveyedPct = counts.all ? Math.round((counts.surveyed / counts.all) * 100) : 0;
+  const deepPct = counts.all ? Math.round((counts.deep / counts.all) * 100) : 0;
   function flyTo(d: { lat: number; lng: number }, zoom = 17) { setFocus({ lat: d.lat, lng: d.lng, zoom, nonce: Date.now(), padBottom: true }); }
   function exportListExcel() {
     const surveys = listRows.flatMap((d) => {
@@ -227,17 +234,15 @@ export function MapPage() {
     if (nxt) pickDealer(nxt.id); else setSelectedId(null);
   }
   const qadisiyahFilters: { id: FilterId; label: string; count: number }[] = [
-    { id: "all", label: t.filterAll, count: counts.all }, { id: "dual", label: t.bothMarkets, count: counts.dual },
+    { id: "dual", label: t.bothMarkets, count: counts.dual },
     { id: "unvisited", label: t.unvisited, count: counts.unvisited }, { id: "partial", label: t.partialFilter, count: counts.partial },
     { id: "needsGps", label: t.needsGps, count: counts.needsGps }, { id: "noPhone", label: t.noPhoneFilter, count: counts.noPhone },
     { id: "closed", label: t.closedFilter, count: counts.closed }, { id: "authorised", label: t.authFilter, count: counts.authorised },
     { id: "trained", label: t.trainedFilter, count: counts.trained }, { id: "induction", label: t.inductionFilter, count: counts.induction },
   ];
   const shifaFilters: { id: FilterId; label: string; count: number }[] = [
-    { id: "all", label: t.filterAll, count: counts.all },
     { id: "dual", label: t.bothMarkets, count: counts.dual },
     { id: "partial", label: t.partialFilter, count: counts.partial },
-    { id: "deep", label: t.deepDived, count: counts.deep },
     { id: "closed", label: t.closedFilter, count: counts.closed },
   ];
   const filters = market === "shifa" ? shifaFilters : qadisiyahFilters;
@@ -270,6 +275,33 @@ export function MapPage() {
                 ) : searchHits.map((d) => <DealerRow key={d.id} dealer={d} dual={dualIds.has(d.id)} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, d.nameAr || d.listedPhone || d.flags.street].filter(Boolean).join(" · ")} lang={lang} onClick={() => pickDealer(d.id)} />)}
               </div>
             ) : (
+              <>
+              <div className="mt-1 grid grid-cols-3 gap-1">
+                {([
+                  ["all", t.pinsEstablished, counts.all],
+                  ["surveyed", t.surveyedCat, counts.surveyed],
+                  ["deep", t.deepDived, counts.deep],
+                ] as const).map(([id, label, count]) => {
+                  const on = filter === id;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setFilter(id)}
+                      className={cn(
+                        "cat-tile",
+                        on && id === "deep" && "bg-status-amber text-primary-fg",
+                        on && id === "surveyed" && "bg-primary text-primary-fg",
+                        on && id === "all" && "bg-fg text-bg",
+                        !on && "qads-hud text-fg",
+                      )}
+                    >
+                      <span className="block text-xl font-semibold tabular-nums leading-none tracking-tight">{count}</span>
+                      <span className={cn("mt-1 block text-xs font-semibold", on ? "opacity-90" : "text-muted")}>{label}</span>
+                    </button>
+                  );
+                })}
+              </div>
               <div className="qads-chips mt-1 flex min-w-0 gap-1 overflow-x-auto pb-0.5">
                 {filters.map((f) => (
                   <button key={f.id} type="button" onClick={() => setFilter(f.id)} className={cn("qads-chip shrink-0 rounded-full px-3 py-2 text-xs font-semibold", filter === f.id ? "bg-primary text-primary-fg shadow-[var(--shadow-border)]" : "qads-hud text-muted")}>
@@ -277,6 +309,7 @@ export function MapPage() {
                   </button>
                 ))}
               </div>
+              </>
             )}
           </div>
           {listMode && !planning && !adding ? (
@@ -312,9 +345,12 @@ export function MapPage() {
         <div className="qads-hud absolute inset-x-3 bottom-3 z-10 rounded-2xl p-3">
           <div className="flex items-center justify-between gap-3">
             <LegendDots />
-            <p className="shrink-0 text-xs font-medium tabular-nums text-muted">{market === "shifa" ? <span className="me-2 font-semibold text-fg">{t.usedCarMarket}</span> : null}{filter === "all" ? <><span className="text-fg">{counts.walked}</span>{` / ${counts.all} ${t.walkedOf}`}</> : <>{t.showing} <span className="text-fg">{dealers.length}</span></>}</p>
+            <p className="shrink-0 text-xs font-medium tabular-nums text-muted">{market === "shifa" ? <span className="me-2 font-semibold text-fg">{t.usedCarMarket}</span> : null}{filter === "all" ? <><span className="font-semibold text-fg">{counts.surveyed}</span>{` ${t.surveyedCat} · `}<span className="font-semibold text-status-amber">{counts.deep}</span>{` ${t.deepDived} · `}<span className="font-semibold text-fg">{counts.all}</span>{` ${t.pinsEstablished}`}</> : <>{t.showing} <span className="text-fg">{dealers.length}</span></>}</p>
           </div>
-          <div className="mt-2 h-1 overflow-hidden rounded-full bg-surface-2"><div className="h-full rounded-full bg-[linear-gradient(90deg,var(--primary),var(--gold))] transition-[width] duration-300" style={{ width: `${filter === "all" ? walkedPct : dealers.length && counts.all ? Math.round((dealers.length / counts.all) * 100) : 0}%` }} /></div>
+          <div className="relative mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2">
+            <div className="absolute inset-y-0 start-0 rounded-full bg-primary transition-[width] duration-300" style={{ width: `${filter === "all" ? surveyedPct : dealers.length && counts.all ? Math.round((dealers.length / counts.all) * 100) : 0}%` }} />
+            {filter === "all" ? <div className="absolute inset-y-0 start-0 rounded-full bg-status-amber transition-[width] duration-300" style={{ width: `${deepPct}%` }} /> : null}
+          </div>
           {nextDesk ? <button type="button" onClick={() => pickDealer(nextDesk.id)} className="mt-2 flex min-h-11 w-full items-center gap-2 rounded-xl bg-surface-2 px-2 text-start"><span className="text-xs font-semibold text-primary">{t.nextDesk}</span><span className="min-w-0 flex-1 truncate text-sm font-medium text-fg">{lang === "ar" && nextDesk.nameAr ? nextDesk.nameAr : nextDesk.nameEn}</span><span className="shrink-0 text-xs tabular-nums text-muted">{formatDistance(haversineM(origin, nextDesk))}</span><ChevronRight className="size-4 shrink-0 text-muted" /></button> : null}
           <Button data-add="1" className="mt-2 w-full" size="sm" onClick={() => openAdd()}><MapPinPlus className="size-4" />{t.addDealer}</Button>
         </div>
@@ -328,7 +364,7 @@ export function MapPage() {
       ) : null}
       {nearMe && !planning ? <ListSheet title={t.nearest} hint={gpsError ? t.usingCenter : undefined} onClose={() => setNearMe(false)}>{nearest.map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} meta={formatDistance(haversineM(origin, d))} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, STATUS_LABEL[lang][d.status]].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} />)}</ListSheet> : null}
       {cluster && !planning && !nearMe ? <ListSheet title={t.clusterHere} hint={`${cluster.length}`} onClose={() => setCluster(null)}>{[...cluster].sort((a, b) => haversineM(origin, a) - haversineM(origin, b)).map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} meta={formatDistance(haversineM(origin, d))} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, STATUS_LABEL[lang][d.status]].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} />)}</ListSheet> : null}
-      {selected && !planning && !nearMe && !cluster ? <DealerSheet dealer={selected} partner={partner} partnerSurvey={partnerSurvey} distance={haversineM(origin, selected)} source={survey?.payload.volumeFiguresAre} survey={survey?.payload} canPinGps={Boolean(gps && !gpsError)} editingCoords={editingCoords} gps={gps && !gpsError ? gps : null} onClose={() => { setEditingCoords(false); setSelectedId(null); }} onSurvey={(id) => void navigate({ to: "/survey/$id", params: { id } })} onPinGps={() => void pinSelectedToGps()} onEditCoords={() => setEditingCoords(true)} onCancelCoords={() => setEditingCoords(false)} onSaveCoords={(lat, lng) => void saveSelectedCoords(lat, lng)} onMarkClosed={() => void markClosed(selected.id)} onOpenPartner={(p) => { pendingJump.current = p.id; setMarket(dealerMarket(p)); }} /> : null}
+      {selected && !planning && !nearMe && !cluster ? <DealerSheet dealer={selected} partner={partner} partnerSurvey={partnerSurvey} distance={haversineM(origin, selected)} source={survey?.volumeFiguresAre} survey={survey} photos={snapshot.photos.filter((p) => p.dealershipId === selected.id)} canPinGps={Boolean(gps && !gpsError)} editingCoords={editingCoords} gps={gps && !gpsError ? gps : null} onClose={() => { setEditingCoords(false); setSelectedId(null); }} onSurvey={(id) => void navigate({ to: "/survey/$id", params: { id } })} onPinGps={() => void pinSelectedToGps()} onEditCoords={() => setEditingCoords(true)} onCancelCoords={() => setEditingCoords(false)} onSaveCoords={(lat, lng) => void saveSelectedCoords(lat, lng)} onMarkClosed={() => void markClosed(selected.id)} onOpenPartner={(p) => { pendingJump.current = p.id; setMarket(dealerMarket(p)); }} /> : null}
       {adding ? (
         <div className="qads-sheet absolute inset-x-3 bottom-3 z-30 rounded-2xl p-4">
           <div className="mb-3 flex items-start justify-between gap-2"><div><p className="text-base font-semibold tracking-tight">{t.addDealer}</p><p className="text-xs text-muted">{t.addDealerHint}</p><p className="mt-1 text-xs text-muted">{gps && !gpsError ? t.pinningGps : t.usingCenter}</p>{market === "shifa" ? <p className="mt-1 text-xs text-muted">{t.usedOnlyDefault}</p> : null}</div><button type="button" onClick={() => setAdding(false)} className="grid size-10 shrink-0 place-items-center"><X className="size-4" /></button></div>

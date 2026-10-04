@@ -75,6 +75,7 @@ type FieldState = {
   ) => Promise<void>;
   addPhoto: (p: PhotoRecord) => Promise<void>;
   removePhoto: (id: string) => Promise<void>;
+  reorderPhotos: (dealershipId: string, orderedIds: string[]) => void;
   upsertFollowup: (f: Followup) => Promise<void>;
   upsertTask: (t: ResearchTask) => Promise<void>;
   setFinding: (id: string, accepted: boolean) => Promise<void>;
@@ -216,7 +217,7 @@ export const useField = create<FieldState>((set, get) => ({
   snapshot: EMPTY,
   loaded: false,
   hydrating: false,
-  online: typeof navigator === "undefined" ? true : navigator.onLine,
+  online: true,
   pending: 0,
   syncing: false,
   gps: null,
@@ -307,12 +308,12 @@ export const useField = create<FieldState>((set, get) => ({
             }
             case "upsertSurvey":
               await apiUpsertSurvey({
-                data: item.payload as { survey: SurveyRecord; status: VisitStatus },
+                data: item.payload as never,
               });
               await removeQueue(item.id);
               break;
             case "addPhoto":
-              await apiAddPhoto({ data: item.payload as PhotoRecord });
+              await apiAddPhoto({ data: item.payload as never });
               await removeQueue(item.id);
               break;
             case "deletePhoto":
@@ -320,11 +321,11 @@ export const useField = create<FieldState>((set, get) => ({
               await removeQueue(item.id);
               break;
             case "upsertFollowup":
-              await apiUpsertFollowup({ data: item.payload as Followup });
+              await apiUpsertFollowup({ data: item.payload as never });
               await removeQueue(item.id);
               break;
             case "upsertTask":
-              await apiUpsertTask({ data: item.payload as ResearchTask });
+              await apiUpsertTask({ data: item.payload as never });
               await removeQueue(item.id);
               break;
             case "setFindingAccepted":
@@ -424,6 +425,27 @@ export const useField = create<FieldState>((set, get) => ({
     await enqueue({ id: uid(), op: "deletePhoto", payload: { id } });
     set({ pending: await queueCount() });
     void get().flush();
+  },
+
+  reorderPhotos: (dealershipId, orderedIds) => {
+    const snapshot = get().snapshot;
+    const want = new Map(orderedIds.map((id, index) => [id, index]));
+    const indexes: number[] = [];
+    const current: PhotoRecord[] = [];
+    snapshot.photos.forEach((p, index) => {
+      if (p.dealershipId !== dealershipId) return;
+      indexes.push(index);
+      current.push(p);
+    });
+    if (indexes.length < 2) return;
+    const ranked = [...current].sort((a, b) => (want.get(a.id) ?? 999) - (want.get(b.id) ?? 999));
+    const photos = snapshot.photos.slice();
+    indexes.forEach((index, n) => {
+      photos[index] = ranked[n];
+    });
+    const next = { ...snapshot, photos };
+    set({ snapshot: next });
+    persist(next);
   },
 
   upsertFollowup: async (f) => {
@@ -542,7 +564,15 @@ export const useField = create<FieldState>((set, get) => ({
 
   bulkSearch: async (mode, query) => {
     try {
-      const res = await apiBulkSearch({ data: { mode, query } });
+      const res = (await apiBulkSearch({ data: { mode, query } as never })) as {
+        ok: boolean;
+        error?: string;
+        hits?: BulkSearchHit[];
+        warning?: string;
+        charged?: number;
+        cap?: number;
+        runsToday?: number;
+      };
       if (!res.ok) return { ok: false, error: res.error };
       const snapshot = get().snapshot;
       const warning = "warning" in res && typeof res.warning === "string" ? res.warning : undefined;
@@ -551,8 +581,8 @@ export const useField = create<FieldState>((set, get) => ({
           ...snapshot,
           settings: {
             ...snapshot.settings,
-            dailyCap: res.cap,
-            runsToday: res.runsToday,
+            dailyCap: res.cap ?? snapshot.settings.dailyCap,
+            runsToday: res.runsToday ?? snapshot.settings.runsToday,
           },
         },
       });

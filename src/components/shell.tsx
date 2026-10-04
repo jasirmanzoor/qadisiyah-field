@@ -41,6 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const on = () => setOnline(true);
     const off = () => setOnline(false);
+    setOnline(navigator.onLine);
     window.addEventListener("online", on);
     window.addEventListener("offline", off);
     return () => {

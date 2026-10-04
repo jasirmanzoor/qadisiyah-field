@@ -34,7 +34,7 @@ export const Route = createRootRoute({
         { charSet: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
         { title: APP_NAME },
-        { name: "theme-color", content: "#1F5C4A" },
+        { name: "theme-color", content: "#1a1d18" },
         {
           name: "description",
           content: "Offline-first field survey for Al Qadisiyah and Al Shifa independent car dealerships.",

@@ -6,7 +6,8 @@ import type { Dealership, SurveyPayload } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input, StatusBadge, FigureBadge, TrainingBadge } from "@/components/ui/field";
 import { usePrefs } from "@/stores/prefs";
-import { Navigation, Phone, MessageCircle, MapPinned, Crosshair, Copy, Check, Pencil, X } from "lucide-react";
+import { isDeepDived, isSurveyedShowroom } from "@/lib/survey-schema";
+import { Navigation, Phone, MessageCircle, MapPinned, Crosshair, Copy, Check, Pencil, X, Camera } from "lucide-react";
 import { useEffect, useState } from "react";
 import { formatCoord, parseCoordPair, parseCoords, collectRoughNotes, formatThisLotPaste } from "./map-notes";
 
@@ -17,6 +18,7 @@ export function DealerSheet(props: {
   distance: number;
   source?: string;
   survey?: SurveyPayload;
+  photos?: { id: string; dataUrl: string }[];
   canPinGps: boolean;
   editingCoords: boolean;
   gps: { lat: number; lng: number } | null;
@@ -33,7 +35,7 @@ export function DealerSheet(props: {
 }
 
 function DealerSheetBody({
-  dealer, partner, distance, source, survey, canPinGps, editingCoords, gps,
+  dealer, partner, distance, source, survey, photos = [], canPinGps, editingCoords, gps,
   onClose, onSurvey, onPinGps, onEditCoords, onCancelCoords, onSaveCoords, onMarkClosed, onOpenPartner,
 }: Parameters<typeof DealerSheet>[0]) {
   const { lang } = usePrefs();
@@ -56,32 +58,39 @@ function DealerSheetBody({
   const brands = (survey?.mainBrands ?? []).slice(0, 4);
   const lotPaste = formatThisLotPaste(dealer, survey);
   const roughBody = collectRoughNotes({ lotPaste });
+  const [shot, setShot] = useState<string | null>(null);
+  const deep = isDeepDived(survey);
+  const surveyed = isSurveyedShowroom(dealer.status, survey);
   const stats = [
     survey?.inventoryUnits != null ? { k: t.stock, v: formatNumber(survey.inventoryUnits) } : null,
     survey?.inventoryInside != null ? { k: t.inventoryInside, v: formatNumber(survey.inventoryInside) } : null,
     survey?.inventoryOutside != null ? { k: t.inventoryOutside, v: formatNumber(survey.inventoryOutside) } : null,
     survey?.monthlySoldExact != null ? { k: t.soldMo, v: formatNumber(survey.monthlySoldExact) } : null,
+    survey?.monthlyFinancedExact != null ? { k: t.financeLabel, v: formatNumber(survey.monthlyFinancedExact) } : null,
     survey?.avgSellingPriceSar != null ? { k: "ASP", v: formatSarCompact(survey.avgSellingPriceSar) } : null,
     survey?.showroomSizeSqm != null ? { k: t.sizeSqm, v: `${formatNumber(survey.showroomSizeSqm)} m²` } : null,
     survey?.inventoryAgePctOver5 != null ? { k: t.inventoryAgeOver5, v: `${survey.inventoryAgePctOver5}%` } : null,
+    survey?.salesmenCount != null ? { k: t.salesMenLabel, v: formatNumber(survey.salesmenCount) } : null,
     survey?.fpr != null ? { k: "FPR", v: formatPct(survey.fpr * 100) } : null,
+    survey?.financeAvailable ? { k: t.financeLabel, v: survey.financeAvailable } : null,
   ].filter(Boolean) as { k: string; v: string }[];
   async function copyNotes() {
     try { await navigator.clipboard.writeText(roughBody); setCopied(true); window.setTimeout(() => setCopied(false), 1600); } catch { /* clipboard blocked */ }
   }
   return (
-    <div className="qads-sheet absolute inset-x-3 bottom-3 z-30 max-h-[52vh] overflow-auto rounded-2xl p-4">
+    <div className="qads-sheet absolute inset-x-3 bottom-3 z-30 max-h-[68vh] overflow-auto rounded-2xl p-4">
       <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-surface-2" />
       <div className="mb-2 flex items-start justify-between gap-2">
         <div className="min-w-0">
           {dealer.flags.sdId ? <p className="text-xs font-semibold uppercase tracking-wide text-muted">{dealer.flags.sdId}</p> : null}
-          <p className={cn("truncate text-base font-semibold tracking-tight", partner && "text-primary")}>{dealer.nameEn}</p>
+          <p className={cn("truncate text-lg font-semibold tracking-tight", partner && "text-primary")}>{dealer.nameEn}</p>
           {dealer.nameAr ? <p className="truncate text-sm text-muted" dir="rtl">{dealer.nameAr}</p> : null}
         </div>
         <button type="button" onClick={onClose} className="grid size-10 shrink-0 place-items-center"><X className="size-4" /></button>
       </div>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <StatusBadge status={dealer.status} />
+        {deep ? <span className="rounded-full bg-status-amber/15 px-2 py-0.5 text-xs font-semibold text-status-amber">{t.deepDived}</span> : surveyed ? <span className="rounded-full bg-primary/12 px-2 py-0.5 text-xs font-semibold text-primary">{t.surveyedCat}</span> : null}
         {partner ? <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-fg">{t.bothMarkets}</span> : null}
         <TrainingBadge stage={dealer.flags.trainingStage} priority={dealer.flags.trainingPriority} label={trainingCopy(lang, dealer.flags) ?? t.induction} />
         <span className="flex items-center gap-1 text-xs tabular-nums text-muted"><Navigation className="size-3" />{formatDistance(distance)}</span>
@@ -114,6 +123,18 @@ function DealerSheetBody({
           <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-primary"><Pencil className="size-3.5" />{t.editCoords}</span>
         </button>
       )}
+      {photos.length ? (
+        <div className="mb-3">
+          <p className="mb-1 flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted"><Camera className="size-3.5" />{t.evidence}</p>
+          <div className="flex gap-2 overflow-x-auto">
+            {photos.map((p) => (
+              <button key={p.id} type="button" className="shrink-0 overflow-hidden rounded-xl" onClick={() => setShot(p.dataUrl)}>
+                <img src={p.dataUrl} alt="" className="size-16 object-cover" />
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
       {dealer.flags.needsGps ? <p className="mb-2 text-xs text-status-amber">{t.confirmGps}</p> : null}
       {dealer.flags.market === "shifa" ? <p className="mb-2 text-xs text-muted">{t.usedCarMarket}</p> : null}
       {dealer.flags.competitor ? <p className="mb-2 text-xs text-status-purple">{t.competitor}</p> : null}
@@ -131,7 +152,7 @@ function DealerSheetBody({
       {survey?.pocName ? <p className="mb-2 text-xs text-muted">{survey.pocName}{survey.pocRole ? ` · ${survey.pocRole}` : ""}</p> : null}
       {dealer.flags.street ? <p className="mb-1 text-xs text-muted">{dealer.flags.street}</p> : null}
       {brands.length ? <div className="mb-2 flex flex-wrap gap-1">{brands.map((b) => <span key={b} className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">{b}</span>)}</div> : null}
-      {stats.length ? <div className={cn("mb-3 grid gap-1.5", stats.length >= 3 ? "grid-cols-3" : stats.length === 2 ? "grid-cols-2" : "grid-cols-1")}>{stats.slice(0, 6).map((s) => <div key={s.k} className="rounded-xl bg-surface-2 px-2 py-2"><p className="truncate text-xs text-muted">{s.k}</p><p className="truncate text-sm font-semibold tabular-nums tracking-tight">{s.v}</p></div>)}</div> : null}
+      {stats.length ? <div className="mb-3 grid grid-cols-3 gap-1.5">{stats.map((s) => <div key={`${s.k}-${s.v}`} className="rounded-xl bg-surface-2 px-2 py-2"><p className="truncate text-xs font-medium uppercase tracking-wide text-muted">{s.k}</p><p className="truncate text-base font-semibold tabular-nums tracking-tight">{s.v}</p></div>)}</div> : null}
       {roughBody ? (
         <div className="mb-3 rounded-xl bg-surface-2 px-3 py-2">
           <div className="flex items-center justify-between gap-2">
@@ -150,6 +171,12 @@ function DealerSheetBody({
       {dealer.flags.needsGps && canPinGps ? <button type="button" onClick={onPinGps} className="mt-2 flex min-h-10 w-full items-center justify-center gap-2 rounded-xl text-sm font-medium text-primary"><Crosshair className="size-4" />{t.pinToGps}</button> : null}
       <Button className="mt-2 w-full" disabled={dealer.status === "competitor"} onClick={() => onSurvey(dealer.id)}>{hasSurvey ? t.continueSurvey : t.startSurvey}</Button>
       {dealer.status === "not_visited" ? <button type="button" onClick={onMarkClosed} className="mt-1 flex min-h-10 w-full items-center justify-center text-sm font-medium text-muted">{t.markClosed}</button> : null}
+      {shot ? (
+        <div className="evidence-lightbox fixed inset-0 z-50 flex flex-col bg-fg/95" onClick={() => setShot(null)}>
+          <button type="button" className="ms-auto grid size-12 place-items-center text-bg" aria-label={t.back}><X className="size-6" /></button>
+          <img src={shot} alt="" className="min-h-0 flex-1 object-contain p-3" />
+        </div>
+      ) : null}
     </div>
   );
 }

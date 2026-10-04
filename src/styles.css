@@ -4,29 +4,29 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --bg: #efe8dc;
-  --surface: #f7f3ea;
-  --surface-2: #e7dfd0;
-  --fg: #14110d;
-  --muted: #6b6458;
-  --faint: #9a9284;
-  --primary: #0f2c59;
-  --primary-fg: #f7f4ee;
-  --gold: #d4af37;
-  --gold-soft: color-mix(in oklab, #d4af37 22%, transparent);
-  --border: color-mix(in oklab, #14110d 10%, transparent);
-  --border-strong: color-mix(in oklab, #14110d 20%, transparent);
+  --bg: #f3f1eb;
+  --surface: #fbfaf6;
+  --surface-2: #e4e1d8;
+  --fg: #1a1d18;
+  --muted: #5c6258;
+  --faint: #8a8f84;
+  --primary: #3e5340;
+  --primary-fg: #f6f5f0;
+  --gold: #c4842a;
+  --gold-soft: color-mix(in oklab, #c4842a 22%, transparent);
+  --border: color-mix(in oklab, #1a1d18 12%, transparent);
+  --border-strong: color-mix(in oklab, #1a1d18 22%, transparent);
   --danger: #9b2c2c;
-  --status-grey: #8a8478;
-  --status-amber: #b45309;
-  --status-green: #1f7a4d;
+  --status-grey: #7d8278;
+  --status-amber: #b86a12;
+  --status-green: #2f6b45;
   --status-red: #b42318;
   --status-purple: #6d4c8a;
-  --shadow-border: 0 0 0 1px color-mix(in oklab, #14110d 8%, transparent),
-    0 1px 2px -1px rgba(20, 17, 13, 0.08);
-  --shadow-lift: 0 0 0 1px color-mix(in oklab, #d4af37 28%, transparent),
-    0 18px 40px -18px rgba(20, 17, 13, 0.28);
-  --glass: color-mix(in oklab, #f7f3ea 82%, transparent);
+  --shadow-border: 0 0 0 1px color-mix(in oklab, #1a1d18 10%, transparent),
+    0 1px 2px -1px rgba(26, 29, 24, 0.08);
+  --shadow-lift: 0 0 0 1px color-mix(in oklab, #c4842a 28%, transparent),
+    0 18px 40px -18px rgba(26, 29, 24, 0.28);
+  --glass: color-mix(in oklab, #fbfaf6 88%, transparent);
   --radius-xs: 4px;
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -39,28 +39,28 @@
 }
 
 html.dark {
-  --bg: #0d0d11;
-  --surface: #14141b;
-  --surface-2: #1c1c26;
-  --fg: #f4efe4;
-  --muted: #a8a29a;
-  --faint: #6f6a64;
-  --primary: #1aa38a;
-  --primary-fg: #061410;
-  --gold: #d4af37;
-  --gold-soft: color-mix(in oklab, #d4af37 26%, transparent);
-  --border: color-mix(in oklab, #f4efe4 10%, transparent);
-  --border-strong: color-mix(in oklab, #d4af37 34%, transparent);
+  --bg: #121411;
+  --surface: #1c1f1a;
+  --surface-2: #272b24;
+  --fg: #f4f2eb;
+  --muted: #b0b4aa;
+  --faint: #7c8178;
+  --primary: #a3b583;
+  --primary-fg: #14170f;
+  --gold: #e0a14a;
+  --gold-soft: color-mix(in oklab, #e0a14a 26%, transparent);
+  --border: color-mix(in oklab, #f4f2eb 12%, transparent);
+  --border-strong: color-mix(in oklab, #e0a14a 34%, transparent);
   --danger: #f97066;
-  --status-grey: #8b8680;
+  --status-grey: #8b9086;
   --status-amber: #e0a14a;
-  --status-green: #3dcf8a;
+  --status-green: #8fb56a;
   --status-red: #f97066;
   --status-purple: #c4a0e0;
-  --shadow-border: 0 0 0 1px color-mix(in oklab, #f4efe4 8%, transparent);
-  --shadow-lift: 0 0 0 1px color-mix(in oklab, #d4af37 22%, transparent),
+  --shadow-border: 0 0 0 1px color-mix(in oklab, #f4f2eb 8%, transparent);
+  --shadow-lift: 0 0 0 1px color-mix(in oklab, #e0a14a 22%, transparent),
     0 24px 48px -20px rgba(0, 0, 0, 0.72);
-  --glass: color-mix(in oklab, #14141b 78%, transparent);
+  --glass: color-mix(in oklab, #1c1f1a 86%, transparent);
 }
 
 @theme inline {
@@ -367,4 +367,34 @@ html.dark {
 .qads-photo img {
   outline: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
   outline-offset: -1px;
+}
+
+.inspect-card {
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-border);
+  padding: 0.85rem;
+}
+
+.inspect-kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cat-tile {
+  min-height: 3.5rem;
+  border-radius: var(--radius-md);
+  padding: 0.4rem 0.55rem;
+  text-align: start;
+  transition: background-color var(--motion-quick) var(--ease-out), color var(--motion-quick) var(--ease-out);
+}
+
+.evidence-lightbox {
+  animation: insight-in var(--motion-fast) var(--ease-out);
 }

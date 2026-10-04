@@ -92,3 +92,37 @@ export function sourceBadge(source?: string | null): "observed" | "self_reported
   if (source === "observed" || source === "self_reported" || source === "mixed") return source;
   return "untagged";
 }
+
+/** Floor visit captured — inventory, size, brands, price, type, staff, or a visit status. */
+export function isFloorSurveyed(p: SurveyPayload | null | undefined): boolean {
+  if (!p) return false;
+  return (
+    p.inventoryUnits != null ||
+    p.inventoryInside != null ||
+    p.inventoryOutside != null ||
+    p.showroomSizeSqm != null ||
+    p.avgSellingPriceSar != null ||
+    (p.mainBrands?.length ?? 0) > 0 ||
+    Boolean(p.vehicleType) ||
+    p.salesmenCount != null ||
+    p.financeAvailable === "yes" ||
+    p.financeAvailable === "no"
+  );
+}
+
+/**
+ * Deepdived: further financial stats already on the record.
+ * Monthly sold plus either financed volume or an FPR. No new fields.
+ */
+export function isDeepDived(p: SurveyPayload | null | undefined): boolean {
+  if (!p) return false;
+  const sold = p.monthlySoldExact != null || Boolean(p.avgMonthlySold);
+  const financed = p.monthlyFinancedExact != null || Boolean(p.avgMonthlyFinanced);
+  return sold && (financed || p.fpr != null);
+}
+
+export function isSurveyedShowroom(status: string, p: SurveyPayload | null | undefined): boolean {
+  if (isDeepDived(p)) return true;
+  if (status === "completed" || status === "partial") return true;
+  return isFloorSurveyed(p);
+}

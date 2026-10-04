@@ -34,6 +34,20 @@ const CENSUS_BY_SD = (() => {
   return m;
 })();
 
+/** Live survey wins field-by-field. Census seed fills gaps. Display only — never written back. */
+export function displaySurvey(dealer: Dealership, live?: SurveyPayload | null): SurveyPayload | undefined {
+  const seed = dealer.flags.sdId ? CENSUS_BY_SD.get(dealer.flags.sdId) : undefined;
+  if (!seed && !live) return undefined;
+  const out: SurveyPayload = { ...(seed ?? {}) };
+  if (!live) return out;
+  for (const [key, value] of Object.entries(live) as [keyof SurveyPayload, SurveyPayload[keyof SurveyPayload]][]) {
+    if (value == null || value === "") continue;
+    if (Array.isArray(value) && value.length === 0) continue;
+    out[key] = value as never;
+  }
+  return out;
+}
+
 function extractMapsUrl(text: string): string | null {
   const m = text.match(/https:\/\/(?:maps\.app\.goo\.gl|www\.google\.com\/maps)[^\s,;]+/i);
   if (!m) return null;
