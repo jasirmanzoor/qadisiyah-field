@@ -181,7 +181,25 @@ function pendingDealerIdsFromQueue(items: { op: string; payload: unknown }[]): S
   return ids;
 }
 
-function mergeSnapshot(local: Snapshot, remote: Snapshot, pendingIds: Set<string>): Snapshot {
+function pendingSurveyIdsFromQueue(items: { op: string; payload: unknown }[]): Set<string> {
+  const ids = new Set<string>();
+  for (const item of items) {
+    if (item.op !== "upsertSurvey") continue;
+    const payload = item.payload as { survey?: { dealershipId?: string } };
+    const id = payload?.survey?.dealershipId;
+    if (id) ids.add(id);
+  }
+  return ids;
+}
+
+function queueRank(op: string): number {
+  if (op === "upsertDealership") return 0;
+  if (op === "upsertSurvey") return 1;
+  if (op === "addPhoto") return 9;
+  return 2;
+}
+
+function mergeSnapshot(local: Snapshot, remote: Snapshot, pendingIds: Set<string>, surveyPending: Set<string> = new Set()): Snapshot {
   const localById = new Map(local.dealerships.map((d) => [d.id, d]));
   const localBySd = new Map(
     local.dealerships.filter((d) => d.flags?.sdId).map((d) => [d.flags.sdId as string, d]),
@@ -210,7 +228,20 @@ function mergeSnapshot(local: Snapshot, remote: Snapshot, pendingIds: Set<string
   for (const l of local.dealerships) {
     if (!seen.has(l.id)) dealerships.push(l);
   }
-  return { ...remote, dealerships };
+  const localSurveys = new Map((local.surveys ?? []).map((s) => [s.dealershipId, s]));
+  const surveys = (remote.surveys ?? []).map((r) => {
+    const l = localSurveys.get(r.dealershipId);
+    if (!l) return r;
+    if (surveyPending.has(r.dealershipId)) return l;
+    const localStamp = Date.parse(l.updatedAt || "") || 0;
+    const remoteStamp = Date.parse(r.updatedAt || "") || 0;
+    return localStamp >= remoteStamp ? l : r;
+  });
+  const seenSurveys = new Set(surveys.map((s) => s.dealershipId));
+  for (const l of local.surveys ?? []) {
+    if (!seenSurveys.has(l.dealershipId)) surveys.push(l);
+  }
+  return { ...remote, dealerships, surveys };
 }
 
 export const useField = create<FieldState>((set, get) => ({
@@ -262,10 +293,11 @@ export const useField = create<FieldState>((set, get) => ({
       const remote = coerceSnapshot(await pullSnapshot());
       const queued = await listQueue().catch(() => []);
       const pendingIds = pendingDealerIdsFromQueue(queued);
+      const surveyPending = pendingSurveyIdsFromQueue(queued);
       const current = get().snapshot;
       const merged =
         current.dealerships.length > 0
-          ? mergeSnapshot(current, remote, pendingIds)
+          ? mergeSnapshot(current, remote, pendingIds, surveyPending)
           : remote;
       set({ snapshot: merged, loaded: true, lastError: null });
       persist(merged);
@@ -292,7 +324,10 @@ export const useField = create<FieldState>((set, get) => ({
         if (prev) await removeQueue(prev);
         lastDealerItem.set(key, item.id);
       }
-      const compact = await listQueue();
+      const compact = (await listQueue()).sort(
+        (a, b) => queueRank(a.op) - queueRank(b.op) || a.createdAt - b.createdAt,
+      );
+      let blocked = "";
       for (const item of compact) {
         try {
           switch (item.op) {
@@ -312,10 +347,17 @@ export const useField = create<FieldState>((set, get) => ({
               });
               await removeQueue(item.id);
               break;
-            case "addPhoto":
+            case "addPhoto": {
+              const photo = item.payload as { dataUrl?: string };
+              if (typeof photo?.dataUrl === "string" && photo.dataUrl.length > 1_500_000) {
+                await removeQueue(item.id);
+                blocked = "A floor photo was too large to sync. The showroom save was kept.";
+                break;
+              }
               await apiAddPhoto({ data: item.payload as never });
               await removeQueue(item.id);
               break;
+            }
             case "deletePhoto":
               await apiDeletePhoto({ data: item.payload as { id: string } });
               await removeQueue(item.id);
@@ -353,11 +395,16 @@ export const useField = create<FieldState>((set, get) => ({
             await removeQueue(item.id);
             continue;
           }
-          if (isRetryableError(message)) break;
+          if (isRetryableError(message)) {
+            blocked = message || "Sync paused. Will retry.";
+            continue;
+          }
+          blocked = message || "One save could not sync.";
           continue;
         }
       }
-      set({ pending: await queueCount() });
+      const pending = await queueCount();
+      set({ pending, lastError: pending > 0 ? blocked || get().lastError : null });
     } finally {
       set({ syncing: false });
     }

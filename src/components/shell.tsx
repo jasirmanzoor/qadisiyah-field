@@ -21,6 +21,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const setGps = useField((s) => s.setGps);
   const setGpsError = useField((s) => s.setGpsError);
   const pending = useField((s) => s.pending);
+  const lastError = useField((s) => s.lastError);
   const online = useField((s) => s.online);
   const loaded = useField((s) => s.loaded);
   const gpsError = useField((s) => s.gpsError);
@@ -104,7 +105,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   className="font-medium text-status-amber"
                   onClick={() => void flushField()}
                 >
-                  {t.pendingSync} · {pending}
+                  {t.pendingSync} · {pending}{lastError ? ` · ${lastError}` : ""}
                 </button>
               ) : (
                 t.synced
