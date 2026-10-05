@@ -31,6 +31,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const dealers = useField((s) => s.snapshot.dealerships);
   const counts = useMemo(() => marketCounts(dealers), [dealers]);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [finder, setFinder] = useState(false);
 
   useEffect(() => {
     hydrate();
@@ -81,7 +82,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
   if (!user) return <RedirectToSignIn />;
 
-  const [finder, setFinder] = useState(false);
   const nav = [
     { to: "/", label: t.map, icon: MapIcon },
     { to: "/dashboard", label: t.dashboard, icon: BarChart3 },
