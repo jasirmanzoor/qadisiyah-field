@@ -6,6 +6,7 @@ import type { Dealership, SurveyPayload } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input, StatusBadge, FigureBadge, TrainingBadge } from "@/components/ui/field";
 import { usePrefs } from "@/stores/prefs";
+import { useField } from "@/stores/field";
 import { isDeepDived, isSurveyedShowroom } from "@/lib/survey-schema";
 import { Navigation, Phone, MessageCircle, MapPinned, Crosshair, Copy, Check, Pencil, X, Camera } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -40,7 +41,11 @@ function DealerSheetBody({
 }: Parameters<typeof DealerSheet>[0]) {
   const { lang } = usePrefs();
   const t = COPY[lang];
+  const patchSurvey = useField((s) => s.patchSurvey);
   const [copied, setCopied] = useState(false);
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [notesDraft, setNotesDraft] = useState("");
+  const [notesSaved, setNotesSaved] = useState(false);
   const [latDraft, setLatDraft] = useState(formatCoord(dealer.lat));
   const [lngDraft, setLngDraft] = useState(formatCoord(dealer.lng));
   const [pasteDraft, setPasteDraft] = useState(`${formatCoord(dealer.lat)}, ${formatCoord(dealer.lng)}`);
@@ -50,6 +55,8 @@ function DealerSheetBody({
     setLngDraft(formatCoord(dealer.lng));
     setPasteDraft(`${formatCoord(dealer.lat)}, ${formatCoord(dealer.lng)}`);
     setCoordError(false);
+    setEditingNotes(false);
+    setNotesSaved(false);
   }, [dealer.id, editingCoords]);
   const call = telLink(dealer.listedPhone);
   const wa = waLink(dealer.listedPhone);
@@ -58,6 +65,7 @@ function DealerSheetBody({
   const brands = (survey?.mainBrands ?? []).slice(0, 4);
   const lotPaste = formatThisLotPaste(dealer, survey);
   const roughBody = collectRoughNotes({ lotPaste });
+  const notesBody = survey?.notes?.trim() || roughBody;
   const [shot, setShot] = useState<string | null>(null);
   const deep = isDeepDived(survey);
   const surveyed = isSurveyedShowroom(dealer.status, survey);
@@ -68,14 +76,19 @@ function DealerSheetBody({
     survey?.monthlySoldExact != null ? { k: t.soldMo, v: formatNumber(survey.monthlySoldExact) } : null,
     survey?.monthlyFinancedExact != null ? { k: t.financeLabel, v: formatNumber(survey.monthlyFinancedExact) } : null,
     survey?.avgSellingPriceSar != null ? { k: "ASP", v: formatSarCompact(survey.avgSellingPriceSar) } : null,
-    survey?.showroomSizeSqm != null ? { k: t.sizeSqm, v: `${formatNumber(survey.showroomSizeSqm)} m²` } : null,
+    survey?.showroomSizeSqm != null ? { k: t.sizeSqm, v: `${formatNumber(survey.showroomSizeSqm)} m\u00b2` } : null,
     survey?.inventoryAgePctOver5 != null ? { k: t.inventoryAgeOver5, v: `${survey.inventoryAgePctOver5}%` } : null,
     survey?.salesmenCount != null ? { k: t.salesMenLabel, v: formatNumber(survey.salesmenCount) } : null,
     survey?.fpr != null ? { k: "FPR", v: formatPct(survey.fpr * 100) } : null,
     survey?.financeAvailable ? { k: t.financeLabel, v: survey.financeAvailable } : null,
   ].filter(Boolean) as { k: string; v: string }[];
-  async function copyNotes() {
-    try { await navigator.clipboard.writeText(roughBody); setCopied(true); window.setTimeout(() => setCopied(false), 1600); } catch { /* clipboard blocked */ }
+  async function copyNotes(text = notesBody) {
+    try { await navigator.clipboard.writeText(text); setCopied(true); window.setTimeout(() => setCopied(false), 1600); } catch { /* clipboard blocked */ }
+  }
+  function saveNotes() {
+    void patchSurvey(dealer.id, { notes: notesDraft }, undefined, dealer.status);
+    setEditingNotes(false);
+    setNotesSaved(true);
   }
   return (
     <div className="qads-sheet absolute inset-x-3 bottom-3 z-30 max-h-[68vh] overflow-auto rounded-2xl p-4">
@@ -143,25 +156,42 @@ function DealerSheetBody({
       {partner ? (
         <div className="mb-3 rounded-xl bg-primary/10 px-3 py-2">
           <p className="text-xs font-semibold text-primary">{dealerMarket(dealer) === "shifa" ? t.alsoInQadisiyah : t.alsoInShifa}</p>
-          <p className="mt-0.5 truncate text-sm font-medium text-fg">{partner.flags.sdId ? `${partner.flags.sdId} · ` : ""}{lang === "ar" && partner.nameAr ? partner.nameAr : partner.nameEn}</p>
+          <p className="mt-0.5 truncate text-sm font-medium text-fg">{partner.flags.sdId ? `${partner.flags.sdId} \u00b7 ` : ""}{lang === "ar" && partner.nameAr ? partner.nameAr : partner.nameEn}</p>
           <button type="button" className="mt-1 min-h-10 text-xs font-semibold text-primary" onClick={() => onOpenPartner(partner)}>{t.openOtherDesk}</button>
         </div>
       ) : dealer.flags.relatedSdId ? <p className="mb-2 text-xs text-muted">{t.relatedDesk} {dealer.flags.relatedSdId}</p> : null}
       {dealer.flags.trainingNote ? <p className="mb-2 text-xs text-muted">{dealer.flags.trainingNote}</p> : null}
       {dealer.flags.failedSession ? <p className="mb-2 text-xs text-status-red">{t.failedSession}: {dealer.flags.failedSession}</p> : null}
-      {survey?.pocName ? <p className="mb-2 text-xs text-muted">{survey.pocName}{survey.pocRole ? ` · ${survey.pocRole}` : ""}</p> : null}
+      {survey?.pocName ? <p className="mb-2 text-xs text-muted">{survey.pocName}{survey.pocRole ? ` \u00b7 ${survey.pocRole}` : ""}</p> : null}
       {dealer.flags.street ? <p className="mb-1 text-xs text-muted">{dealer.flags.street}</p> : null}
       {brands.length ? <div className="mb-2 flex flex-wrap gap-1">{brands.map((b) => <span key={b} className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">{b}</span>)}</div> : null}
       {stats.length ? <div className="mb-3 grid grid-cols-3 gap-1.5">{stats.map((s) => <div key={`${s.k}-${s.v}`} className="rounded-xl bg-surface-2 px-2 py-2"><p className="truncate text-xs font-medium uppercase tracking-wide text-muted">{s.k}</p><p className="truncate text-base font-semibold tabular-nums tracking-tight">{s.v}</p></div>)}</div> : null}
-      {roughBody ? (
-        <div className="mb-3 rounded-xl bg-surface-2 px-3 py-2">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted">{t.roughNotes}</p>
-            <button type="button" onClick={() => void copyNotes()} className="flex min-h-10 items-center gap-1 px-1 text-xs font-semibold text-primary">{copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}{copied ? t.copied : t.copyNotes}</button>
+      <div className="mb-3 rounded-xl bg-surface-2 px-3 py-2">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted">{t.roughNotes}</p>
+          <div className="flex items-center">
+            {editingNotes ? (
+              <>
+                <button type="button" onClick={() => setEditingNotes(false)} className="flex min-h-10 items-center gap-1 px-1 text-xs font-semibold text-muted"><X className="size-3.5" />{t.cancel}</button>
+                <button type="button" onClick={saveNotes} className="flex min-h-10 items-center gap-1 px-1 text-xs font-semibold text-primary"><Check className="size-3.5" />{t.save}</button>
+              </>
+            ) : (
+              <>
+                <button type="button" onClick={() => { setNotesDraft(notesBody); setNotesSaved(false); setEditingNotes(true); }} className="flex min-h-10 items-center gap-1 px-1 text-xs font-semibold text-primary"><Pencil className="size-3.5" />{t.editCoords}</button>
+                <button type="button" onClick={() => void copyNotes()} disabled={!notesBody} className="flex min-h-10 items-center gap-1 px-1 text-xs font-semibold text-primary disabled:text-faint">{copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}{copied ? t.copied : t.copyNotes}</button>
+              </>
+            )}
           </div>
-          <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-fg">{roughBody}</p>
         </div>
-      ) : null}
+        {editingNotes ? (
+          <textarea value={notesDraft} onChange={(e) => setNotesDraft(e.target.value)} rows={8} className="mt-1 w-full resize-y rounded-lg border border-primary/40 bg-surface px-2 py-2 text-xs leading-relaxed text-fg outline-none" />
+        ) : notesBody ? (
+          <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-fg">{notesBody}</p>
+        ) : (
+          <p className="mt-1 text-xs text-faint">{t.notes}</p>
+        )}
+        {notesSaved && !editingNotes ? <p className="mt-1 text-xs text-primary">{t.autoSaved}</p> : null}
+      </div>
       {dealer.listedPhone ? <p className="mb-3 text-sm tabular-nums text-muted">{dealer.listedPhone}</p> : <p className="mb-3 text-sm text-faint">{t.noPhone}</p>}
       <div className="grid grid-cols-3 gap-2">
         <a href={maps} target="_blank" rel="noreferrer" className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-surface-2 text-xs font-medium text-fg"><MapPinned className="size-4" />{t.openMaps}</a>
