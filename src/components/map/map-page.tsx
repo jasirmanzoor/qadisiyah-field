@@ -21,7 +21,7 @@ import { DealerSheet } from "./dealer-sheet";
 import { displaySurvey } from "./map-notes";
 
 const MapCanvas = lazy(() => import("./map-canvas").then((m) => ({ default: m.MapCanvas })));
-type FilterId = "all" | "surveyed" | "unvisited" | "partial" | "deep" | "needsGps" | "noPhone" | "closed" | "authorised" | "trained" | "induction" | "dual";
+type FilterId = "all" | "surveyed" | "unvisited" | "partial" | "deep" | "pending" | "needsGps" | "noPhone" | "closed" | "authorised" | "trained" | "induction" | "dual";
 const NEAR_LIMIT = 12;
 
 export function MapPage() {
@@ -53,6 +53,7 @@ export function MapPage() {
   const [newNameAr, setNewNameAr] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [search, setSearch] = useState("");
+  const [lockNote, setLockNote] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterId>("all");
   const [cluster, setCluster] = useState<Dealership[] | null>(null);
   const [focus, setFocus] = useState<MapFocus | null>(null);
@@ -93,12 +94,13 @@ export function MapPage() {
   };
   const counts = useMemo(() => {
     const all = roster;
-    const c = { all: all.length, surveyed: 0, unvisited: 0, partial: 0, deep: 0, needsGps: 0, noPhone: 0, closed: 0, authorised: 0, walked: 0, completed: 0, trained: 0, induction: 0, dual: 0 };
+    const c = { all: all.length, surveyed: 0, unvisited: 0, partial: 0, deep: 0, pending: 0, needsGps: 0, noPhone: 0, closed: 0, authorised: 0, walked: 0, completed: 0, trained: 0, induction: 0, dual: 0 };
     for (const d of all) {
       if (isSurveyed(d)) c.surveyed += 1;
       if (d.status === "not_visited") c.unvisited += 1;
       if (market === "shifa" ? isPartialBasic(d) : d.status === "partial") c.partial += 1;
       if (isDeep(d.id)) c.deep += 1;
+      if (!isSurveyed(d)) c.pending += 1;
       if (d.status === "completed") c.completed += 1;
       if (d.status === "closed") c.closed += 1;
       if (d.flags.needsGps) c.needsGps += 1;
@@ -123,6 +125,7 @@ export function MapPage() {
     if (filter === "unvisited") return d.status === "not_visited";
     if (filter === "partial") return market === "shifa" ? isPartialBasic(d) : d.status === "partial";
     if (filter === "deep") return isDeep(d.id);
+    if (filter === "pending") return !isSurveyed(d);
     if (filter === "needsGps") return Boolean(d.flags.needsGps);
     if (filter === "noPhone") return !d.listedPhone.trim();
     if (filter === "closed") return d.status === "closed";
@@ -209,29 +212,18 @@ export function MapPage() {
   function toggleList() { setListMode((v) => !v); setPlanning(false); setAdding(false); setNearMe(false); setCluster(null); setSelectedId(null); }
   function openAdd(prefill?: string) { if (prefill?.trim()) setNewName(prefill.trim()); setAdding(true); setNearMe(false); setPlanning(false); setCluster(null); setSelectedId(null); setListMode(false); }
   async function addDealer() {
-    if (!newName.trim()) return;
-    const hasFix = Boolean(gps && !gpsError);
-    const dealer: Dealership = {
-      id: uid(), nameEn: newName.trim(), nameAr: newNameAr.trim(), lat: origin.lat, lng: origin.lng, listedPhone: newPhone.trim(),
-      seedNote: nearbyDupes.length ? `${t.possibleDup} ${nearbyDupes.map((d) => d.nameEn).join(", ")}` : market === "shifa" ? "Added in field · Al Shifa used-car lot" : "Added in field",
-      status: "not_visited", flags: { gpsSource: hasFix ? "survey" : "interpolated", market, needsGps: !hasFix }, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
-    };
-    await upsertDealer(dealer);
-    if (market === "shifa") await patchSurvey(dealer.id, { vehicleType: "used_only", visitStatus: "not_visited" }, 0, "not_visited");
-    setAdding(false); setNewName(""); setNewNameAr(""); setNewPhone("");
-    void navigate({ to: "/survey/$id", params: { id: dealer.id } });
+    setLockNote(lang === "ar" ? "السجل مقفل. لا تُضاف معارض." : "Roster is locked. Showrooms are not added.");
+    setAdding(false);
   }
-  async function saveSelectedCoords(lat: number, lng: number, source: NonNullable<Dealership["flags"]["gpsSource"]> = "manual_pin") {
-    if (!selected) return;
-    await upsertDealer({ ...selected, lat, lng, flags: { ...selected.flags, needsGps: false, gpsSource: source, gpsStatus: "confirmed", gpsTimestamp: new Date().toISOString(), mapsUrl: `https://www.google.com/maps?q=${lat},${lng}` }, updatedAt: new Date().toISOString() });
-    setEditingCoords(false); setListMode(false); flyTo({ lat, lng }, 18);
+  async function saveSelectedCoords() {
+    setLockNote(lang === "ar" ? "موقع الدبوس مقفل." : "Pin location is locked.");
+    setEditingCoords(false);
   }
-  async function pinSelectedToGps() { if (!selected || !gps || gpsError) return; await saveSelectedCoords(gps.lat, gps.lng, "field_device_gps"); }
-  async function markClosed(id: string) {
-    await patchSurvey(id, { visitStatus: "closed" }, 0, "closed");
-    const rest = dealers.filter((d) => d.id !== id && d.status === "not_visited");
-    const nxt = rest.length ? rest.reduce((best, d) => (haversineM(origin, d) < haversineM(origin, best) ? d : best)) : null;
-    if (nxt) pickDealer(nxt.id); else setSelectedId(null);
+  async function pinSelectedToGps() {
+    setLockNote(lang === "ar" ? "موقع الدبوس مقفل." : "Pin location is locked.");
+  }
+  async function markClosed() {
+    setLockNote(lang === "ar" ? "حالة الزيارة مقفلة." : "Visit status is locked.");
   }
   const qadisiyahFilters: { id: FilterId; label: string; count: number }[] = [
     { id: "dual", label: t.bothMarkets, count: counts.dual },
@@ -257,6 +249,13 @@ export function MapPage() {
         </ClientOnly>
       </div>
       <div className="qads-vignette" aria-hidden />
+      {lockNote ? (
+        <div className="absolute inset-x-3 top-3 z-40">
+          <button type="button" className="qads-hud w-full rounded-xl px-3 py-3 text-start text-sm font-medium text-status-amber" onClick={() => setLockNote(null)}>
+            {lockNote}
+          </button>
+        </div>
+      ) : null}
       {listMode ? <div className="absolute inset-0 z-10 bg-bg" aria-hidden /> : null}
       <div className="pointer-events-none absolute inset-x-3 top-3 bottom-3 z-20 flex items-start gap-2">
         <div className={cn("flex min-w-0 flex-1 flex-col", listMode && "min-h-0 self-stretch")}>
@@ -276,11 +275,12 @@ export function MapPage() {
               </div>
             ) : (
               <>
-              <div className="mt-1 grid grid-cols-3 gap-1">
+              <div className="mt-1 grid grid-cols-4 gap-1">
                 {([
                   ["all", t.pinsEstablished, counts.all],
                   ["surveyed", t.surveyedCat, counts.surveyed],
                   ["deep", t.deepDived, counts.deep],
+                  ["pending", lang === "ar" ? "معلق" : "Pending", counts.pending],
                 ] as const).map(([id, label, count]) => {
                   const on = filter === id;
                   return (
@@ -364,7 +364,7 @@ export function MapPage() {
       ) : null}
       {nearMe && !planning ? <ListSheet title={t.nearest} hint={gpsError ? t.usingCenter : undefined} onClose={() => setNearMe(false)}>{nearest.map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} meta={formatDistance(haversineM(origin, d))} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, STATUS_LABEL[lang][d.status]].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} />)}</ListSheet> : null}
       {cluster && !planning && !nearMe ? <ListSheet title={t.clusterHere} hint={`${cluster.length}`} onClose={() => setCluster(null)}>{[...cluster].sort((a, b) => haversineM(origin, a) - haversineM(origin, b)).map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} meta={formatDistance(haversineM(origin, d))} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, STATUS_LABEL[lang][d.status]].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} />)}</ListSheet> : null}
-      {selected && !planning && !nearMe && !cluster ? <DealerSheet dealer={selected} partner={partner} partnerSurvey={partnerSurvey} distance={haversineM(origin, selected)} source={survey?.volumeFiguresAre} survey={survey} photos={snapshot.photos.filter((p) => p.dealershipId === selected.id)} canPinGps={Boolean(gps && !gpsError)} editingCoords={editingCoords} gps={gps && !gpsError ? gps : null} onClose={() => { setEditingCoords(false); setSelectedId(null); }} onSurvey={(id) => void navigate({ to: "/survey/$id", params: { id } })} onPinGps={() => void pinSelectedToGps()} onEditCoords={() => setEditingCoords(true)} onCancelCoords={() => setEditingCoords(false)} onSaveCoords={(lat, lng) => void saveSelectedCoords(lat, lng)} onMarkClosed={() => void markClosed(selected.id)} onOpenPartner={(p) => { pendingJump.current = p.id; setMarket(dealerMarket(p)); }} /> : null}
+      {selected && !planning && !nearMe && !cluster ? <DealerSheet dealer={selected} partner={partner} partnerSurvey={partnerSurvey} distance={haversineM(origin, selected)} source={survey?.volumeFiguresAre} survey={survey} photos={snapshot.photos.filter((p) => p.dealershipId === selected.id)} canPinGps={Boolean(gps && !gpsError)} editingCoords={editingCoords} gps={gps && !gpsError ? gps : null} onClose={() => { setEditingCoords(false); setSelectedId(null); }} onSurvey={(id) => void navigate({ to: "/survey/$id", params: { id } })} onPinGps={() => void pinSelectedToGps()} onEditCoords={() => setEditingCoords(true)} onCancelCoords={() => setEditingCoords(false)} onSaveCoords={() => void saveSelectedCoords()} onMarkClosed={() => void markClosed()} onOpenPartner={(p) => { pendingJump.current = p.id; setMarket(dealerMarket(p)); }} /> : null}
       {adding ? (
         <div className="qads-sheet absolute inset-x-3 bottom-3 z-30 rounded-2xl p-4">
           <div className="mb-3 flex items-start justify-between gap-2"><div><p className="text-base font-semibold tracking-tight">{t.addDealer}</p><p className="text-xs text-muted">{t.addDealerHint}</p><p className="mt-1 text-xs text-muted">{gps && !gpsError ? t.pinningGps : t.usingCenter}</p>{market === "shifa" ? <p className="mt-1 text-xs text-muted">{t.usedOnlyDefault}</p> : null}</div><button type="button" onClick={() => setAdding(false)} className="grid size-10 shrink-0 place-items-center"><X className="size-4" /></button></div>

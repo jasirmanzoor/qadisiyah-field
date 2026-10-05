@@ -10,10 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CeoRouteImport } from './routes/ceo'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as DeepdiveRouteImport } from './routes/deepdive'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OpsRouteImport } from './routes/ops'
 import { Route as ResearchRouteImport } from './routes/research'
+import { Route as DossierIdRouteImport } from './routes/dossier.$id'
 import { Route as SurveyIdRouteImport } from './routes/survey.$id'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
@@ -22,9 +25,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CeoRoute = CeoRouteImport.update({
+  id: '/ceo',
+  path: '/ceo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeepdiveRoute = DeepdiveRouteImport.update({
+  id: '/deepdive',
+  path: '/deepdive',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -42,6 +55,11 @@ const ResearchRoute = ResearchRouteImport.update({
   path: '/research',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DossierIdRoute = DossierIdRouteImport.update({
+  id: '/dossier/$id',
+  path: '/dossier/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SurveyIdRoute = SurveyIdRouteImport.update({
   id: '/survey/$id',
   path: '/survey/$id',
@@ -55,29 +73,38 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ceo': typeof CeoRoute
   '/dashboard': typeof DashboardRoute
+  '/deepdive': typeof DeepdiveRoute
   '/login': typeof LoginRoute
   '/ops': typeof OpsRoute
   '/research': typeof ResearchRoute
+  '/dossier/$id': typeof DossierIdRoute
   '/survey/$id': typeof SurveyIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ceo': typeof CeoRoute
   '/dashboard': typeof DashboardRoute
+  '/deepdive': typeof DeepdiveRoute
   '/login': typeof LoginRoute
   '/ops': typeof OpsRoute
   '/research': typeof ResearchRoute
+  '/dossier/$id': typeof DossierIdRoute
   '/survey/$id': typeof SurveyIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ceo': typeof CeoRoute
   '/dashboard': typeof DashboardRoute
+  '/deepdive': typeof DeepdiveRoute
   '/login': typeof LoginRoute
   '/ops': typeof OpsRoute
   '/research': typeof ResearchRoute
+  '/dossier/$id': typeof DossierIdRoute
   '/survey/$id': typeof SurveyIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -85,38 +112,50 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ceo'
     | '/dashboard'
+    | '/deepdive'
     | '/login'
     | '/ops'
     | '/research'
+    | '/dossier/$id'
     | '/survey/$id'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ceo'
     | '/dashboard'
+    | '/deepdive'
     | '/login'
     | '/ops'
     | '/research'
+    | '/dossier/$id'
     | '/survey/$id'
     | '/api/auth/$'
   id:
     | '__root__'
     | '/'
+    | '/ceo'
     | '/dashboard'
+    | '/deepdive'
     | '/login'
     | '/ops'
     | '/research'
+    | '/dossier/$id'
     | '/survey/$id'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CeoRoute: typeof CeoRoute
   DashboardRoute: typeof DashboardRoute
+  DeepdiveRoute: typeof DeepdiveRoute
   LoginRoute: typeof LoginRoute
   OpsRoute: typeof OpsRoute
   ResearchRoute: typeof ResearchRoute
+  DossierIdRoute: typeof DossierIdRoute
   SurveyIdRoute: typeof SurveyIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
@@ -130,11 +169,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ceo': {
+      id: '/ceo'
+      path: '/ceo'
+      fullPath: '/ceo'
+      preLoaderRoute: typeof CeoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/deepdive': {
+      id: '/deepdive'
+      path: '/deepdive'
+      fullPath: '/deepdive'
+      preLoaderRoute: typeof DeepdiveRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -158,6 +211,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dossier/$id': {
+      id: '/dossier/$id'
+      path: '/dossier/$id'
+      fullPath: '/dossier/$id'
+      preLoaderRoute: typeof DossierIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/survey/$id': {
       id: '/survey/$id'
       path: '/survey/$id'
@@ -177,10 +237,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CeoRoute: CeoRoute,
   DashboardRoute: DashboardRoute,
+  DeepdiveRoute: DeepdiveRoute,
   LoginRoute: LoginRoute,
   OpsRoute: OpsRoute,
   ResearchRoute: ResearchRoute,
+  DossierIdRoute: DossierIdRoute,
   SurveyIdRoute: SurveyIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }

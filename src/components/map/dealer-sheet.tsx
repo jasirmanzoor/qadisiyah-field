@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { COPY, trainingCopy } from "@/lib/i18n";
 import { dealerMarket } from "@/lib/markets";
 import { cn, formatNumber, formatPct, formatSarCompact, mapsLink, telLink, waLink } from "@/lib/utils";
@@ -114,15 +115,22 @@ function DealerSheetBody({
           </div>
         </div>
       ) : (
-        <button type="button" onClick={onEditCoords} className="mb-3 flex min-h-12 w-full items-center gap-2 rounded-xl bg-surface-2 px-3 text-start">
+        <div className="mb-3 flex min-h-12 w-full items-center gap-2 rounded-xl bg-surface-2 px-3 text-start">
           <MapPinned className="size-4 shrink-0 text-primary" />
           <span className="min-w-0 flex-1">
             <span className="block text-xs font-semibold uppercase tracking-wide text-muted">{t.location}</span>
             <span className="block truncate text-sm font-semibold tabular-nums text-fg">{formatCoord(dealer.lat)}, {formatCoord(dealer.lng)}</span>
           </span>
-          <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-primary"><Pencil className="size-3.5" />{t.editCoords}</span>
-        </button>
+          <span className="shrink-0 text-xs font-semibold text-muted">{lang === "ar" ? "مقفل" : "Locked"}</span>
+        </div>
       )}
+      <div className="mb-3 grid grid-cols-5 gap-1">
+        <Link to="/survey/$id" params={{ id: dealer.id }} className="flex min-h-12 flex-col items-center justify-center rounded-xl bg-surface-2 text-[10px] font-semibold">{lang === "ar" ? "افتح" : "Open"}</Link>
+        <a href={maps} target="_blank" rel="noreferrer" className="flex min-h-12 flex-col items-center justify-center rounded-xl bg-surface-2 text-[10px] font-semibold">{lang === "ar" ? "اتجاه" : "Go"}</a>
+        <Link to="/dossier/$id" params={{ id: dealer.id }} hash="photos" className="flex min-h-12 flex-col items-center justify-center rounded-xl bg-surface-2 text-[10px] font-semibold">{lang === "ar" ? "صور" : "Photos"}</Link>
+        <Link to="/dossier/$id" params={{ id: dealer.id }} hash="research" className="flex min-h-12 flex-col items-center justify-center rounded-xl bg-surface-2 text-[10px] font-semibold">{lang === "ar" ? "بحث" : "Research"}</Link>
+        <Link to="/deepdive" search={{ id: dealer.id }} className="flex min-h-12 flex-col items-center justify-center rounded-xl bg-primary text-[10px] font-semibold text-primary-fg">{lang === "ar" ? "تعمق" : "Dive"}</Link>
+      </div>
       {photos.length ? (
         <div className="mb-3">
           <p className="mb-1 flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted"><Camera className="size-3.5" />{t.evidence}</p>
