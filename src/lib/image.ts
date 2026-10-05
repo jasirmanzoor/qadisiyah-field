@@ -29,3 +29,32 @@ export function compressImage(file: File): Promise<string> {
 export function compressForAi(file: File): Promise<string> {
   return drawToDataUrl(file, 1280, 0.68);
 }
+
+
+export type PhotoPrep =
+  | { ok: true; ai: string; store: string }
+  | { ok: false; error: string };
+
+/** On-device HEIC/JPEG normalise. Never throws — the sheet shows the reason. */
+export async function prepareFieldPhoto(file: File): Promise<PhotoPrep> {
+  const name = file.name.toLowerCase();
+  const heic = name.endsWith(".heic") || name.endsWith(".heif") || file.type === "image/heic" || file.type === "image/heif";
+  if (file.size > 18_000_000) return { ok: false, error: "Too large — photo is over 18 MB." };
+  try {
+    const [ai, store] = await Promise.all([compressForAi(file), compressImage(file)]);
+    if (!ai || !store) return { ok: false, error: heic ? "Unreadable HEIC — export as JPEG and retry." : "Unreadable photo." };
+    if (ai.length > 2_400_000) return { ok: false, error: "Too large after compress — move closer and retry." };
+    return { ok: true, ai, store };
+  } catch {
+    return { ok: false, error: heic ? "Unreadable HEIC — export as JPEG and retry." : "Unreadable photo." };
+  }
+}
+
+export function classifyPhotoError(message: string): string {
+  const m = message.toLowerCase();
+  if (m.includes("timeout") || m.includes("aborted")) return "Timeout — retry this photo.";
+  if (m.includes("network") || m.includes("failed to fetch") || m.includes("offline")) return "Network — queued, will retry online.";
+  if (m.includes("too large") || m.includes("payload")) return "Too large — retake closer.";
+  if (m.includes("heic") || m.includes("unreadable") || m.includes("empty")) return "Unreadable — retake in JPEG.";
+  return message || "Analysis failed.";
+}

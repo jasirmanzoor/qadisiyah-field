@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/field";
 import { acceptAllHighConfidence, applyAiRun, decideProposal, getAiRun, startAiSurvey } from "@/lib/ai/api";
 import { COPY } from "@/lib/i18n";
-import { compressForAi, compressImage } from "@/lib/image";
+import { classifyPhotoError, prepareFieldPhoto } from "@/lib/image";
 import type { AiDecision, AiProposal, AiProposalValue, AiRunBundle, Dealership } from "@/lib/types";
 import { uid } from "@/lib/utils";
 import { useField } from "@/stores/field";
@@ -13,7 +13,8 @@ import { usePrefs } from "@/stores/prefs";
 
 type Phase = "photos" | "gps" | "running" | "review" | "done";
 
-type Shot = { id: string; ai: string; store: string };
+type ShotStatus = "ready" | "reading" | "queued" | "failed" | "ok";
+type Shot = { id: string; ai: string; store: string; status: ShotStatus; error?: string; file?: File };
 
 /** Human label for the persisted run stage — never a fake percentage. */
 function stageLabel(stage: string, t: (typeof COPY)["en"]): string {
@@ -91,24 +92,39 @@ export function AiSurveySheet({
     };
   }, [phase, dealershipId]);
 
+  async function readOne(file: File, id = uid()): Promise<Shot> {
+    const prepared = await prepareFieldPhoto(file);
+    if (!prepared.ok) return { id, ai: "", store: "", status: "failed", error: prepared.error, file };
+    return { id, ai: prepared.ai, store: prepared.store, status: navigator.onLine ? "ready" : "queued", file };
+  }
+
   async function onFiles(files: FileList) {
     setError(null);
-    const next: Shot[] = [];
-    for (const file of Array.from(files).slice(0, PHOTO_LIMITS.maxPhotos - shots.length)) {
-      try {
-        const [ai, store] = await Promise.all([compressForAi(file), compressImage(file)]);
-        if (ai && store) next.push({ id: uid(), ai, store });
-      } catch {
-        setError("One photo could not be read.");
-      }
+    const room = PHOTO_LIMITS.maxPhotos - shots.length;
+    const incoming = Array.from(files).slice(0, room);
+    const placeholders: Shot[] = incoming.map((file) => ({ id: uid(), ai: "", store: "", status: "reading", file }));
+    setShots((curr) => [...curr, ...placeholders]);
+    const ready: Shot[] = [];
+    for (const shot of placeholders) {
+      const next = await readOne(shot.file as File, shot.id);
+      ready.push(next);
+      setShots((curr) => curr.map((s) => (s.id === shot.id ? next : s)));
     }
-    const merged = [...shots, ...next];
-    const check = validatePhotoBatch({ sizes: merged.map((s) => s.ai.length) }, PHOTO_LIMITS);
-    if (!check.ok) {
-      setError(check.error);
-      return;
-    }
-    setShots(merged);
+    const merged = [...shots.filter((s) => s.status !== "reading"), ...ready];
+    const check = validatePhotoBatch({ sizes: merged.filter((s) => s.ai).map((s) => s.ai.length) }, PHOTO_LIMITS);
+    if (!check.ok) setError(check.error);
+  }
+
+  async function retryShot(id: string) {
+    const shot = shots.find((s) => s.id === id);
+    if (!shot?.file) return;
+    setShots((curr) => curr.map((s) => (s.id === id ? { ...s, status: "reading", error: undefined } : s)));
+    const next = await readOne(shot.file, id);
+    setShots((curr) => curr.map((s) => (s.id === id ? next : s)));
+  }
+
+  async function retryAll() {
+    for (const shot of shots.filter((s) => s.status === "failed" && s.file)) await retryShot(shot.id);
   }
 
   async function captureGps(): Promise<{ lat: number; lng: number; accuracy?: number } | null> {
@@ -147,7 +163,12 @@ export function AiSurveySheet({
         },
       });
       if (!res.ok || !res.bundle) {
-        setError(res.ok ? "AI analysis returned no results." : res.error);
+        setError(res.ok ? "AI analysis returned no results." : classifyPhotoError(res.error));
+        setShots((curr) => curr.map((s) => (s.status === "ready" ? { ...s, status: "failed", error: res.ok ? "No reading" : res.error } : s)));
+        if (!navigator.onLine) {
+          localStorage.setItem("qads-ai-queue", JSON.stringify({ at: Date.now(), count: shots.length }));
+          setNotice("Offline — photos stay on this phone and can be analysed when you are back online.");
+        }
         setPhase("photos");
         return;
       }
@@ -301,23 +322,18 @@ export function AiSurveySheet({
             {shots.length ? (
               <div className="grid grid-cols-3 gap-2">
                 {shots.map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    className="relative overflow-hidden rounded-lg"
-                    onClick={() => setShots((x) => x.filter((y) => y.id !== s.id))}
-                  >
-                    <img src={s.store} alt="" className="aspect-square w-full object-cover" />
-                  </button>
+                  <div key={s.id} className="relative overflow-hidden rounded-lg bg-surface-2">
+                    {s.store ? <img src={s.store} alt="" className="aspect-square w-full object-cover" /> : <div className="grid aspect-square place-items-center text-[10px] text-muted">{s.status === "reading" ? "Reading…" : "No preview"}</div>}
+                    <p className="px-1 py-1 text-[10px] text-muted">{s.status === "ok" ? "Read" : s.status === "reading" ? "Reading…" : s.status === "queued" ? "Queued" : s.error ? classifyPhotoError(s.error) : s.status}</p>
+                    {s.status === "failed" ? <button type="button" className="px-1 pb-1 text-[10px] font-semibold text-primary" onClick={() => void retryShot(s.id)}>Retry</button> : null}
+                  </div>
                 ))}
               </div>
             ) : null}
-            <p className="text-[11px] text-muted">
-              {shots.length}/{PHOTO_LIMITS.maxPhotos}
-            </p>
-            <Button disabled={!shots.length} onClick={() => setPhase("gps")}>
-              {t.next}
-            </Button>
+            <p className="text-[11px] text-muted">{shots.length}/{PHOTO_LIMITS.maxPhotos}</p>
+            {shots.some((s) => s.status === "failed") ? <Button variant="secondary" onClick={() => void retryAll()}>Retry all</Button> : null}
+            <Button onClick={() => setPhase("gps")}>{t.next}</Button>
+            <p className="text-[11px] text-muted">Next is never blocked. Failed photos stay queued and can be retried.</p>
           </section>
         ) : null}
 

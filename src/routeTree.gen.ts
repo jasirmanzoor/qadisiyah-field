@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OpsRouteImport } from './routes/ops'
+import { Route as CeoRouteImport } from './routes/ceo'
 import { Route as ResearchRouteImport } from './routes/research'
 import { Route as SurveyIdRouteImport } from './routes/survey.$id'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -37,6 +38,11 @@ const OpsRoute = OpsRouteImport.update({
   path: '/ops',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CeoRoute = CeoRouteImport.update({
+  id: '/ceo',
+  path: '/ceo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResearchRoute = ResearchRouteImport.update({
   id: '/research',
   path: '/research',
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/ops': typeof OpsRoute
+  '/ceo': typeof CeoRoute
   '/research': typeof ResearchRoute
   '/survey/$id': typeof SurveyIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/ops': typeof OpsRoute
+  '/ceo': typeof CeoRoute
   '/research': typeof ResearchRoute
   '/survey/$id': typeof SurveyIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/ops': typeof OpsRoute
+  '/ceo': typeof CeoRoute
   '/research': typeof ResearchRoute
   '/survey/$id': typeof SurveyIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -116,6 +125,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   OpsRoute: typeof OpsRoute
+  CeoRoute: typeof CeoRoute
   ResearchRoute: typeof ResearchRoute
   SurveyIdRoute: typeof SurveyIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -151,6 +161,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OpsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ceo': {
+      id: '/ceo'
+      path: '/ceo'
+      fullPath: '/ceo'
+      preLoaderRoute: typeof CeoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/research': {
       id: '/research'
       path: '/research'
@@ -180,6 +197,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   OpsRoute: OpsRoute,
+  CeoRoute: CeoRoute,
   ResearchRoute: ResearchRoute,
   SurveyIdRoute: SurveyIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

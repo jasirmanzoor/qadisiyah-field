@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input, StatusBadge, FigureBadge, TrainingBadge } from "@/components/ui/field";
 import { usePrefs } from "@/stores/prefs";
 import { useField } from "@/stores/field";
+import { completenessPct, missingChips } from "@/lib/completeness";
+import { extractNoteProposals, type NoteProposal } from "@/lib/note-extract";
 import { isDeepDived, isSurveyedShowroom } from "@/lib/survey-schema";
 import { Navigation, Phone, MessageCircle, MapPinned, Crosshair, Copy, Check, Pencil, X, Camera } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -42,6 +44,10 @@ function DealerSheetBody({
   const { lang } = usePrefs();
   const t = COPY[lang];
   const patchSurvey = useField((s) => s.patchSurvey);
+  const upsertDealer = useField((s) => s.upsertDealer);
+  const [proposals, setProposals] = useState<NoteProposal[]>([]);
+  const [picked, setPicked] = useState<Record<string, boolean>>({});
+  const [phoneDraft, setPhoneDraft] = useState("");
   const [copied, setCopied] = useState(false);
   const [editingNotes, setEditingNotes] = useState(false);
   const [notesDraft, setNotesDraft] = useState("");
@@ -192,6 +198,51 @@ function DealerSheetBody({
         )}
         {notesSaved && !editingNotes ? <p className="mt-1 text-xs text-primary">{t.autoSaved}</p> : null}
       </div>
+
+      <div className="mb-3 rounded-xl bg-surface-2 px-3 py-2">
+        <p className="text-xs font-semibold text-muted">{completenessPct(dealer, survey)}% complete</p>
+        {useField.getState().snapshot.dealerships.some((other) => other.id !== dealer.id && ((dealer.listedPhone && other.listedPhone === dealer.listedPhone) || (dealer.nameEn && other.nameEn.toLowerCase() === dealer.nameEn.toLowerCase() && Math.abs(other.lat - dealer.lat) < 0.001))) ? <p className="mt-1 text-[10px] text-status-amber">Possible duplicate nearby — same name or phone.</p> : null}
+        <div className="mt-1 flex flex-wrap gap-1">
+          {missingChips(dealer, survey).map((chip) => (
+            <button key={chip} type="button" className="rounded-full bg-bg px-2 py-1 text-[10px] font-semibold text-primary" onClick={() => onSurvey(dealer.id)}>{chip} · Add missing</button>
+          ))}
+        </div>
+        {!dealer.listedPhone.trim() ? (
+          <div className="mt-2 flex gap-2">
+            <input value={phoneDraft} onChange={(e) => setPhoneDraft(e.target.value)} placeholder="Add number" className="min-h-10 flex-1 rounded-lg bg-bg px-2 text-sm" />
+            <button type="button" className="text-xs font-semibold text-primary" onClick={() => phoneDraft.trim() && void upsertDealer({ ...dealer, listedPhone: phoneDraft.trim(), updatedAt: new Date().toISOString() })}>Save</button>
+          </div>
+        ) : null}
+        <div className="mt-2 flex flex-wrap gap-1">
+          <button type="button" className="rounded-full bg-bg px-2 py-1 text-[10px] font-semibold" onClick={() => void patchSurvey(dealer.id, { financeAvailable: survey?.financeAvailable || "yes" }, undefined, dealer.status)}>Finance yes</button>
+          <button type="button" className="rounded-full bg-bg px-2 py-1 text-[10px] font-semibold" onClick={() => void patchSurvey(dealer.id, { inventoryAgePctOver5: survey?.inventoryAgePctOver5 ?? 30 }, undefined, dealer.status)}>Age 30%</button>
+          <button type="button" className="rounded-full bg-bg px-2 py-1 text-[10px] font-semibold" onClick={() => { const prev = sessionStorage.getItem("qads-prev-brands"); if (prev && !(survey?.mainBrands?.length)) void patchSurvey(dealer.id, { mainBrands: prev.split("|") }, undefined, dealer.status); }}>Same brands</button>
+          <button type="button" className="rounded-full bg-bg px-2 py-1 text-[10px] font-semibold" onClick={onPinGps}>Fix GPS here</button>
+          <button type="button" className="rounded-full bg-bg px-2 py-1 text-[10px] font-semibold" onClick={() => { const found = extractNoteProposals(notesBody); setProposals(found); setPicked(Object.fromEntries(found.map((f) => [f.key, !(survey as Record<string, unknown> | undefined)?.[f.key]]))); }}>Extract from notes</button>
+        </div>
+        {proposals.length ? (
+          <div className="mt-2 flex flex-col gap-1">
+            {proposals.map((item) => (
+              <label key={item.key} className="flex items-center gap-2 text-xs">
+                <input type="checkbox" checked={Boolean(picked[item.key])} onChange={(e) => setPicked((c) => ({ ...c, [item.key]: e.target.checked }))} />
+                {item.label}: {String(item.value)}
+              </label>
+            ))}
+            <button type="button" className="text-xs font-semibold text-primary" onClick={() => {
+              const patch: Record<string, unknown> = {};
+              for (const item of proposals) {
+                if (!picked[item.key]) continue;
+                const current = (survey as Record<string, unknown> | undefined)?.[item.key];
+                if (current != null && current !== "" && !(Array.isArray(current) && current.length === 0)) continue;
+                patch[item.key] = item.key === "mainBrands" ? String(item.value).split(/,|،/).map((s) => s.trim()).filter(Boolean) : item.value;
+              }
+              if (Object.keys(patch).length) void patchSurvey(dealer.id, patch, undefined, dealer.status);
+              setProposals([]);
+            }}>Save confirmed empty fields</button>
+          </div>
+        ) : null}
+      </div>
+
       {dealer.listedPhone ? <p className="mb-3 text-sm tabular-nums text-muted">{dealer.listedPhone}</p> : <p className="mb-3 text-sm text-faint">{t.noPhone}</p>}
       <div className="grid grid-cols-3 gap-2">
         <a href={maps} target="_blank" rel="noreferrer" className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-surface-2 text-xs font-medium text-fg"><MapPinned className="size-4" />{t.openMaps}</a>

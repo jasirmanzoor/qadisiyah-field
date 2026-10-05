@@ -170,7 +170,8 @@ export function MapPage() {
     return keys.map((key) => ({ key, items: buckets.get(key) ?? [] }));
   }, [market, listRows]);
   const nextDesk = useMemo(() => {
-    const pool = dealers.filter((d) => d.status === "not_visited");
+    const partial = dealers.filter((d) => d.status === "partial");
+    const pool = partial.length ? partial : dealers.filter((d) => d.status === "not_visited");
     if (!pool.length) return null;
     return pool.reduce((best, d) => (haversineM(origin, d) < haversineM(origin, best) ? d : best));
   }, [dealers, origin]);

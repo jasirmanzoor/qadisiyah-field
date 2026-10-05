@@ -45,10 +45,11 @@ async function extractPhotos(
   cfg: AiConfig,
   images: string[],
   onStage: StageFn,
-): Promise<{ extractions: PhotoExtraction[]; failures: number }> {
+): Promise<{ extractions: PhotoExtraction[]; failures: number; reasons: string[] }> {
   await onStage("analyzing_photos");
   const extractions: PhotoExtraction[] = [];
   let failures = 0;
+  const reasons: string[] = [];
   for (let i = 0; i < images.length; i += 1) {
     if (i === 1) await onStage("extracting_text");
     if (i === Math.floor(images.length / 2)) await onStage("detecting_vehicles");
@@ -59,9 +60,12 @@ async function extractPhotos(
       maxTokens: 2500,
     });
     if (res.ok) extractions.push(res.data);
-    else failures += 1;
+    else {
+      failures += 1;
+      reasons.push(`Photo ${i + 1}: ${res.error}`);
+    }
   }
-  return { extractions, failures };
+  return { extractions, failures, reasons };
 }
 
 /** Trim extractions before the aggregation call so the prompt stays bounded. */
@@ -427,14 +431,14 @@ export async function runSurveyPipeline(
   ctx: PipelineContext,
   onStage: StageFn,
 ): Promise<PipelineOutput> {
-  const { extractions, failures } = await extractPhotos(cfg, images, onStage);
+  const { extractions, failures, reasons } = await extractPhotos(cfg, images, onStage);
   if (!extractions.length) {
     return {
       result: null,
       extractions: [],
       proposals: [],
       partial: false,
-      error: "No photograph could be analysed. Check the images and try again.",
+      error: reasons[0] ?? "No photograph could be analysed. Check the images and try again.",
     };
   }
 
@@ -464,6 +468,6 @@ export async function runSurveyPipeline(
     extractions,
     proposals: [...proposals, ...researched],
     partial: failures > 0,
-    error: failures > 0 ? `${failures} of ${images.length} photos could not be analysed.` : null,
+    error: failures > 0 ? `${failures} of ${images.length} photos could not be analysed. ${reasons.slice(0, 2).join(" ")}` : null,
   };
 }

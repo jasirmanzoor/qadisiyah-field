@@ -77,6 +77,7 @@ export function UserButton() {
           onClick={() => {
             setSigningOut(true);
             // Success navigates away; on failure re-enable so it can be retried.
+            if (useField.getState().pending > 0 && !window.confirm(`${useField.getState().pending} saves are still on this phone. Sign out anyway? They stay on the device.`)) { setSigningOut(false); return; }
             void signOut().catch(() => setSigningOut(false));
           }}
           className="cursor-pointer text-sm underline-offset-4 opacity-70 hover:underline disabled:cursor-wait disabled:no-underline"

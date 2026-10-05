@@ -1,4 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useState } from "react";
+import { SyncSheet } from "@/components/sync/sync-sheet";
 import { RedirectToSignIn, UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { MarketSwitch } from "@/components/market-switch";
@@ -21,6 +23,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const setGps = useField((s) => s.setGps);
   const setGpsError = useField((s) => s.setGpsError);
   const pending = useField((s) => s.pending);
+  const [syncOpen, setSyncOpen] = useState(false);
   const lastError = useField((s) => s.lastError);
   const online = useField((s) => s.online);
   const loaded = useField((s) => s.loaded);
@@ -83,6 +86,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { to: "/dashboard", label: t.dashboard, icon: BarChart3 },
     { to: "/research", label: t.research, icon: Bot },
     { to: "/ops", label: t.ops, icon: Workflow },
+    { to: "/ceo", label: "CEO", icon: BarChart3 },
   ] as const;
 
   const isSurvey = pathname.startsWith("/survey");
@@ -103,7 +107,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <button
                   type="button"
                   className="font-medium text-status-amber"
-                  onClick={() => void flushField()}
+                  onClick={() => setSyncOpen(true)}
                 >
                   {t.pendingSync} · {pending}{lastError ? ` · ${lastError}` : ""}
                 </button>
@@ -154,6 +158,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <MarketSwitch counts={counts} compact />
         </div>
       </header>
+      {syncOpen ? <SyncSheet onClose={() => setSyncOpen(false)} /> : null}
       )}
 
       <main
