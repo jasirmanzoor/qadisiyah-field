@@ -263,7 +263,7 @@ export function MapPage() {
       </div>
       <div className="qads-vignette" aria-hidden />
       {listMode ? <div className="absolute inset-0 z-10 bg-bg" aria-hidden /> : null}
-      <div className="pointer-events-none absolute inset-x-3 top-2 z-20 flex items-start gap-2">
+      <div className="pointer-events-none absolute inset-x-3 top-2 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-20 flex items-start gap-2">
         <div className={cn("flex min-w-0 flex-1 flex-col gap-2", listMode && "min-h-0 self-stretch")}>
           <div className="pointer-events-auto relative z-30 min-w-0">
             <div className="qads-hud rounded-2xl p-1">
@@ -323,7 +323,7 @@ export function MapPage() {
                 <div><p className="text-sm font-semibold">{t.list}</p><p className="text-xs font-medium tabular-nums text-muted">{t.showing} <span className="text-fg">{listRows.length}</span></p></div>
                 <button type="button" data-add="1" onClick={() => openAdd()} className="flex min-h-10 items-center gap-1 rounded-xl bg-primary px-3 text-xs font-semibold text-primary-fg"><MapPinPlus className="size-3.5" />{t.addDealer}</button>
               </div>
-              <div className={cn("min-h-0 flex-1 overflow-auto px-1 pb-1", selected && "pb-56")}>
+              <div className={cn("min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain px-1 pb-1", selected && "pb-56")}>
                 {listRows.length === 0 ? (
                   <div className="px-3 py-6"><p className="text-sm text-muted">{t.noShowroomMatch}</p><Button data-add="1" size="sm" className="mt-3 w-full" onClick={() => openAdd(search)}><MapPinPlus className="size-4" />{t.addThisLot}</Button></div>
                 ) : listGroups ? listGroups.map((g) => (

@@ -176,7 +176,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
 
       {isSurvey ? null : (
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-border/80 bg-surface/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border/80 bg-surface/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
         {nav.map((item) => {
           const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
           const Icon = item.icon;
