@@ -296,10 +296,28 @@ export const useField = create<FieldState>((set, get) => ({
       for (const item of compact) {
         try {
           switch (item.op) {
-            case "upsertDealership":
+            case "upsertDealership": {
+              const dealer = unwrapDealer(item.payload);
+              if (!dealer || !Number.isFinite(Number(dealer.lat)) || !Number.isFinite(Number(dealer.lng))) {
+                await removeQueue(item.id);
+                break;
+              }
+              await apiUpsertDealer({ data: dealer });
+              await removeQueue(item.id);
+              break;
+            }
             case "upsertSurvey":
+              await apiUpsertSurvey({
+                data: item.payload as never,
+              });
+              await removeQueue(item.id);
+              break;
             case "addPhoto":
+              await apiAddPhoto({ data: item.payload as never });
+              await removeQueue(item.id);
+              break;
             case "deletePhoto":
+              await apiDeletePhoto({ data: item.payload as { id: string } });
               await removeQueue(item.id);
               break;
             case "upsertFollowup":
@@ -345,24 +363,89 @@ export const useField = create<FieldState>((set, get) => ({
     }
   },
 
-  upsertDealer: async () => {
-    return;
+  upsertDealer: async (d) => {
+    const snapshot = get().snapshot;
+    const exists = snapshot.dealerships.some((x) => x.id === d.id);
+    const dealerships = exists
+      ? snapshot.dealerships.map((x) => (x.id === d.id ? d : x))
+      : [...snapshot.dealerships, d];
+    const next = { ...snapshot, dealerships };
+    set({ snapshot: next });
+    persist(next);
+    await enqueue({ id: uid(), op: "upsertDealership", payload: d });
+    set({ pending: await queueCount() });
+    await get().flush();
   },
 
-  patchSurvey: async () => {
-    return;
+  patchSurvey: async (dealershipId, patch, step, statusOverride) => {
+    const snapshot = get().snapshot;
+    const rows = Array.isArray(snapshot.surveys) ? snapshot.surveys : [];
+    const existing = rows.find((s) => s.dealershipId === dealershipId);
+    const payload: SurveyPayload = { ...EMPTY_SURVEY, ...(existing?.payload ?? {}), ...patch };
+    const dealer = snapshot.dealerships.find((d) => d.id === dealershipId);
+    const status: VisitStatus =
+      statusOverride ?? inferStatus(payload, payload.visitStatus ?? dealer?.status ?? "not_visited");
+    payload.visitStatus = status;
+    const survey: SurveyRecord = {
+      id: existing?.id ?? uid(),
+      dealershipId,
+      payload,
+      step: step ?? existing?.step ?? 0,
+      updatedAt: new Date().toISOString(),
+    };
+    const surveys = existing
+      ? rows.map((s) => (s.dealershipId === dealershipId ? survey : s))
+      : [...rows, survey];
+    const dealerships = snapshot.dealerships.map((d) =>
+      d.id === dealershipId ? { ...d, status, updatedAt: survey.updatedAt } : d,
+    );
+    const next = { ...snapshot, surveys, dealerships };
+    set({ snapshot: next });
+    persist(next);
+    await enqueue({ id: uid(), op: "upsertSurvey", payload: { survey, status } });
+    set({ pending: await queueCount() });
+    void get().flush();
   },
 
-  addPhoto: async () => {
-    return;
+  addPhoto: async (p) => {
+    const snapshot = get().snapshot;
+    const next = { ...snapshot, photos: [...snapshot.photos, p] };
+    set({ snapshot: next });
+    persist(next);
+    await enqueue({ id: uid(), op: "addPhoto", payload: p });
+    set({ pending: await queueCount() });
+    void get().flush();
   },
 
-  removePhoto: async () => {
-    return;
+  removePhoto: async (id) => {
+    const snapshot = get().snapshot;
+    const next = { ...snapshot, photos: snapshot.photos.filter((p) => p.id !== id) };
+    set({ snapshot: next });
+    persist(next);
+    await enqueue({ id: uid(), op: "deletePhoto", payload: { id } });
+    set({ pending: await queueCount() });
+    void get().flush();
   },
 
-  reorderPhotos: () => {
-    return;
+  reorderPhotos: (dealershipId, orderedIds) => {
+    const snapshot = get().snapshot;
+    const want = new Map(orderedIds.map((id, index) => [id, index]));
+    const indexes: number[] = [];
+    const current: PhotoRecord[] = [];
+    snapshot.photos.forEach((p, index) => {
+      if (p.dealershipId !== dealershipId) return;
+      indexes.push(index);
+      current.push(p);
+    });
+    if (indexes.length < 2) return;
+    const ranked = [...current].sort((a, b) => (want.get(a.id) ?? 999) - (want.get(b.id) ?? 999));
+    const photos = snapshot.photos.slice();
+    indexes.forEach((index, n) => {
+      photos[index] = ranked[n];
+    });
+    const next = { ...snapshot, photos };
+    set({ snapshot: next });
+    persist(next);
   },
 
   upsertFollowup: async (f) => {

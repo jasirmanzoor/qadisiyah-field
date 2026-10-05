@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { IntelPage } from "@/components/intel/intel-page";
+import { ResearchPage } from "@/components/research/research-page";
 import { AppShell } from "@/components/shell";
 
 export const Route = createFileRoute("/research")({ component: Research });
@@ -7,7 +7,7 @@ export const Route = createFileRoute("/research")({ component: Research });
 function Research() {
   return (
     <AppShell>
-      <IntelPage />
+      <ResearchPage />
     </AppShell>
   );
 }

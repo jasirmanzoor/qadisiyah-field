@@ -5,13 +5,13 @@ import { ChipMulti, Choice, FigureBadge, Input, Label, SourceToggle, Textarea } 
 import { BANK_OPTIONS, BRAND_OPTIONS, FAIL_REASON_OPTIONS } from "@/lib/seed";
 import { COPY } from "@/lib/i18n";
 import { compressImage } from "@/lib/image";
-import { fingerprint, tx } from "@/lib/intel";
 import { dealerMarket } from "@/lib/markets";
 import { canSubmitSurvey, isDeepDived, isSurveyedShowroom, surveyCompleteness, SURVEY_STEPS } from "@/lib/survey-schema";
 import type { SurveyPayload, VisitStatus } from "@/lib/types";
+import { todayISO, uid } from "@/lib/utils";
 import { useField, surveyFor } from "@/stores/field";
-import { useIntel } from "@/stores/intel";
 import { usePrefs } from "@/stores/prefs";
+import { useCurrentUser } from "@/lib/auth/use-current-user";
 import {
   Banknote,
   Camera,
@@ -29,65 +29,63 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
   const navigate = useNavigate();
+  const user = useCurrentUser();
   const { lang } = usePrefs();
   const t = COPY[lang];
   const snapshot = useField((s) => s.snapshot);
   const gps = useField((s) => s.gps);
+  const patchSurvey = useField((s) => s.patchSurvey);
   const upsertDealer = useField((s) => s.upsertDealer);
+  const addPhoto = useField((s) => s.addPhoto);
+  const removePhoto = useField((s) => s.removePhoto);
+  const reorderPhotos = useField((s) => s.reorderPhotos);
   const loaded = useField((s) => s.loaded);
-  const draft = useIntel((s) => s.drafts[dealershipId]);
-  const intelPhotos = useIntel((s) => s.photos.filter((p) => p.dealershipId === dealershipId));
-  const saveSurveyDraft = useIntel((s) => s.saveSurveyDraft);
-  const addIntelPhoto = useIntel((s) => s.addPhoto);
-  const removeIntelPhoto = useIntel((s) => s.removePhoto);
-  const reorderIntelPhotos = useIntel((s) => s.reorderPhotos);
 
   const dealer = snapshot.dealerships.find((d) => d.id === dealershipId);
   const record = surveyFor(snapshot, dealershipId);
-  const basePayload: SurveyPayload = record?.payload ?? {};
-  const payload: SurveyPayload = { ...basePayload, ...(draft?.payload ?? {}) };
-  const step = draft?.step ?? record?.step ?? 0;
-  const fieldPhotos = snapshot.photos.filter((p) => p.dealershipId === dealershipId).map((p) => ({ ...p, locked: true as const }));
-  const photos = [...fieldPhotos, ...intelPhotos.map((p) => ({ id: p.id, dataUrl: p.dataUrl, locked: false as const }))];
+  const payload: SurveyPayload = record?.payload ?? {};
+  const step = record?.step ?? 0;
+  const photos = snapshot.photos.filter((p) => p.dealershipId === dealershipId);
 
   const [aiOpen, setAiOpen] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const timer = useRef<number | null>(null);
 
-  function save(patch: Partial<SurveyPayload>, nextStep = step) {
+  const timer = useRef<number | null>(null);
+  function save(patch: Partial<SurveyPayload>, nextStep = step, status?: VisitStatus) {
     setSaveState("saving");
     if (timer.current) window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => {
-      saveSurveyDraft(dealershipId, { ...(draft?.payload ?? {}), ...patch }, nextStep);
-      setSaveState("saved");
+      void patchSurvey(dealershipId, patch, nextStep, status)
+        .then(() => setSaveState("saved"))
+        .catch(() => setSaveState("error"));
     }, 250);
   }
 
   async function saveNow() {
     if (timer.current) window.clearTimeout(timer.current);
-    saveSurveyDraft(dealershipId, draft?.payload ?? {}, step);
-    setSaveState("saved");
+    setSaveState("saving");
+    try {
+      await patchSurvey(dealershipId, {}, step);
+      setSaveState("saved");
+    } catch {
+      setSaveState("error");
+    }
   }
 
-  async function storePhoto(file: File) {
-    const dataUrl = await compressImage(file);
-    if (!dataUrl || !dealer) return;
-    const existing = snapshot.photos.filter((p) => p.dealershipId === dealershipId).map((p) => fingerprint(p.dataUrl));
-    addIntelPhoto(dealershipId, dataUrl, "other", existing);
-  }
-
-  function dropPhoto(id: string) {
-    if (snapshot.photos.some((p) => p.id === id)) return;
-    removeIntelPhoto(id);
-  }
-
-  function orderPhotos(ids: string[]) {
-    reorderIntelPhotos(dealershipId, ids.filter((id) => intelPhotos.some((p) => p.id === id)));
-  }
+  useEffect(() => {
+    if (!dealer) return;
+    const patch: Partial<SurveyPayload> = {};
+    if (!payload.visitDate) patch.visitDate = todayISO();
+    if (!payload.surveyorName) patch.surveyorName = user?.displayName || user?.primaryEmail || "";
+    if (!payload.visitStatus) patch.visitStatus = dealer.status;
+    if (dealerMarket(dealer) === "shifa" && !payload.vehicleType) patch.vehicleType = "used_only";
+    if (Object.keys(patch).length === 0) return;
+    void patchSurvey(dealershipId, patch);
+  }, [dealer, dealershipId, payload.visitDate, payload.surveyorName, payload.visitStatus, payload.vehicleType, patchSurvey, user]);
 
   if (!loaded) {
     return (
@@ -122,7 +120,7 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
           type="button"
           aria-label={step === 0 ? t.map : t.back}
           className="grid size-12 shrink-0 place-items-center rounded-xl"
-          onClick={() => (step === 0 ? navigate({ to: "/" }) : save({}, step - 1))}
+          onClick={() => (step === 0 ? navigate({ to: "/" }) : void patchSurvey(dealershipId, {}, step - 1))}
         >
           <ChevronLeft className="size-6" />
         </button>
@@ -146,9 +144,6 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
           {deep ? t.deepDived : surveyed ? t.surveyedCat : dealer.status.replace("_", " ")}
         </span>
       </div>
-      <p className="mx-3 mt-2 rounded-xl bg-status-amber/15 px-3 py-2 text-xs font-medium text-status-amber">
-        {tx(lang, "Field record is locked. Typed changes stay in a draft on this phone and do not change the showroom.", "السجل الميداني مقفل. ما تكتبه مسودة على هذا الجهاز ولا يغيّر المعرض.")}
-      </p>
       <div className="flex items-center gap-2 px-3 pt-2">
         <p className="shrink-0 text-xs font-semibold uppercase tracking-wide text-muted">
           {t.fieldsProgress} {completeness.filled}/{completeness.total}
@@ -164,7 +159,7 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
             <button
               key={s.id}
               type="button"
-              onClick={() => save({}, i)}
+              onClick={() => void patchSurvey(dealershipId, {}, i)}
               className={`shrink-0 rounded-full px-3 py-2 text-xs font-semibold ${
                 on ? "bg-primary text-primary-fg" : i < step ? "bg-primary/12 text-primary" : "bg-surface text-muted shadow-[var(--shadow-border)]"
               }`}
@@ -186,9 +181,20 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
             onRunAi={() => setAiOpen(true)}
             onDealer={(patch) => void upsertDealer({ ...dealer, ...patch, updatedAt: new Date().toISOString() })}
             onSave={save}
-            onPhoto={storePhoto}
-            onRemove={dropPhoto}
-            onReorder={orderPhotos}
+            onPhoto={async (file) => {
+              const dataUrl = await compressImage(file);
+              if (!dataUrl) return;
+              await addPhoto({
+                id: uid(),
+                dealershipId,
+                dataUrl,
+                lat: gps?.lat ?? dealer.lat,
+                lng: gps?.lng ?? dealer.lng,
+                capturedAt: new Date().toISOString(),
+              });
+            }}
+            onRemove={(id) => void removePhoto(id)}
+            onReorder={(ids) => reorderPhotos(dealershipId, ids)}
           />
         ) : null}
         {step === 1 ? <VisitStep payload={payload} onSave={save} /> : null}
@@ -202,9 +208,20 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
             payload={payload}
             photos={photos}
             onSave={save}
-            onPhoto={storePhoto}
-            onRemove={dropPhoto}
-            onReorder={orderPhotos}
+            onPhoto={async (file) => {
+              const dataUrl = await compressImage(file);
+              if (!dataUrl) return;
+              await addPhoto({
+                id: uid(),
+                dealershipId,
+                dataUrl,
+                lat: gps?.lat ?? dealer.lat,
+                lng: gps?.lng ?? dealer.lng,
+                capturedAt: new Date().toISOString(),
+              });
+            }}
+            onRemove={(id) => void removePhoto(id)}
+            onReorder={(ids) => reorderPhotos(dealershipId, ids)}
           />
         ) : null}
         </div>
@@ -219,15 +236,15 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
           {saveLabel}
         </Button>
         {step < SURVEY_STEPS.length - 1 ? (
-          <Button onClick={() => save({}, step + 1)}>
+          <Button onClick={() => void patchSurvey(dealershipId, {}, step + 1)}>
             {t.continueStep}
           </Button>
         ) : (
           <Button
             disabled={!submitGate.ok}
-            onClick={() => {
-              saveSurveyDraft(dealershipId, { ...(draft?.payload ?? {}), ...payload }, step);
-              void navigate({ to: "/dossier/$id", params: { id: dealershipId } });
+            onClick={async () => {
+              await patchSurvey(dealershipId, payload, step, "completed");
+              navigate({ to: "/" });
             }}
           >
             {t.submit}
@@ -271,7 +288,7 @@ function EvidenceGallery({
   onRemove,
   onReorder,
 }: {
-  photos: { id: string; dataUrl: string; locked?: boolean }[];
+  photos: { id: string; dataUrl: string }[];
   onPhoto: (file: File) => Promise<void>;
   onRemove: (id: string) => void;
   onReorder: (ids: string[]) => void;
@@ -365,7 +382,7 @@ function EvidenceGallery({
                 <button
                   type="button"
                   className="grid min-h-11 place-items-center text-muted disabled:opacity-30"
-                  disabled={Boolean(p.locked) || index === 0}
+                  disabled={index === 0}
                   onClick={() => move(p.id, -1)}
                   aria-label={t.earlier}
                 >
@@ -373,17 +390,16 @@ function EvidenceGallery({
                 </button>
                 <button
                   type="button"
-                  className="grid min-h-11 place-items-center text-danger disabled:opacity-30"
-                  disabled={Boolean(p.locked)}
+                  className="grid min-h-11 place-items-center text-danger"
                   onClick={() => onRemove(p.id)}
-                  aria-label={p.locked ? t.evidence : t.deletePhoto}
+                  aria-label={t.deletePhoto}
                 >
-                  {p.locked ? <span className="text-[10px] font-semibold text-muted">{t.evidence}</span> : <Trash2 className="size-4" />}
+                  <Trash2 className="size-4" />
                 </button>
                 <button
                   type="button"
                   className="grid min-h-11 place-items-center text-muted disabled:opacity-30"
-                  disabled={Boolean(p.locked) || index === photos.length - 1}
+                  disabled={index === photos.length - 1}
                   onClick={() => move(p.id, 1)}
                   aria-label={t.later}
                 >
@@ -402,10 +418,8 @@ function EvidenceGallery({
             </button>
             <button
               type="button"
-              className="min-h-12 rounded-xl px-4 text-sm font-semibold text-danger disabled:opacity-40"
-              disabled={Boolean(open.locked)}
+              className="min-h-12 rounded-xl px-4 text-sm font-semibold text-danger"
               onClick={() => {
-                if (open.locked) return;
                 onRemove(open.id);
                 setPreview(null);
               }}
@@ -468,15 +482,22 @@ function IdentityStep({
           {t.floorCheck}
         </p>
         <div className="flex flex-col gap-2">
-          <Input className="bg-surface-2" value={dealer.nameEn} aria-label={t.nameEn} readOnly />
-          <Input dir="rtl" className="bg-surface-2" value={dealer.nameAr} aria-label={t.nameAr} readOnly />
-          <Input className="bg-surface-2" type="tel" aria-label={t.phone} value={dealer.listedPhone} readOnly />
+          <Input className="bg-surface-2" value={dealer.nameEn} aria-label={t.nameEn} onChange={(e) => onDealer({ nameEn: e.target.value })} />
+          <Input dir="rtl" className="bg-surface-2" value={dealer.nameAr} aria-label={t.nameAr} onChange={(e) => onDealer({ nameAr: e.target.value })} />
+          <Input
+            className="bg-surface-2"
+            type="tel"
+            aria-label={t.phone}
+            value={dealer.listedPhone}
+            onChange={(e) => onDealer({ listedPhone: e.target.value })}
+          />
         </div>
       </section>
       <button
         type="button"
         className="inspect-card mb-3 flex min-h-14 w-full items-center gap-3 text-start"
-        disabled
+        disabled={!gps}
+        onClick={() => gps && onDealer({ lat: gps.lat, lng: gps.lng })}
       >
         <MapPinned className="size-5 shrink-0 text-primary" />
         <span className="min-w-0 flex-1">
@@ -485,7 +506,7 @@ function IdentityStep({
             {dealer.lat.toFixed(5)}, {dealer.lng.toFixed(5)}
           </span>
         </span>
-        <span className="shrink-0 text-sm font-semibold text-muted">{tx(usePrefs.getState().lang, "Pin locked", "الدبوس مقفل")}</span>
+        <span className="shrink-0 text-sm font-semibold text-primary">{t.updateGps}</span>
       </button>
       <EvidenceGallery photos={photos} onPhoto={onPhoto} onRemove={onRemove} onReorder={onReorder} />
       <section className="inspect-card mb-3">

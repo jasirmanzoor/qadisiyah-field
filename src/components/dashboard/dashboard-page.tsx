@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { FigureBadge, StatusBadge } from "@/components/ui/field";
 import { ClientOnly } from "@/components/client-only";
@@ -131,16 +130,10 @@ export function DashboardPage() {
           {observedOnly ? t.observedOnly : t.disclosedFigures}
         </button>
       </div>
-      <div className="grid grid-cols-4 gap-1.5">
+      <div className="grid grid-cols-3 gap-2">
         <StatCard label={t.pinsEstablished} value={formatNumber(coverage.pins)} />
         <StatCard label={t.surveyedCat} value={formatNumber(coverage.surveyed)} />
         <StatCard label={t.deepDived} value={formatNumber(coverage.deep)} />
-        <StatCard label={lang === "ar" ? "معلق" : "Pending"} value={formatNumber(Math.max(0, coverage.pins - coverage.surveyed))} />
-      </div>
-      <div className="grid grid-cols-3 gap-2">
-        <Link to="/ceo" className="flex min-h-12 items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-fg">{lang === "ar" ? "موجز الرئيس" : "CEO brief"}</Link>
-        <Link to="/research" className="flex min-h-12 items-center justify-center rounded-xl bg-surface text-sm font-semibold shadow-[var(--shadow-border)]">{lang === "ar" ? "البحث" : "Research"}</Link>
-        <Link to="/deepdive" search={{ id: "" }} className="flex min-h-12 items-center justify-center rounded-xl bg-surface text-sm font-semibold shadow-[var(--shadow-border)]">{lang === "ar" ? "التعمق" : "Deepdive"}</Link>
       </div>
 
       {market === "shifa" ? (

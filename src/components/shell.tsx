@@ -1,24 +1,21 @@
-import { useNavigate } from "@tanstack/react-router";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { RedirectToSignIn, UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { MarketSwitch } from "@/components/market-switch";
 import { COPY } from "@/lib/i18n";
 import { MARKET_CENTERS } from "@/lib/geo";
-import { MARKET_META, dealersInMarket, marketCounts } from "@/lib/markets";
+import { MARKET_META, marketCounts } from "@/lib/markets";
 import { cn } from "@/lib/utils";
 import { useField } from "@/stores/field";
-import { useIntel } from "@/stores/intel";
 import { usePrefs } from "@/stores/prefs";
-import { BarChart3, Briefcase, Compass, FlaskConical, Map as MapIcon, Moon, Search, Sun, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { BarChart3, Bot, Map as MapIcon, Moon, Sun, Workflow } from "lucide-react";
+import { useEffect, useMemo } from "react";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, isPending } = useCurrentUserState();
   const { lang, theme, market, setLang, setTheme, hydrate } = usePrefs();
   const t = COPY[lang];
   const hydrateField = useField((s) => s.hydrate);
-  const hydrateIntel = useIntel((s) => s.hydrate);
   const flushField = useField((s) => s.flush);
   const setOnline = useField((s) => s.setOnline);
   const setGps = useField((s) => s.setGps);
@@ -31,12 +28,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const dealers = useField((s) => s.snapshot.dealerships);
   const counts = useMemo(() => marketCounts(dealers), [dealers]);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const [finder, setFinder] = useState(false);
 
   useEffect(() => {
     hydrate();
-    hydrateIntel();
-  }, [hydrate, hydrateIntel]);
+  }, [hydrate]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -85,9 +80,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const nav = [
     { to: "/", label: t.map, icon: MapIcon },
     { to: "/dashboard", label: t.dashboard, icon: BarChart3 },
-    { to: "/ceo", label: lang === "ar" ? "الرئيس" : "CEO", icon: Briefcase },
-    { to: "/research", label: t.research, icon: Search },
-    { to: "/deepdive", label: lang === "ar" ? "تعمق" : "Dive", icon: FlaskConical },
+    { to: "/research", label: t.research, icon: Bot },
+    { to: "/ops", label: t.ops, icon: Workflow },
   ] as const;
 
   const isSurvey = pathname.startsWith("/survey");
@@ -139,14 +133,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <button
           type="button"
           className="grid size-10 place-items-center rounded-lg text-muted"
-          onClick={() => setFinder(true)}
-          aria-label={t.searchShowrooms}
-        >
-          <Compass className="size-4" />
-        </button>
-        <button
-          type="button"
-          className="grid size-10 place-items-center rounded-lg text-muted"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           aria-label={theme === "dark" ? t.light : t.dark}
         >
@@ -182,7 +168,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
 
       {isSurvey ? null : (
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border/80 bg-surface/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-border/80 bg-surface/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
         {nav.map((item) => {
           const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
           const Icon = item.icon;
@@ -202,60 +188,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         })}
       </nav>
       )}
-      {finder ? <RosterFinder lang={lang} onClose={() => setFinder(false)} /> : null}
-    </div>
-  );
-}
-
-function RosterFinder({ lang, onClose }: { lang: "en" | "ar"; onClose: () => void }) {
-  const navigate = useNavigate();
-  const dealers = useField((s) => s.snapshot.dealerships);
-  const [q, setQ] = useState("");
-  const hits = useMemo(() => {
-    const query = q.trim().toLowerCase();
-    if (query.length < 1) return [];
-    return dealers
-      .filter((d) => !d.flags?.hidden && `${d.nameEn} ${d.nameAr} ${d.listedPhone} ${d.flags.sdId ?? ""}`.toLowerCase().includes(query))
-      .slice(0, 12);
-  }, [dealers, q]);
-  return (
-    <div className="fixed inset-0 z-40 flex flex-col bg-bg/95 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-md">
-      <div className="flex items-center gap-2">
-        <div className="relative min-w-0 flex-1">
-          <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
-          <input
-            autoFocus
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder={lang === "ar" ? "ابحث بالعربي أو الإنجليزي" : "Search Arabic or English"}
-            className="min-h-12 w-full rounded-xl bg-surface pe-3 ps-10 text-base outline-none"
-          />
-        </div>
-        <button type="button" className="grid size-12 place-items-center" onClick={onClose} aria-label="Close">
-          <X className="size-5" />
-        </button>
-      </div>
-      <p className="mt-2 text-xs text-muted">
-        {dealersInMarket(dealers, "qadisiyah").length} · {dealersInMarket(dealers, "shifa").length}
-      </p>
-      <ul className="mt-2 flex flex-col gap-1 overflow-auto pb-8">
-        {q && hits.length === 0 ? <li className="px-2 py-6 text-sm text-muted">{lang === "ar" ? "لا نتائج" : "No matches"}</li> : null}
-        {hits.map((d) => (
-          <li key={d.id}>
-            <button
-              type="button"
-              className="flex min-h-14 w-full flex-col justify-center rounded-xl bg-surface px-3 text-start"
-              onClick={() => {
-                onClose();
-                void navigate({ to: "/dossier/$id", params: { id: d.id } });
-              }}
-            >
-              <span className="truncate font-semibold">{d.nameEn}</span>
-              <span className="truncate text-xs text-muted" dir="rtl">{d.flags.sdId} · {d.nameAr}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
