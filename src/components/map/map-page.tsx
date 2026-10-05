@@ -263,8 +263,8 @@ export function MapPage() {
       </div>
       <div className="qads-vignette" aria-hidden />
       {listMode ? <div className="absolute inset-0 z-10 bg-bg" aria-hidden /> : null}
-      <div className="pointer-events-none absolute inset-x-3 top-3 bottom-3 z-20 flex items-start gap-2">
-        <div className={cn("flex min-w-0 flex-1 flex-col", listMode && "min-h-0 self-stretch")}>
+      <div className="pointer-events-none absolute inset-x-3 top-2 z-20 flex items-start gap-2">
+        <div className={cn("flex min-w-0 flex-1 flex-col gap-2", listMode && "min-h-0 self-stretch")}>
           <div className="pointer-events-auto relative z-30 min-w-0">
             <div className="qads-hud rounded-2xl p-1">
               <div className="relative">
@@ -281,7 +281,7 @@ export function MapPage() {
               </div>
             ) : (
               <>
-              <div className="mt-1 grid grid-cols-3 gap-1">
+              <div className="grid grid-cols-3 gap-1">
                 {([
                   ["all", t.pinsEstablished, counts.all],
                   ["surveyed", t.surveyedCat, counts.surveyed],
@@ -307,7 +307,7 @@ export function MapPage() {
                   );
                 })}
               </div>
-              <div className="qads-chips mt-1 flex min-w-0 gap-1 overflow-x-auto pb-0.5">
+              <div className="qads-chips flex min-w-0 gap-1 overflow-x-auto pb-0.5">
                 {filters.map((f) => (
                   <button key={f.id} type="button" onClick={() => setFilter(f.id)} className={cn("qads-chip shrink-0 rounded-full px-3 py-2 text-xs font-semibold", filter === f.id ? "bg-primary text-primary-fg shadow-[var(--shadow-border)]" : "qads-hud text-muted")}>
                     {f.label}<span className="ms-1.5 tabular-nums opacity-80">{f.count}</span>
