@@ -197,9 +197,13 @@ export function MapPage() {
   function pickDealer(id: string) {
     const d = roster.find((x) => x.id === id) ?? snapshot.dealerships.find((x) => x.id === id);
     setSelectedId(id); setEditingCoords(false); setNearMe(false); setCluster(null); setAdding(false);
-    if (!listMode) setSearch("");
     if (d) flyTo(d);
   }
+  useEffect(() => {
+    const q = search.trim();
+    if (!q || listMode || selectedId) return;
+    if (searchHits.length === 1) flyTo(searchHits[0], 17);
+  }, [search, searchHits, listMode, selectedId]);
   function onSelect(id: string) {
     if (planning) { setRouteIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])); return; }
     pickDealer(id);
@@ -252,7 +256,7 @@ export function MapPage() {
       <div className="qads-map-host absolute inset-0 z-0">
         <ClientOnly fallback={<div className="grid h-full place-items-center text-sm text-muted">Loading map…</div>}>
           <Suspense fallback={<div className="grid h-full place-items-center text-sm text-muted">Loading map…</div>}>
-            <MapCanvas key={market} dealers={mapDealers} selectedId={selectedId} onSelect={onSelect} onCluster={onCluster} satellite={satellite} me={gps} route={routeDealers} focus={focus} origin={marketCenter} dualIds={dualIds} showDualLabels={market === "shifa" && filter === "dual"} />
+            <MapCanvas key={market} dealers={mapDealers} selectedId={selectedId} highlightIds={search.trim() ? searchHits.map((d) => d.id) : []} onSelect={onSelect} onCluster={onCluster} satellite={satellite} me={gps} route={routeDealers} focus={focus} origin={marketCenter} dualIds={dualIds} showDualLabels={market === "shifa" && filter === "dual"} />
           </Suspense>
         </ClientOnly>
       </div>
@@ -268,7 +272,7 @@ export function MapPage() {
                 {search ? <button type="button" onClick={() => setSearch("")} className="absolute end-0.5 top-1/2 grid size-10 -translate-y-1/2 place-items-center text-muted" aria-label={t.clearSearch}><X className="size-4" /></button> : null}
               </div>
             </div>
-            {search.trim() && !planning && !adding && !listMode ? (
+            {search.trim() && !planning && !adding && !listMode && !selected ? (
               <div className="qads-sheet relative z-30 mt-1 max-h-56 overflow-auto rounded-2xl p-1">
                 {searchHits.length === 0 ? (
                   <div className="px-2 py-2"><p className="px-1 py-2 text-sm text-muted">{t.noShowroomMatch}</p><Button data-add="1" size="sm" className="w-full" onClick={() => openAdd(search)}><MapPinPlus className="size-4" />{t.addThisLot}</Button></div>

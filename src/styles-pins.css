@@ -104,3 +104,11 @@
   transition: none !important;
   -webkit-transition: none !important;
 }
+
+.qads-pin-hit {
+  box-shadow: 0 0 0 3px #d4af37, 0 0 0 7px rgba(212, 175, 55, 0.35);
+  transform: scale(1.12);
+}
+.qads-pin-dim {
+  opacity: 0.28;
+}

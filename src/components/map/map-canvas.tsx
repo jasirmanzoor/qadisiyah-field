@@ -51,14 +51,16 @@ function numberedIcon(
   selected: boolean,
   trained = false,
   dual = false,
+  hit = false,
+  dim = false,
 ) {
-  const key = `n:${status}:${n}:${selected ? 1 : 0}:${trained ? 1 : 0}:${dual ? 1 : 0}`;
-  const hit = iconCache.get(key);
-  if (hit) return hit;
-  const { w, h } = pinBox(n, selected);
+  const key = `n:${status}:${n}:${selected ? 1 : 0}:${trained ? 1 : 0}:${dual ? 1 : 0}:${hit ? 1 : 0}:${dim ? 1 : 0}`;
+  const cached = iconCache.get(key);
+  if (cached) return cached;
+  const { w, h } = pinBox(n, selected || hit);
   const icon = L.divIcon({
     className: "",
-    html: `<div class="qads-pin-num qads-pin-${status}${selected ? " qads-pin-selected" : ""}${trained ? " qads-pin-trained" : ""}${dual ? " qads-pin-dual" : ""}">${n}</div>`,
+    html: `<div class="qads-pin-num qads-pin-${status}${selected ? " qads-pin-selected" : ""}${hit ? " qads-pin-hit" : ""}${dim ? " qads-pin-dim" : ""}${trained ? " qads-pin-trained" : ""}${dual ? " qads-pin-dual" : ""}">${n}</div>`,
     iconSize: [w, h],
     iconAnchor: [w / 2, h / 2],
   });
@@ -172,6 +174,7 @@ export function MapCanvas({
   dualIds,
   showDualLabels = true,
   serials,
+  highlightIds = [],
 }: {
   dealers: Dealership[];
   selectedId: string | null;
@@ -187,8 +190,11 @@ export function MapCanvas({
   showDualLabels?: boolean;
   dark?: boolean;
   serials?: Map<string, number>;
+  highlightIds?: string[];
 }) {
   const routeIds = useMemo(() => new Set(route.map((d) => d.id)), [route]);
+  const hits = useMemo(() => new Set(highlightIds), [highlightIds]);
+  const filtering = hits.size > 0;
   const selected = dealers.find((d) => d.id === selectedId) ?? null;
   const numbers = useMemo(() => serials ?? dealerSerials(dealers), [serials, dealers]);
 
@@ -258,8 +264,8 @@ export function MapCanvas({
               <Marker
                 key={d.id}
                 position={[d.lat, d.lng]}
-                icon={numberedIcon(d.status, n, false, d.flags?.trainingStage === "trained", dual)}
-                zIndexOffset={dual ? 600 : n}
+                icon={numberedIcon(d.status, n, false, d.flags?.trainingStage === "trained", dual, hits.has(d.id), filtering && !hits.has(d.id))}
+                zIndexOffset={hits.has(d.id) ? 800 : dual ? 600 : n}
                 eventHandlers={{ click: () => onSelect(d.id) }}
               >
                 {dual && showDualLabels ? (
