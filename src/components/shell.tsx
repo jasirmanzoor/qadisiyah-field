@@ -94,6 +94,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-dvh min-h-dvh flex-col bg-bg text-fg">
       {isSurvey ? null : (
+      <>
       <header className="sticky top-0 z-30 border-b border-border/80 bg-bg/70 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-xl">
         <div className="flex items-center gap-2 px-3 py-2">
         <div className="min-w-0 flex-1">
@@ -159,6 +160,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
       {syncOpen ? <SyncSheet onClose={() => setSyncOpen(false)} /> : null}
+      </>
       )}
 
       <main
