@@ -1,11 +1,12 @@
 import { SHIFA_FLOOR_NEW } from "./shifa-floor-sep27";
+import { mapsPinUrl } from "./shifa-floor-oct06";
 import type { Dealership, SurveyPayload, SurveyRecord } from "./types";
 
-const NOW = "2026-10-01T09:00:00.000Z";
+const NOW = "2026-10-06T09:00:00.000Z";
 
-function surveyPayload(note: string | undefined, survey: Partial<SurveyPayload>, status: Dealership["status"]): SurveyPayload {
+function surveyPayload(sdId: string, note: string | undefined, survey: Partial<SurveyPayload>, status: Dealership["status"]): SurveyPayload {
   return {
-    visitDate: status === "partial" ? "2026-10-01" : "",
+    visitDate: status === "partial" ? (sdId.startsWith("S15") ? "2026-10-06" : sdId.startsWith("S14") ? "2026-10-01" : "2026-09-27") : "",
     visitStatus: status,
     mainBrands: survey.mainBrands ?? [],
     banksPartnered: [],
@@ -44,11 +45,14 @@ export function shifaFloorDealers(): Dealership[] {
       flags: {
         sdId: n.sdId,
         market: "shifa",
-        mapsUrl: n.mapsUrl || `https://www.google.com/maps?q=${n.lat},${n.lng}`,
-        needsGps: n.needsGps ?? false,
+        mapsUrl: n.unplaced ? "" : (n.mapsUrl || mapsPinUrl(n.lat, n.lng)),
+        needsGps: n.unplaced ? true : (n.needsGps ?? false),
         floor27: true,
-        gpsSource: n.mapsUrl ? "maps_link" : "mapping_seed",
-        censusVersion: 21,
+        street: n.street,
+        unplaced: n.unplaced,
+        gpsSource: n.gpsSource ?? (n.mapsUrl ? "maps_link" : "mapping_seed"),
+        gpsStatus: n.gpsSource === "survey" ? "confirmed" : undefined,
+        censusVersion: 25,
       },
     };
   });
@@ -61,7 +65,7 @@ export function shifaFloorSurvey(sdId: string): SurveyRecord | undefined {
   return {
     id: n.sdId,
     dealershipId: n.sdId,
-    payload: surveyPayload(n.note, n.survey, status),
+    payload: surveyPayload(n.sdId, n.note, n.survey, status),
     step: 4,
     updatedAt: NOW,
   };

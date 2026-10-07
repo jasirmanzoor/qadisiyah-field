@@ -64,7 +64,9 @@ export type DealershipFlags = {
   market?: MarketId;
   /** Floor records the walk marked hidden (duplicate door). */
   hidden?: boolean;
-  /** Set when 27 Sep floor figures were filed. Not a pin. */
+  /** On the list, but no door coordinate yet. Hidden from the map. */
+  unplaced?: boolean;
+  /** Set when floor figures were filed. Not a pin. */
   floor27?: boolean;
 };
 

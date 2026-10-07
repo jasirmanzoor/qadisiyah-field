@@ -57,8 +57,23 @@ export async function loadSnapshot(workspaceId: string): Promise<Snapshot> {
       lng: p.lng ?? null,
       capturedAt: String(p.created_at ?? p.captured_at ?? ""),
     })) as PhotoRecord[],
-    followups: (followups as any[]) as Followup[],
-    tasks: (tasks as any[]) as ResearchTask[],
+    followups: (followups as any[]).map((f) => ({
+      id: String(f.id),
+      dealershipId: String(f.dealership_id ?? f.dealershipId ?? ""),
+      title: String(f.title ?? ""),
+      dueDate: (f.due_date ?? f.dueDate ?? null) as string | null,
+      done: Boolean(f.done),
+      createdAt: String(f.created_at ?? f.createdAt ?? ""),
+    })),
+    tasks: (tasks as any[]).map((t) => ({
+      id: String(t.id),
+      name: String(t.name ?? ""),
+      instruction: String(t.instruction ?? ""),
+      targetField: String(t.target_field ?? t.targetField ?? ""),
+      sources: parseJson<string[]>(typeof t.sources === "string" ? t.sources : JSON.stringify(t.sources ?? []), []),
+      schedule: (t.schedule ?? "on_demand") as ResearchTask["schedule"],
+      enabled: t.enabled !== false,
+    })),
     findings: (findings as any[]) as AgentFinding[],
     notifications: (notifications as any[]) as AppNotification[],
     pipeline: (pipeline as any[]) as PipelineRow[],
@@ -172,9 +187,9 @@ export const upsertFollowup = createServerFn({ method: "POST" })
     const { sql, scope } = await scoped(context.userId);
     const f = data.followup;
     await sql`
-      insert into followups (id, user_id, dealership_id, kind, note, due_at, done)
-      values (${f.id || uid()}, ${scope}, ${f.dealershipId}, ${f.kind}, ${f.note ?? ""}, ${f.dueAt ?? null}, ${!!f.done})
-      on conflict (id) do update set kind = excluded.kind, note = excluded.note, due_at = excluded.due_at, done = excluded.done
+      insert into followups (id, user_id, dealership_id, title, due_date, done)
+      values (${f.id || uid()}, ${scope}, ${f.dealershipId}, ${f.title}, ${f.dueDate ?? null}, ${!!f.done})
+      on conflict (id) do update set title = excluded.title, due_date = excluded.due_date, done = excluded.done
     `;
     return { ok: true as const, snapshot: await loadSnapshot(scope) };
   });
@@ -186,9 +201,15 @@ export const upsertTask = createServerFn({ method: "POST" })
     const { sql, scope } = await scoped(context.userId);
     const t = data.task;
     await sql`
-      insert into research_tasks (id, user_id, title, status, dealership_id)
-      values (${t.id || uid()}, ${scope}, ${t.title}, ${t.status ?? "open"}, ${t.dealershipId ?? null})
-      on conflict (id) do update set title = excluded.title, status = excluded.status
+      insert into research_tasks (id, user_id, name, instruction, target_field, sources, schedule, enabled)
+      values (${t.id || uid()}, ${scope}, ${t.name}, ${t.instruction}, ${t.targetField}, ${JSON.stringify(t.sources)}, ${t.schedule}, ${t.enabled})
+      on conflict (id) do update set
+        name = excluded.name,
+        instruction = excluded.instruction,
+        target_field = excluded.target_field,
+        sources = excluded.sources,
+        schedule = excluded.schedule,
+        enabled = excluded.enabled
     `;
     return { ok: true as const, snapshot: await loadSnapshot(scope) };
   });

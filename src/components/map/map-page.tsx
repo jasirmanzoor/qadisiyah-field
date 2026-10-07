@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { COPY, STATUS_LABEL } from "@/lib/i18n";
-import { formatDistance, haversineM, MARKET_CENTERS, optimizeWalkOrder } from "@/lib/geo";
+import { formatDistance, haversineM, MARKET_CENTERS, nearestDealers, optimizeWalkOrder } from "@/lib/geo";
 import { dealersInMarket, dealerMarket, dualPartner, isDualLocation } from "@/lib/markets";
 import { buildExcelXml, downloadBlob } from "@/lib/export";
 import { isDeepDived, isSurveyedShowroom } from "@/lib/survey-schema";
@@ -23,6 +23,28 @@ import { displaySurvey } from "./map-notes";
 const MapCanvas = lazy(() => import("./map-canvas").then((m) => ({ default: m.MapCanvas })));
 type FilterId = "all" | "surveyed" | "unvisited" | "partial" | "deep" | "needsGps" | "noPhone" | "closed" | "authorised" | "trained" | "induction" | "dual";
 const NEAR_LIMIT = 12;
+
+function requestStandingFix(done?: (ok: boolean) => void) {
+  if (typeof navigator === "undefined" || !navigator.geolocation) {
+    done?.(false);
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      useField.getState().setGps({
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        accuracy: pos.coords.accuracy,
+      });
+      done?.(true);
+    },
+    () => {
+      const live = useField.getState();
+      done?.(Boolean(live.gps && !live.gpsError && live.gps.accuracy < 800));
+    },
+    { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 },
+  );
+}
 
 export function MapPage() {
   const { lang, market, setMarket } = usePrefs();
@@ -48,9 +70,23 @@ export function MapPage() {
   const [planning, setPlanning] = useState(false);
   const [routeIds, setRouteIds] = useState<string[]>([]);
   const [adding, setAdding] = useState(false);
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const [draftAt, setDraftAt] = useState<{ lat: number; lng: number } | null>(null);
+  const [detailUnits, setDetailUnits] = useState("");
+  const [detailSqm, setDetailSqm] = useState("");
+  const [detailAsp, setDetailAsp] = useState("");
+  const draftRef = useRef<string | null>(null);
+  const nameRef = useRef("");
+  const phoneRef = useRef("");
+  const unitsRef = useRef("");
+  const sqmRef = useRef("");
+  const aspRef = useRef("");
+  const streetRef = useRef("");
+  const pinLocked = useRef(false);
+  const [streetPick, setStreetPick] = useState("");
+  const [locBusy, setLocBusy] = useState(false);
   const [aiAdding, setAiAdding] = useState(false);
   const [newName, setNewName] = useState("");
-  const [newNameAr, setNewNameAr] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterId>("all");
@@ -58,6 +94,7 @@ export function MapPage() {
   const [focus, setFocus] = useState<MapFocus | null>(null);
   const [listMode, setListMode] = useState(false);
   const [editingCoords, setEditingCoords] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     setCluster(null); setNearMe(false); setRouteIds([]); setFilter("all"); setSearch("");
@@ -137,7 +174,11 @@ export function MapPage() {
   const survey = selected ? displaySurvey(selected, surveyFor(snapshot, selected.id)?.payload) : undefined;
   const partner = selected ? dualPartner(selected, snapshot.dealerships) : null;
   const partnerSurvey = partner ? surveyFor(snapshot, partner.id)?.payload : undefined;
-  const mapDealers = useMemo(() => (selected && !dealers.some((d) => d.id === selected.id) ? [...dealers, selected] : dealers), [dealers, selected]);
+  const mapDealers = useMemo(() => {
+    const onMap = (d: Dealership) => !d.flags.unplaced && d.lat !== 0 && d.lng !== 0;
+    const placed = dealers.filter(onMap);
+    return selected && onMap(selected) && !placed.some((d) => d.id === selected.id) ? [...placed, selected] : placed;
+  }, [dealers, selected]);
   const hay = (d: Dealership) => `${d.flags.sdId ?? ""} ${d.nameEn} ${d.nameAr} ${d.listedPhone} ${d.flags.street ?? ""} ${(brandsById.get(d.id) ?? []).join(" ")} ${d.flags.trainingStage ?? ""} ${d.flags.trainingNote ?? ""}`;
   const searchHits = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -148,7 +189,12 @@ export function MapPage() {
   const listRows = useMemo(() => {
     const q = search.trim().toLowerCase();
     const pool = q ? dealers.filter((d) => hay(d).toLowerCase().includes(q)) : dealers;
-    return [...pool].sort((a, b) => haversineM(origin, a) - haversineM(origin, b));
+    return [...pool].sort((a, b) => {
+      const au = Boolean(a.flags.unplaced || (a.lat === 0 && a.lng === 0));
+      const bu = Boolean(b.flags.unplaced || (b.lat === 0 && b.lng === 0));
+      if (au !== bu) return au ? 1 : -1;
+      return haversineM(origin, a) - haversineM(origin, b);
+    });
   }, [dealers, search, brandsById, origin]);
   const listGroups = useMemo(() => {
     if (market !== "shifa") return null;
@@ -171,7 +217,7 @@ export function MapPage() {
   }, [market, listRows]);
   const nextDesk = useMemo(() => {
     const partial = dealers.filter((d) => d.status === "partial");
-    const pool = partial.length ? partial : dealers.filter((d) => d.status === "not_visited");
+    const pool = (partial.length ? partial : dealers.filter((d) => d.status === "not_visited")).filter((d) => !d.flags.unplaced && d.lat !== 0 && d.lng !== 0);
     if (!pool.length) return null;
     return pool.reduce((best, d) => (haversineM(origin, d) < haversineM(origin, best) ? d : best));
   }, [dealers, origin]);
@@ -182,7 +228,12 @@ export function MapPage() {
     for (let i = 1; i < routeDealers.length; i++) total += haversineM(routeDealers[i - 1], routeDealers[i]);
     return total;
   }, [origin, routeDealers]);
-  const nearbyDupes = useMemo(() => (adding ? roster.filter((d) => haversineM(origin, d) < 40).slice(0, 3) : []), [adding, roster, origin]);
+  const pinPoint = draftAt ?? (gps && !gpsError && gps.accuracy < 800 ? { lat: gps.lat, lng: gps.lng } : null);
+  const nearby = useMemo(() => {
+    if (!adding || !pinPoint) return [];
+    return nearestDealers(pinPoint, roster, { excludeId: draftId, radiusM: 140, limit: 5 });
+  }, [adding, roster, pinPoint, draftId]);
+  const streetNearby = nearby.find((x) => x.row.flags.street)?.row.flags.street ?? "";
   const sheetOpen = Boolean(selected || nearMe || planning || adding || cluster);
   const surveyedPct = counts.all ? Math.round((counts.surveyed / counts.all) * 100) : 0;
   const deepPct = counts.all ? Math.round((counts.deep / counts.all) * 100) : 0;
@@ -203,7 +254,7 @@ export function MapPage() {
   useEffect(() => {
     const q = search.trim();
     if (!q || listMode || selectedId) return;
-    if (searchHits.length === 1) flyTo(searchHits[0], 17);
+    if (searchHits.length === 1 && searchHits[0].lat !== 0 && searchHits[0].lng !== 0 && !searchHits[0].flags.unplaced) flyTo(searchHits[0], 17);
   }, [search, searchHits, listMode, selectedId]);
   function onSelect(id: string) {
     if (planning) { setRouteIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])); return; }
@@ -212,19 +263,125 @@ export function MapPage() {
   function onCluster(items: Dealership[], lat: number, lng: number) { setSelectedId(null); setNearMe(false); setAdding(false); setCluster(items); flyTo({ lat, lng }, 17); }
   function openNear() { const next = !nearMe; setNearMe(next); setPlanning(false); setAdding(false); setCluster(null); setSelectedId(null); setListMode(false); if (next) flyTo(origin, 16); }
   function toggleList() { setListMode((v) => !v); setPlanning(false); setAdding(false); setNearMe(false); setCluster(null); setSelectedId(null); }
-  function openAdd(prefill?: string) { if (prefill?.trim()) setNewName(prefill.trim()); setAdding(true); setNearMe(false); setPlanning(false); setCluster(null); setSelectedId(null); setListMode(false); }
-  async function addDealer() {
-    if (!newName.trim()) return;
-    const hasFix = Boolean(gps && !gpsError);
-    const dealer: Dealership = {
-      id: uid(), nameEn: newName.trim(), nameAr: newNameAr.trim(), lat: origin.lat, lng: origin.lng, listedPhone: newPhone.trim(),
-      seedNote: nearbyDupes.length ? `${t.possibleDup} ${nearbyDupes.map((d) => d.nameEn).join(", ")}` : market === "shifa" ? "Added in field · Al Shifa used-car lot" : "Added in field",
-      status: "not_visited", flags: { gpsSource: hasFix ? "survey" : "interpolated", market, needsGps: !hasFix }, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
-    };
-    await upsertDealer(dealer);
-    if (market === "shifa") await patchSurvey(dealer.id, { vehicleType: "used_only", visitStatus: "not_visited" }, 0, "not_visited");
-    setAdding(false); setNewName(""); setNewNameAr(""); setNewPhone("");
-    void navigate({ to: "/survey/$id", params: { id: dealer.id } });
+  function hasPin(d: Dealership) {
+    return !d.flags.unplaced && d.lat !== 0 && d.lng !== 0;
+  }
+  function rowMeta(d: Dealership) {
+    return hasPin(d) ? formatDistance(haversineM(origin, d)) : t.noPin;
+  }
+  function openAdd(prefill?: string) {
+    const name = prefill?.trim() ?? "";
+    nameRef.current = name;
+    phoneRef.current = "";
+    unitsRef.current = "";
+    sqmRef.current = "";
+    aspRef.current = "";
+    streetRef.current = "";
+    pinLocked.current = false;
+    draftRef.current = null;
+    setNewName(name);
+    setNewPhone("");
+    setDetailUnits("");
+    setDetailSqm("");
+    setDetailAsp("");
+    setStreetPick("");
+    setDraftId(null);
+    setDraftAt(null);
+    setLocBusy(true);
+    setAdding(true); setNearMe(false); setPlanning(false); setCluster(null); setSelectedId(null); setListMode(false);
+    const live = useField.getState();
+    if (live.gps && !live.gpsError && live.gps.accuracy < 800) flyTo(live.gps, 18);
+    requestStandingFix((ok) => {
+      setLocBusy(false);
+      if (!ok || pinLocked.current) return;
+      const g = useField.getState().gps;
+      if (g && g.accuracy < 800) flyTo(g, 18);
+    });
+  }
+  function closeAdd() { setAdding(false); }
+  async function saveDraft(at?: { lat: number; lng: number }) {
+    const typed = nameRef.current.trim();
+    if (!typed && !at && !draftRef.current) return;
+    const id = draftRef.current ?? uid();
+    draftRef.current = id;
+    const snap = useField.getState().snapshot;
+    const prev = snap.dealerships.find((d) => d.id === id);
+    const liveGps = useField.getState().gps;
+    const liveGpsOk = Boolean(liveGps && !useField.getState().gpsError && liveGps.accuracy < 800);
+    const arabic = /[\u0600-\u06FF]/.test(typed);
+    const nameEn = typed || prev?.nameEn || "New lot";
+    const nameAr = (arabic ? typed : prev?.nameAr) || "";
+    const already = Boolean(prev && !prev.flags.unplaced && prev.lat !== 0 && prev.lng !== 0);
+    let lat = 0;
+    let lng = 0;
+    let placed = false;
+    if (at) { lat = at.lat; lng = at.lng; placed = true; pinLocked.current = true; }
+    else if (already && prev) { lat = prev.lat; lng = prev.lng; placed = true; }
+    else if (liveGpsOk && liveGps && !pinLocked.current) { lat = liveGps.lat; lng = liveGps.lng; placed = true; }
+    const now = new Date().toISOString();
+    await upsertDealer({
+      id,
+      nameEn,
+      nameAr,
+      lat: placed ? lat : 0,
+      lng: placed ? lng : 0,
+      listedPhone: phoneRef.current.trim() || prev?.listedPhone || "",
+      seedNote: prev?.seedNote || (market === "shifa" ? "Added in field · Al Shifa" : "Added in field"),
+      status: prev?.status ?? "not_visited",
+      createdAt: prev?.createdAt ?? now,
+      updatedAt: now,
+      flags: {
+        ...(prev?.flags ?? {}),
+        market,
+        unplaced: !placed,
+        needsGps: !placed,
+        gpsSource: at ? "manual_pin" : placed && !already ? "field_device_gps" : prev?.flags.gpsSource,
+        gpsStatus: placed ? "confirmed" : "unresolved",
+        gpsTimestamp: placed ? now : prev?.flags.gpsTimestamp,
+        mapsUrl: placed ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}` : "",
+        street: streetRef.current || prev?.flags.street,
+      },
+    });
+    setDraftId(id);
+    if (placed) { setDraftAt({ lat, lng }); flyTo({ lat, lng }, 18); }
+  }
+  function acceptStreet(street: string) {
+    streetRef.current = street;
+    setStreetPick(street);
+    const id = draftRef.current;
+    if (!id) return;
+    const prev = useField.getState().snapshot.dealerships.find((d) => d.id === id);
+    if (!prev) return;
+    void upsertDealer({ ...prev, flags: { ...prev.flags, street }, updatedAt: new Date().toISOString() });
+  }
+  useEffect(() => {
+    if (!adding || pinLocked.current || !draftRef.current) return;
+    if (!gps || gpsError || gps.accuracy >= 800) return;
+    const prev = useField.getState().snapshot.dealerships.find((d) => d.id === draftRef.current);
+    if (!prev?.flags.unplaced) return;
+    void saveDraft();
+  }, [adding, gps, gpsError]);
+  async function saveDraftDetails() {
+    const id = draftRef.current;
+    if (!id) return;
+    const units = unitsRef.current.trim();
+    const sqm = sqmRef.current.trim();
+    const aspRaw = aspRef.current.trim();
+    const patch: Partial<import("@/lib/types").SurveyPayload> = {};
+    if (units && Number.isFinite(Number(units))) patch.inventoryUnits = Number(units);
+    if (sqm && Number.isFinite(Number(sqm))) patch.showroomSizeSqm = Number(sqm);
+    if (aspRaw && Number.isFinite(Number(aspRaw))) {
+      const asp = Number(aspRaw);
+      patch.avgSellingPriceSar = asp < 1000 ? Math.round(asp * 1000) : asp;
+    }
+    if (market === "shifa" && Object.keys(patch).length) patch.vehicleType = "used_only";
+    if (Object.keys(patch).length) await patchSurvey(id, patch, 0);
+    const phone = phoneRef.current.trim();
+    if (!phone) return;
+    const prev = useField.getState().snapshot.dealerships.find((d) => d.id === id);
+    if (prev && prev.listedPhone !== phone) {
+      await upsertDealer({ ...prev, listedPhone: phone, updatedAt: new Date().toISOString() });
+    }
   }
   async function saveSelectedCoords(lat: number, lng: number, source: NonNullable<Dealership["flags"]["gpsSource"]> = "manual_pin") {
     if (!selected) return;
@@ -257,7 +414,7 @@ export function MapPage() {
       <div className="qads-map-host absolute inset-0 z-0">
         <ClientOnly fallback={<div className="grid h-full place-items-center text-sm text-muted">Loading map…</div>}>
           <Suspense fallback={<div className="grid h-full place-items-center text-sm text-muted">Loading map…</div>}>
-            <MapCanvas key={market} dealers={mapDealers} selectedId={selectedId} highlightIds={search.trim() ? searchHits.map((d) => d.id) : []} onSelect={onSelect} onCluster={onCluster} satellite={satellite} me={gps} route={routeDealers} focus={focus} origin={marketCenter} dualIds={dualIds} showDualLabels={market === "shifa" && filter === "dual"} />
+            <MapCanvas key={market} dealers={mapDealers} selectedId={selectedId} highlightIds={search.trim() ? searchHits.map((d) => d.id) : []} onSelect={onSelect} onMapClick={adding ? (lat, lng) => void saveDraft({ lat, lng }) : undefined} onCluster={onCluster} satellite={satellite} me={gps} route={routeDealers} focus={focus} origin={marketCenter} dualIds={dualIds} showDualLabels={market === "shifa" && filter === "dual"} />
           </Suspense>
         </ClientOnly>
       </div>
@@ -277,7 +434,7 @@ export function MapPage() {
               <div className="qads-sheet relative z-30 mt-1 max-h-56 overflow-auto rounded-2xl p-1">
                 {searchHits.length === 0 ? (
                   <div className="px-2 py-2"><p className="px-1 py-2 text-sm text-muted">{t.noShowroomMatch}</p><Button data-add="1" size="sm" className="w-full" onClick={() => openAdd(search)}><MapPinPlus className="size-4" />{t.addThisLot}</Button></div>
-                ) : searchHits.map((d) => <DealerRow key={d.id} dealer={d} dual={dualIds.has(d.id)} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, d.nameAr || d.listedPhone || d.flags.street].filter(Boolean).join(" · ")} lang={lang} onClick={() => pickDealer(d.id)} />)}
+                ) : searchHits.map((d) => <DealerRow key={d.id} dealer={d} dual={dualIds.has(d.id)} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, hasPin(d) ? (d.nameAr || d.listedPhone || d.flags.street) : t.noPin].filter(Boolean).join(" · ")} lang={lang} onClick={() => pickDealer(d.id)} />)}
               </div>
             ) : (
               <>
@@ -301,18 +458,32 @@ export function MapPage() {
                         !on && "qads-hud text-fg",
                       )}
                     >
-                      <span className="block text-xl font-semibold tabular-nums leading-none tracking-tight">{count}</span>
-                      <span className={cn("mt-1 block text-xs font-semibold", on ? "opacity-90" : "text-muted")}>{label}</span>
+                      <span className="block text-base font-semibold tabular-nums leading-none tracking-tight">{count}</span>
+                      <span className={cn("mt-0.5 block truncate text-xs font-medium", on ? "opacity-90" : "text-muted")}>{label}</span>
                     </button>
                   );
                 })}
               </div>
-              <div className="qads-chips flex min-w-0 gap-1 overflow-x-auto pb-0.5">
-                {filters.map((f) => (
-                  <button key={f.id} type="button" onClick={() => setFilter(f.id)} className={cn("qads-chip shrink-0 rounded-full px-3 py-2 text-xs font-semibold", filter === f.id ? "bg-primary text-primary-fg shadow-[var(--shadow-border)]" : "qads-hud text-muted")}>
-                    {f.label}<span className="ms-1.5 tabular-nums opacity-80">{f.count}</span>
-                  </button>
-                ))}
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setFiltersOpen((v) => !v)}
+                  className={cn(
+                    "qads-chip shrink-0 rounded-full px-3 py-2 text-xs font-semibold",
+                    filtersOpen || filters.some((f) => f.id === filter) ? "bg-primary text-primary-fg" : "qads-hud text-muted",
+                  )}
+                >
+                  {t.filters}
+                </button>
+                {filtersOpen || filters.some((f) => f.id === filter) ? (
+                  <div className="qads-chips flex min-w-0 flex-1 gap-1 overflow-x-auto">
+                    {filters.map((f) => (
+                      <button key={f.id} type="button" onClick={() => setFilter(f.id)} className={cn("qads-chip shrink-0 rounded-full px-3 py-2 text-xs font-semibold", filter === f.id ? "bg-primary text-primary-fg" : "qads-hud text-muted")}>
+                        {f.label}<span className="ms-1.5 tabular-nums opacity-80">{f.count}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
               </div>
               </>
             )}
@@ -327,8 +498,8 @@ export function MapPage() {
                 {listRows.length === 0 ? (
                   <div className="px-3 py-6"><p className="text-sm text-muted">{t.noShowroomMatch}</p><Button data-add="1" size="sm" className="mt-3 w-full" onClick={() => openAdd(search)}><MapPinPlus className="size-4" />{t.addThisLot}</Button></div>
                 ) : listGroups ? listGroups.map((g) => (
-                  <div key={g.key}><p className="sticky top-0 z-10 bg-surface px-3 py-1.5 text-xs font-semibold text-muted">{g.key}<span className="ms-1.5 tabular-nums opacity-80">{g.items.length}</span></p>{g.items.map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} selected={d.id === selectedId} meta={formatDistance(haversineM(origin, d))} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, STATUS_LABEL[lang][d.status]].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} />)}</div>
-                )) : listRows.map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} selected={d.id === selectedId} meta={formatDistance(haversineM(origin, d))} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, STATUS_LABEL[lang][d.status]].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} />)}
+                  <div key={g.key}><p className="sticky top-0 z-10 bg-surface px-3 py-1.5 text-xs font-semibold text-muted">{g.key}<span className="ms-1.5 tabular-nums opacity-80">{g.items.length}</span></p>{g.items.map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} selected={d.id === selectedId} meta={rowMeta(d)} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, hasPin(d) ? STATUS_LABEL[lang][d.status] : t.noPin].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} />)}</div>
+                )) : listRows.map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} selected={d.id === selectedId} meta={rowMeta(d)} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, hasPin(d) ? STATUS_LABEL[lang][d.status] : t.noPin].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} />)}
               </div>
               <div className="border-t border-border px-3 py-2">
                 <button type="button" onClick={exportListExcel} disabled={listRows.length === 0} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 text-sm font-semibold text-primary-fg disabled:opacity-40">
@@ -347,17 +518,16 @@ export function MapPage() {
         </div>
       </div>
       {!sheetOpen && !listMode ? (
-        <div className="qads-hud absolute inset-x-3 bottom-3 z-10 rounded-2xl p-3">
+        <div className="qads-hud absolute inset-x-3 bottom-3 z-10 rounded-2xl px-3 py-2.5">
           <div className="flex items-center justify-between gap-3">
             <LegendDots />
-            <p className="shrink-0 text-xs font-medium tabular-nums text-muted">{market === "shifa" ? <span className="me-2 font-semibold text-fg">{t.usedCarMarket}</span> : null}{filter === "all" ? <><span className="font-semibold text-fg">{counts.surveyed}</span>{` ${t.surveyedCat} · `}<span className="font-semibold text-status-amber">{counts.deep}</span>{` ${t.deepDived} · `}<span className="font-semibold text-fg">{counts.all}</span>{` ${t.pinsEstablished}`}</> : <>{t.showing} <span className="text-fg">{dealers.length}</span></>}</p>
+            <p className="shrink-0 text-xs font-medium tabular-nums text-muted">{market === "shifa" ? <span className="me-2 font-semibold text-fg">{t.usedCarMarket}</span> : null}{filter === "all" ? <><span className="font-semibold text-fg">{counts.surveyed}</span>{` / `}<span className="font-semibold text-fg">{counts.all}</span></> : <>{t.showing} <span className="text-fg">{dealers.length}</span></>}</p>
           </div>
-          <div className="relative mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2">
+          <div className="relative mt-2 h-1 overflow-hidden rounded-full bg-surface-2">
             <div className="absolute inset-y-0 start-0 rounded-full bg-primary transition-[width] duration-300" style={{ width: `${filter === "all" ? surveyedPct : dealers.length && counts.all ? Math.round((dealers.length / counts.all) * 100) : 0}%` }} />
             {filter === "all" ? <div className="absolute inset-y-0 start-0 rounded-full bg-status-amber transition-[width] duration-300" style={{ width: `${deepPct}%` }} /> : null}
           </div>
-          {nextDesk ? <button type="button" onClick={() => pickDealer(nextDesk.id)} className="mt-2 flex min-h-11 w-full items-center gap-2 rounded-xl bg-surface-2 px-2 text-start"><span className="text-xs font-semibold text-primary">{t.nextDesk}</span><span className="min-w-0 flex-1 truncate text-sm font-medium text-fg">{lang === "ar" && nextDesk.nameAr ? nextDesk.nameAr : nextDesk.nameEn}</span><span className="shrink-0 text-xs tabular-nums text-muted">{formatDistance(haversineM(origin, nextDesk))}</span><ChevronRight className="size-4 shrink-0 text-muted" /></button> : null}
-          <Button data-add="1" className="mt-2 w-full" size="sm" onClick={() => openAdd()}><MapPinPlus className="size-4" />{t.addDealer}</Button>
+          {nextDesk ? <button type="button" onClick={() => pickDealer(nextDesk.id)} className="mt-2 flex min-h-12 w-full items-center gap-2 rounded-xl bg-primary px-3 text-start text-primary-fg"><span className="shrink-0 text-xs font-semibold uppercase tracking-wide opacity-80">{t.nextDesk}</span><span className="min-w-0 flex-1 truncate text-sm font-semibold">{lang === "ar" && nextDesk.nameAr ? nextDesk.nameAr : nextDesk.nameEn}</span><span className="shrink-0 text-xs tabular-nums opacity-80">{formatDistance(haversineM(origin, nextDesk))}</span><ChevronRight className="size-4 shrink-0" /></button> : null}
         </div>
       ) : null}
       {planning ? (
@@ -369,18 +539,56 @@ export function MapPage() {
       ) : null}
       {nearMe && !planning ? <ListSheet title={t.nearest} hint={gpsError ? t.usingCenter : undefined} onClose={() => setNearMe(false)}>{nearest.map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} meta={formatDistance(haversineM(origin, d))} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, STATUS_LABEL[lang][d.status]].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} />)}</ListSheet> : null}
       {cluster && !planning && !nearMe ? <ListSheet title={t.clusterHere} hint={`${cluster.length}`} onClose={() => setCluster(null)}>{[...cluster].sort((a, b) => haversineM(origin, a) - haversineM(origin, b)).map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} meta={formatDistance(haversineM(origin, d))} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, STATUS_LABEL[lang][d.status]].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} />)}</ListSheet> : null}
-      {selected && !planning && !nearMe && !cluster ? <DealerSheet dealer={selected} partner={partner} partnerSurvey={partnerSurvey} distance={haversineM(origin, selected)} source={survey?.volumeFiguresAre} survey={survey} photos={snapshot.photos.filter((p) => p.dealershipId === selected.id)} canPinGps={Boolean(gps && !gpsError)} editingCoords={editingCoords} gps={gps && !gpsError ? gps : null} onClose={() => { setEditingCoords(false); setSelectedId(null); }} onSurvey={(id) => void navigate({ to: "/survey/$id", params: { id } })} onPinGps={() => void pinSelectedToGps()} onEditCoords={() => setEditingCoords(true)} onCancelCoords={() => setEditingCoords(false)} onSaveCoords={(lat, lng) => void saveSelectedCoords(lat, lng)} onMarkClosed={() => void markClosed(selected.id)} onOpenPartner={(p) => { pendingJump.current = p.id; setMarket(dealerMarket(p)); }} /> : null}
+      {selected && !planning && !nearMe && !cluster ? <DealerSheet dealer={selected} partner={partner} partnerSurvey={partnerSurvey} distance={haversineM(origin, selected)} source={survey?.volumeFiguresAre} survey={survey} photos={snapshot.photos.filter((p) => p.dealershipId === selected.id)} canPinGps={Boolean(gps && !gpsError)} editingCoords={editingCoords} gps={gps && !gpsError ? gps : null} onClose={() => { setEditingCoords(false); setSelectedId(null); }} onSurvey={(id) => void navigate({ to: "/survey/$id", params: { id } })} onPinGps={() => void pinSelectedToGps()} onEditCoords={() => setEditingCoords(true)} onCancelCoords={() => setEditingCoords(false)} onSaveCoords={(lat, lng) => void saveSelectedCoords(lat, lng)} onMarkClosed={() => void markClosed(selected.id)} onOpenPartner={(p) => { pendingJump.current = p.id; setMarket(dealerMarket(p)); }} onOpenNearby={(id) => pickDealer(id)} /> : null}
       {adding ? (
-        <div className="qads-sheet absolute inset-x-3 bottom-3 z-30 rounded-2xl p-4">
-          <div className="mb-3 flex items-start justify-between gap-2"><div><p className="text-base font-semibold tracking-tight">{t.addDealer}</p><p className="text-xs text-muted">{t.addDealerHint}</p><p className="mt-1 text-xs text-muted">{gps && !gpsError ? t.pinningGps : t.usingCenter}</p>{market === "shifa" ? <p className="mt-1 text-xs text-muted">{t.usedOnlyDefault}</p> : null}</div><button type="button" onClick={() => setAdding(false)} className="grid size-10 shrink-0 place-items-center"><X className="size-4" /></button></div>
-          {nearbyDupes.length ? <p className="mb-2 rounded-xl bg-status-amber/10 px-3 py-2 text-xs text-status-amber">{t.nearbyDup}: {nearbyDupes.map((d) => d.nameEn).join(", ")}</p> : null}
-          <div className="flex flex-col gap-2">
-            <Input autoFocus value={newName} onChange={(e) => setNewName(e.target.value)} placeholder={t.nameEn} />
-            <Input dir="rtl" value={newNameAr} onChange={(e) => setNewNameAr(e.target.value)} placeholder={t.nameAr} />
-            <Input value={newPhone} onChange={(e) => setNewPhone(e.target.value)} placeholder={t.phone} type="tel" />
-            <Button data-save-survey="1" onClick={() => void addDealer()} disabled={!newName.trim()}>{t.saveAndSurvey}</Button>
-            <Button variant="secondary" onClick={() => { setAdding(false); setAiAdding(true); }}>{t.aiSurveyNewTitle}</Button>
+        <div className="qads-sheet qads-add absolute inset-x-3 bottom-3 z-30 max-h-[62%] overflow-y-auto rounded-2xl p-3">
+          <div className="mb-2 flex items-start justify-between gap-2">
+            <div>
+              <p className="text-sm font-semibold tracking-tight">{t.addDealer}</p>
+              <p className="text-xs text-muted">{draftId ? t.savedLot : t.addDealerHint}</p>
+            </div>
+            <button type="button" onClick={closeAdd} className="grid size-10 shrink-0 place-items-center" aria-label={t.cancel}><X className="size-4" /></button>
           </div>
+          <Input
+            autoFocus
+            value={newName}
+            onChange={(e) => { nameRef.current = e.target.value; setNewName(e.target.value); }}
+            onBlur={() => void saveDraft()}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); (e.target as HTMLInputElement).blur(); } }}
+            placeholder={t.name}
+            enterKeyHint="done"
+          />
+          <p className="mt-2 text-xs text-muted">
+            {locBusy ? t.fetchingGps : pinPoint && !draftAt ? `${t.stoodHere}${gps ? ` · ${Math.round(gps.accuracy)} m` : ""}` : t.dropPin}
+            {draftAt ? ` · ${draftAt.lat.toFixed(5)}, ${draftAt.lng.toFixed(5)}` : draftId ? ` · ${t.noPin}` : ""}
+          </p>
+          {streetNearby && streetPick !== streetNearby ? (
+            <button type="button" onClick={() => acceptStreet(streetNearby)} className="mt-2 flex min-h-11 w-full items-center justify-between gap-2 rounded-xl bg-surface-2 px-3 text-start">
+              <span className="min-w-0"><span className="block text-xs text-muted">{t.streetHint}</span><span className="block truncate text-sm font-semibold">{streetNearby}</span></span>
+            </button>
+          ) : streetPick ? <p className="mt-2 text-xs font-medium text-fg">{streetPick}</p> : null}
+          {nearby.length ? (
+            <div className="mt-2">
+              <p className="text-xs font-semibold text-muted">{t.aroundHere}</p>
+              {nearby.map(({ row, meters }) => (
+                <button key={row.id} type="button" onClick={() => pickDealer(row.id)} className="flex min-h-11 w-full items-center justify-between gap-2 text-start">
+                  <span className="min-w-0 truncate text-sm">{lang === "ar" && row.nameAr ? row.nameAr : row.nameEn}</span>
+                  <span className="shrink-0 text-xs tabular-nums text-muted">{formatDistance(meters)}{meters < 28 ? ` · ${t.nearbyDup}` : ""}</span>
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {draftId ? (
+            <div className="mt-3">
+              <p className="text-xs text-muted">{t.detailsLater}</p>
+              <div className="qads-chips mt-2 flex gap-2 overflow-x-auto pb-1">
+                <input className="qads-mini" value={newPhone} inputMode="tel" placeholder={t.phone} onChange={(e) => { phoneRef.current = e.target.value; setNewPhone(e.target.value); }} onBlur={() => void saveDraft()} />
+                <input className="qads-mini" value={detailUnits} inputMode="numeric" placeholder={t.floorCars} onChange={(e) => { unitsRef.current = e.target.value; setDetailUnits(e.target.value); }} onBlur={() => void saveDraftDetails()} />
+                <input className="qads-mini" value={detailSqm} inputMode="decimal" placeholder={t.floorSqm} onChange={(e) => { sqmRef.current = e.target.value; setDetailSqm(e.target.value); }} onBlur={() => void saveDraftDetails()} />
+                <input className="qads-mini" value={detailAsp} inputMode="decimal" placeholder={t.floorAsp} onChange={(e) => { aspRef.current = e.target.value; setDetailAsp(e.target.value); }} onBlur={() => void saveDraftDetails()} />
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
       {aiAdding ? <AiSurveySheet mode="new" dealershipId={null} onClose={() => setAiAdding(false)} onSaved={(id) => { setAiAdding(false); void navigate({ to: "/survey/$id", params: { id } }); }} /> : null}

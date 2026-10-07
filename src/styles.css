@@ -193,6 +193,39 @@ html.dark {
   box-shadow: var(--shadow-lift);
 }
 
+.qads-add {
+  border: 1px solid color-mix(in oklab, var(--gold) 42%, var(--border));
+}
+.qads-mini {
+  min-height: 2.75rem;
+  min-width: 7.25rem;
+  flex: 0 0 auto;
+  border-radius: 0.75rem;
+  background: var(--surface);
+  padding: 0 0.85rem;
+  font-size: 0.875rem;
+  color: var(--fg);
+  box-shadow: var(--shadow-border);
+}
+.qads-mini:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.qads-note {
+  min-height: 2.75rem;
+  width: 100%;
+  border-radius: 0.75rem;
+  background: var(--surface);
+  padding: 0 0.85rem;
+  font-size: 0.875rem;
+  color: var(--fg);
+  box-shadow: var(--shadow-border);
+}
+.qads-note:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .qads-hud {
   background: color-mix(in oklab, var(--bg) 94%, #ffffff 6%);
   backdrop-filter: blur(20px) saturate(1.25);
@@ -312,11 +345,12 @@ html.dark {
 }
 
 .qads-me {
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   border-radius: 999px;
   background: radial-gradient(circle at 35% 30%, #8ef0d2, var(--primary));
   border: 2px solid #fff;
+  box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 28%, transparent);
   animation: me-pulse 2.2s var(--ease-out) infinite;
 }
 
@@ -389,9 +423,9 @@ html.dark {
 
 .cat-tile {
   position: relative;
-  min-height: 3.5rem;
+  min-height: 2.75rem;
   border-radius: var(--radius-md);
-  padding: 0.4rem 0.55rem;
+  padding: 0.35rem 0.55rem;
   text-align: start;
   background: color-mix(in oklab, var(--bg) 94%, #ffffff 6%);
   transition: background-color var(--motion-quick) var(--ease-out), color var(--motion-quick) var(--ease-out);

@@ -30,6 +30,28 @@ export function formatDistance(meters: number): string {
   return `${(meters / 1000).toFixed(meters < 10000 ? 1 : 0)} km`;
 }
 
+/** Doors already on file near a standing point or a pin. No invented coordinates. */
+export function nearestDealers<T extends { id: string; lat: number; lng: number; flags?: { unplaced?: boolean } }>(
+  point: { lat: number; lng: number },
+  rows: T[],
+  opts?: { excludeId?: string | null; radiusM?: number; limit?: number },
+): { row: T; meters: number }[] {
+  const radius = opts?.radiusM ?? 140;
+  const limit = opts?.limit ?? 4;
+  const out: { row: T; meters: number }[] = [];
+  for (const row of rows) {
+    if (opts?.excludeId && row.id === opts.excludeId) continue;
+    if (row.flags?.unplaced) continue;
+    if (!Number.isFinite(row.lat) || !Number.isFinite(row.lng)) continue;
+    if (row.lat === 0 && row.lng === 0) continue;
+    const meters = haversineM(point, row);
+    if (meters > radius) continue;
+    out.push({ row, meters });
+  }
+  out.sort((a, b) => a.meters - b.meters);
+  return out.slice(0, limit);
+}
+
 export function optimizeWalkOrder<T extends { lat: number; lng: number }>(
   start: { lat: number; lng: number },
   points: T[],

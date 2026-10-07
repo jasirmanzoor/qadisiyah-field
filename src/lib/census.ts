@@ -5,9 +5,11 @@ import { SHIFA_WALK_SEP20, SHIFA_WALK_PATCHES } from "./shifa-walk-sep20";
 import { applyCorridorFrontage } from "./shifa-corridor-frontage";
 import { SHIFA_ROUGH_NOTES } from "./shifa-rough-notes";
 import { SHIFA_FLOOR_NEW, SHIFA_FLOOR_SEP27 } from "./shifa-floor-sep27";
+import { SHIFA_OCT06_PATCHES, mapsPinUrl } from "./shifa-floor-oct06";
+import { SHIFA_OCT07_MOVES } from "./shifa-frame-oct07";
 import type { CensusRow, DealershipFlags, SurveyPayload, VisitStatus } from "./types";
 
-/** v21: 1 Oct Al Shifa doors painted on the client roster. Qadisiyah rows are not rewritten. */
+/** v25: Ahmad Al Basri / Al Fastaq place pins from the 7 Oct satellite frame. Qadisiyah rows are not rewritten. */
 export type { CensusRow };
 
 type CensusFile = {
@@ -32,7 +34,7 @@ type CensusFile = {
 };
 
 const data = raw as CensusFile;
-export const CENSUS_VERSION = 21;
+export const CENSUS_VERSION = 25;
 const CLUSTER = { lat: 24.5479261, lng: 46.6818955 };
 
 function around(eastM: number, northM: number) {
@@ -194,13 +196,16 @@ function applyFloor(rows: CensusRow[]): CensusRow[] {
       flags: {
         sdId: n.sdId,
         market: "shifa",
-        mapsUrl: n.mapsUrl || `https://www.google.com/maps?q=${n.lat},${n.lng}`,
-        needsGps: n.needsGps ?? false,
+        mapsUrl: n.unplaced ? "" : (n.mapsUrl || mapsPinUrl(n.lat, n.lng)),
+        gpsSource: n.gpsSource ?? "mapping_seed",
+        needsGps: n.unplaced ? true : (n.needsGps ?? false),
+        gpsStatus: n.gpsSource === "survey" ? "confirmed" : undefined,
+        street: n.street,
+        unplaced: n.unplaced,
         floor27: true,
-        gpsSource: "mapping_seed",
       },
       survey: {
-        visitDate: status === "partial" ? (n.sdId.startsWith("S14") ? "2026-10-01" : "2026-09-27") : "",
+        visitDate: status === "partial" ? (n.sdId.startsWith("S15") ? "2026-10-06" : n.sdId.startsWith("S14") ? "2026-10-01" : "2026-09-27") : "",
         visitStatus: status,
         mainBrands: n.survey.mainBrands ?? [],
         banksPartnered: [],
@@ -221,7 +226,53 @@ function applyFloor(rows: CensusRow[]): CensusRow[] {
       },
     }, "shifa"));
   }
-  return next;
+  const patched = next.map((r) => {
+    const p = SHIFA_OCT06_PATCHES.find((x) => x.sdId === r.sdId);
+    if (!p) return r;
+    const moved = p.lat != null && p.lng != null;
+    return {
+      ...r,
+      lat: moved ? p.lat! : r.lat,
+      lng: moved ? p.lng! : r.lng,
+      status: "partial" as const,
+      note: p.note,
+      survey: {
+        ...r.survey,
+        ...p.survey,
+        visitDate: "2026-10-06",
+        visitStatus: "partial" as const,
+        notes: p.note,
+      },
+      flags: {
+        ...r.flags,
+        floor27: true,
+        ...(moved
+          ? {
+              gpsSource: "survey" as const,
+              gpsStatus: "confirmed" as const,
+              needsGps: false,
+              mapsUrl: mapsPinUrl(p.lat!, p.lng!),
+            }
+          : {}),
+      },
+    };
+  });
+  return patched.map((r) => {
+    const p = SHIFA_OCT07_MOVES.find((x) => x.sdId === r.sdId);
+    if (!p) return r;
+    return {
+      ...r,
+      lat: p.lat,
+      lng: p.lng,
+      note: p.note,
+      flags: {
+        ...r.flags,
+        mapsUrl: mapsPinUrl(p.lat, p.lng),
+        gpsSource: "public_map" as const,
+        needsGps: false,
+      },
+    };
+  });
 }
 
 export const CENSUS_ROWS: CensusRow[] = data.rows.map((r) => tagMarket(r, "qadisiyah"));

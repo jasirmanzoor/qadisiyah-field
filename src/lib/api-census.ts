@@ -74,7 +74,51 @@ export async function applyShifaCensus(workspaceId: string) {
     const cur = existing[0];
     const prevFlags = parseFlags(cur.flags);
     const keepFieldGps = isProtectedGps(prevFlags);
-    if (keepFieldGps) continue;
+    if (keepFieldGps) {
+      const touch = d.sdId.startsWith("S15") || d.sdId === "S0061" || d.sdId === "S0069";
+      if (touch) {
+        const nextFlags: DealershipFlags = {
+          ...prevFlags,
+          mapsUrl: d.flags.mapsUrl || prevFlags.mapsUrl,
+          street: d.flags.street ?? prevFlags.street,
+          censusVersion: CENSUS_VERSION,
+        };
+        await sql`
+          update dealerships set
+            seed_note = ${d.note ?? ""},
+            flags = ${JSON.stringify(nextFlags)},
+            updated_at = now()
+          where id = ${cur.id} and user_id = ${workspaceId}
+        `;
+      }
+      continue;
+    }
+
+    const incomingTap = d.flags.gpsSource === "survey" && d.flags.gpsStatus === "confirmed";
+    const placePin = d.flags.gpsSource === "public_map" && !d.flags.unplaced;
+    if (incomingTap || placePin) {
+      const moved: DealershipFlags = {
+        ...prevFlags,
+        ...d.flags,
+        censusVersion: CENSUS_VERSION,
+        trainingPriority: prevFlags.trainingPriority,
+        trainingStage: prevFlags.trainingStage,
+        trainingNote: prevFlags.trainingNote,
+        failedSession: prevFlags.failedSession,
+      };
+      await sql`
+        update dealerships set
+          lat = ${d.lat},
+          lng = ${d.lng},
+          status = ${d.status ?? "partial"},
+          seed_note = ${d.note ?? ""},
+          flags = ${JSON.stringify(moved)},
+          updated_at = now()
+        where id = ${cur.id} and user_id = ${workspaceId}
+      `;
+      repinned++;
+      continue;
+    }
 
     const merged: DealershipFlags = {
       ...prevFlags,

@@ -1,5 +1,7 @@
 import type { SurveyPayload, VisitStatus } from "./types";
 import { SHIFA_FLOOR_OCT01 } from "./shifa-floor-oct01";
+import { SHIFA_OCT06_NEW } from "./shifa-floor-oct06";
+import { SHIFA_OCT07_NEW } from "./shifa-frame-oct07";
 
 /** 27 Sep 2026 floor figures. Never carries a coordinate. Pins stay as they are. */
 export type FloorPatch = {
@@ -42,6 +44,9 @@ export type FloorNew = {
   phone?: string;
   mapsUrl?: string;
   needsGps?: boolean;
+  gpsSource?: "survey" | "public_map" | "mapping_seed";
+  unplaced?: boolean;
+  street?: string;
   status?: VisitStatus;
   note?: string;
   survey: Partial<SurveyPayload>;
@@ -58,6 +63,37 @@ const OCT_AS_NEW: FloorNew[] = SHIFA_FLOOR_OCT01.map((n) => ({
   status: n.status ?? "partial",
   note: n.note,
   survey: n.survey,
+}));
+
+const OCT06_AS_NEW: FloorNew[] = SHIFA_OCT06_NEW.map((n) => ({
+  sdId: n.sdId,
+  nameEn: n.nameEn,
+  nameAr: n.nameAr,
+  lat: n.lat,
+  lng: n.lng,
+  mapsUrl: n.mapsUrl,
+  needsGps: n.needsGps,
+  gpsSource: n.gpsSource,
+  unplaced: n.unplaced,
+  street: n.street,
+  status: n.status ?? "partial",
+  note: n.note,
+  survey: n.survey,
+}));
+
+const OCT07_AS_NEW: FloorNew[] = SHIFA_OCT07_NEW.map((n) => ({
+  sdId: n.sdId,
+  nameEn: n.nameEn,
+  nameAr: n.nameAr,
+  lat: n.lat,
+  lng: n.lng,
+  phone: n.phone,
+  street: n.street,
+  status: "not_visited" as const,
+  note: n.note,
+  survey: n.survey,
+  gpsSource: "public_map" as const,
+  needsGps: false,
 }));
 
 /** New doors that have a real pin. No guessed coordinates. */
@@ -93,4 +129,6 @@ export const SHIFA_FLOOR_NEW: FloorNew[] = [
     note: "MARK: not أضواء سويدان and not أضواء الحرمين. Pin is the map plus-code centre.",
   },
   ...OCT_AS_NEW,
+  ...OCT06_AS_NEW,
+  ...OCT07_AS_NEW,
 ];

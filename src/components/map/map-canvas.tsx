@@ -1,6 +1,6 @@
 import L from "leaflet";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Circle, MapContainer, Marker, Polyline, ScaleControl, TileLayer, Tooltip, useMap, ZoomControl } from "react-leaflet";
+import { Circle, MapContainer, Marker, Polyline, ScaleControl, TileLayer, Tooltip, useMap, useMapEvents, ZoomControl } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "@/styles-pins.css";
 import { MAP_MAX_ZOOM, MAP_MIN_ZOOM, MARKET_CENTER } from "@/lib/geo";
@@ -33,8 +33,16 @@ const ESRI_SAT =
   "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
 const OSM = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
-function coarsePointer() {
-  return typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+function MapClick({ onClick }: { onClick?: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click(e) {
+      if (!onClick) return;
+      const origin = e.originalEvent?.target as HTMLElement | null;
+      if (origin?.closest?.(".leaflet-marker-icon, .qads-pin-num, .leaflet-control")) return;
+      onClick(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
 }
 
 function statusFill(status: string): string {
@@ -85,8 +93,8 @@ function routeIcon(n: number) {
 const meIcon = L.divIcon({
   className: "",
   html: `<div class="qads-me"></div>`,
-  iconSize: [14, 14],
-  iconAnchor: [7, 7],
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
 });
 
 function MapSizer() {
@@ -156,7 +164,8 @@ function FlyTo({ target }: { target: MapFocus | null }) {
     const latlng = map.unproject(point, zoom);
     const reduce =
       typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    map.setView(latlng, zoom, { animate: !reduce && !coarsePointer() });
+    if (reduce) map.setView(latlng, zoom, { animate: false });
+    else map.flyTo(latlng, zoom, { duration: 0.65, easeLinearity: 0.22 });
   }, [target, map]);
   return null;
 }
@@ -165,6 +174,7 @@ export function MapCanvas({
   dealers,
   selectedId,
   onSelect,
+  onMapClick,
   satellite,
   me,
   route,
@@ -179,6 +189,7 @@ export function MapCanvas({
   dealers: Dealership[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onMapClick?: (lat: number, lng: number) => void;
   onCluster?: (items: Dealership[], lat: number, lng: number) => void;
   satellite: boolean;
   me: { lat: number; lng: number; accuracy?: number } | null;
@@ -205,7 +216,8 @@ export function MapCanvas({
           d.id !== selectedId &&
           !routeIds.has(d.id) &&
           Number.isFinite(d.lat) &&
-          Number.isFinite(d.lng),
+          Number.isFinite(d.lng) &&
+          !(d.lat === 0 && d.lng === 0),
       ),
     [dealers, selectedId, routeIds],
   );
@@ -225,10 +237,11 @@ export function MapCanvas({
       zoom={Math.round(origin.zoom ?? 15)}
       minZoom={MAP_MIN_ZOOM}
       maxZoom={MAP_MAX_ZOOM}
+      wheelPxPerZoomLevel={110}
       zoomSnap={1}
       zoomDelta={1}
-      fadeAnimation={false}
-      zoomAnimation={false}
+      fadeAnimation
+      zoomAnimation
       markerZoomAnimation={false}
       className="z-0 h-full w-full"
       style={{ minHeight: 180, height: "100%", background: "#d8d2c6" }}
@@ -237,6 +250,7 @@ export function MapCanvas({
     >
       <MapSizer />
       <FlyTo target={focus} />
+      <MapClick onClick={onMapClick} />
       <ZoomControl position="bottomleft" />
       <ScaleControl imperial={false} position="bottomleft" />
       {satellite ? <SatTiles /> : <StreetTiles />}
@@ -304,7 +318,7 @@ export function MapCanvas({
         >
           <Tooltip
             direction="top"
-            offset={[0, -14]}
+            offset={[0, -16]}
             permanent
             className={dualIds?.has(selected.id) ? "qads-tip qads-tip-dual" : "qads-tip"}
           >
