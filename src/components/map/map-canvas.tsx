@@ -100,15 +100,15 @@ const meIcon = L.divIcon({
 function MapSizer() {
   const map = useMap();
   useEffect(() => {
+    const el = map.getContainer();
     const run = () => map.invalidateSize({ animate: false });
+    const ro = new ResizeObserver(run);
+    ro.observe(el);
     const a = window.setTimeout(run, 80);
-    const b = window.setTimeout(run, 400);
-    window.addEventListener("resize", run);
     window.addEventListener("orientationchange", run);
     return () => {
+      ro.disconnect();
       window.clearTimeout(a);
-      window.clearTimeout(b);
-      window.removeEventListener("resize", run);
       window.removeEventListener("orientationchange", run);
     };
   }, [map]);
@@ -158,7 +158,7 @@ function FlyTo({ target }: { target: MapFocus | null }) {
   useEffect(() => {
     if (!target) return;
     const zoom = Math.round(target.zoom ?? Math.max(map.getZoom(), 16));
-    const offsetY = target.padBottom ? Math.round(map.getSize().y * 0.2) : 0;
+    const offsetY = 0;
     const point = map.project([target.lat, target.lng], zoom);
     point.y += offsetY;
     const latlng = map.unproject(point, zoom);

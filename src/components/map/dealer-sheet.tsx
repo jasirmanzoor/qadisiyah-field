@@ -173,7 +173,7 @@ function DealerSheetBody({
     }
   }
   return (
-    <div className="qads-sheet absolute inset-x-3 bottom-3 z-30 max-h-[72vh] overflow-auto rounded-2xl p-4">
+    <div className="qads-sheet overflow-auto rounded-2xl p-4">
       <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-surface-2" />
       <div className="mb-2 flex items-start justify-between gap-2">
         <div className="min-w-0">

@@ -354,9 +354,18 @@ html.dark {
   animation: me-pulse 2.2s var(--ease-out) infinite;
 }
 
+.qads-map-host,
+.qads-map-host .leaflet-container {
+  touch-action: none;
+}
 .leaflet-container {
   background: var(--bg);
   font-family: var(--font-sans);
+  touch-action: none;
+}
+.qads-dock {
+  touch-action: pan-y;
+  overscroll-behavior: contain;
 }
 
 .leaflet-div-icon {

@@ -64,7 +64,7 @@ export function ListSheet({
   children: React.ReactNode;
 }) {
   return (
-    <div className="qads-sheet absolute inset-x-3 bottom-3 z-20 max-h-[48vh] overflow-auto rounded-2xl p-2">
+    <div className="qads-sheet overflow-auto rounded-2xl p-2">
       <div className="mb-1 flex items-center justify-between px-2 pt-1">
         <p className="text-sm font-semibold">
           {title}

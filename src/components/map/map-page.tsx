@@ -410,17 +410,17 @@ export function MapPage() {
   const filters = market === "shifa" ? shifaFilters : qadisiyahFilters;
 
   return (
-    <div className="relative min-h-0 flex-1 bg-bg">
-      <div className="qads-map-host absolute inset-0 z-0">
+    <div className="relative flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-bg">
+      <div className="qads-map-host relative z-0 min-h-0 flex-1">
         <ClientOnly fallback={<div className="grid h-full place-items-center text-sm text-muted">Loading map…</div>}>
           <Suspense fallback={<div className="grid h-full place-items-center text-sm text-muted">Loading map…</div>}>
             <MapCanvas key={market} dealers={mapDealers} selectedId={selectedId} highlightIds={search.trim() ? searchHits.map((d) => d.id) : []} onSelect={onSelect} onMapClick={adding ? (lat, lng) => void saveDraft({ lat, lng }) : undefined} onCluster={onCluster} satellite={satellite} me={gps} route={routeDealers} focus={focus} origin={marketCenter} dualIds={dualIds} showDualLabels={market === "shifa" && filter === "dual"} />
           </Suspense>
         </ClientOnly>
+        <div className="qads-vignette" aria-hidden />
       </div>
-      <div className="qads-vignette" aria-hidden />
       {listMode ? <div className="absolute inset-0 z-10 bg-bg" aria-hidden /> : null}
-      <div className="pointer-events-none absolute inset-x-3 top-2 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-20 flex items-start gap-2">
+      <div className={cn("pointer-events-none absolute inset-x-3 top-2 z-20 flex items-start gap-2", listMode && "bottom-3")}>
         <div className={cn("flex min-w-0 flex-1 flex-col gap-2", listMode && "min-h-0 self-stretch")}>
           <div className="pointer-events-auto relative z-30 min-w-0">
             <div className="qads-hud rounded-2xl p-1">
@@ -530,8 +530,10 @@ export function MapPage() {
           {nextDesk ? <button type="button" onClick={() => pickDealer(nextDesk.id)} className="mt-2 flex min-h-12 w-full items-center gap-2 rounded-xl bg-primary px-3 text-start text-primary-fg"><span className="shrink-0 text-xs font-semibold uppercase tracking-wide opacity-80">{t.nextDesk}</span><span className="min-w-0 flex-1 truncate text-sm font-semibold">{lang === "ar" && nextDesk.nameAr ? nextDesk.nameAr : nextDesk.nameEn}</span><span className="shrink-0 text-xs tabular-nums opacity-80">{formatDistance(haversineM(origin, nextDesk))}</span><ChevronRight className="size-4 shrink-0" /></button> : null}
         </div>
       ) : null}
+      {sheetOpen ? (
+      <div className="qads-dock z-30 max-h-[48%] shrink-0 overflow-y-auto px-3 pb-2">
       {planning ? (
-        <div className="qads-sheet absolute inset-x-3 bottom-3 z-30 rounded-2xl p-4">
+        <div className="qads-sheet rounded-2xl p-4">
           <div className="mb-2 flex items-center justify-between gap-2"><div><p className="text-sm font-semibold">{t.selectStops}</p><p className="text-xs tabular-nums text-muted">{routeDealers.length} {t.stops}{routeDealers.length ? ` · ${t.routeTotal} ${formatDistance(routeMeters)}` : ""}</p></div><button type="button" className="min-h-10 px-2 text-xs font-medium text-muted" onClick={() => setRouteIds([])}>{t.clearRoute}</button></div>
           <ol className="max-h-36 space-y-1 overflow-auto">{routeDealers.map((d, i) => { const prev = i === 0 ? origin : routeDealers[i - 1]; return <li key={d.id} className="flex items-center justify-between gap-2 text-sm"><span className="flex min-w-0 items-center gap-2"><span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-fg">{i + 1}</span><span className="min-w-0 truncate">{lang === "ar" && d.nameAr ? d.nameAr : d.nameEn}</span></span><span className="shrink-0 text-xs tabular-nums text-muted">{formatDistance(haversineM(prev, d))}</span></li>; })}</ol>
           <Button className="mt-3 w-full" variant="secondary" onClick={() => setPlanning(false)}>{t.donePlanning}</Button>
@@ -541,7 +543,7 @@ export function MapPage() {
       {cluster && !planning && !nearMe ? <ListSheet title={t.clusterHere} hint={`${cluster.length}`} onClose={() => setCluster(null)}>{[...cluster].sort((a, b) => haversineM(origin, a) - haversineM(origin, b)).map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} meta={formatDistance(haversineM(origin, d))} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, STATUS_LABEL[lang][d.status]].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} />)}</ListSheet> : null}
       {selected && !planning && !nearMe && !cluster ? <DealerSheet dealer={selected} partner={partner} partnerSurvey={partnerSurvey} distance={haversineM(origin, selected)} source={survey?.volumeFiguresAre} survey={survey} photos={snapshot.photos.filter((p) => p.dealershipId === selected.id)} canPinGps={Boolean(gps && !gpsError)} editingCoords={editingCoords} gps={gps && !gpsError ? gps : null} onClose={() => { setEditingCoords(false); setSelectedId(null); }} onSurvey={(id) => void navigate({ to: "/survey/$id", params: { id } })} onPinGps={() => void pinSelectedToGps()} onEditCoords={() => setEditingCoords(true)} onCancelCoords={() => setEditingCoords(false)} onSaveCoords={(lat, lng) => void saveSelectedCoords(lat, lng)} onMarkClosed={() => void markClosed(selected.id)} onOpenPartner={(p) => { pendingJump.current = p.id; setMarket(dealerMarket(p)); }} onOpenNearby={(id) => pickDealer(id)} /> : null}
       {adding ? (
-        <div className="qads-sheet qads-add absolute inset-x-3 bottom-3 z-30 max-h-[62%] overflow-y-auto rounded-2xl p-3">
+        <div className="qads-sheet qads-add overflow-y-auto rounded-2xl p-3">
           <div className="mb-2 flex items-start justify-between gap-2">
             <div>
               <p className="text-sm font-semibold tracking-tight">{t.addDealer}</p>
@@ -590,6 +592,8 @@ export function MapPage() {
             </div>
           ) : null}
         </div>
+      ) : null}
+      </div>
       ) : null}
       {aiAdding ? <AiSurveySheet mode="new" dealershipId={null} onClose={() => setAiAdding(false)} onSaved={(id) => { setAiAdding(false); void navigate({ to: "/survey/$id", params: { id } }); }} /> : null}
     </div>
