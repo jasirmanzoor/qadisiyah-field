@@ -22,7 +22,7 @@ const TILE = {
   maxZoom: MAP_MAX_ZOOM,
   maxNativeZoom: 19,
   keepBuffer: 12,
-  updateWhenZooming: false,
+  updateWhenZooming: true,
   updateWhenIdle: true,
   detectRetina: false as const,
 };
@@ -101,14 +101,18 @@ function MapSizer() {
   const map = useMap();
   useEffect(() => {
     const el = map.getContainer();
-    const run = () => map.invalidateSize({ animate: false });
+    const host = el.parentElement ?? el;
+    const run = () => map.invalidateSize({ animate: false, pan: false });
     const ro = new ResizeObserver(run);
+    ro.observe(host);
     ro.observe(el);
-    const a = window.setTimeout(run, 80);
+    const a = window.setTimeout(run, 60);
+    const b = window.setTimeout(run, 280);
     window.addEventListener("orientationchange", run);
     return () => {
       ro.disconnect();
       window.clearTimeout(a);
+      window.clearTimeout(b);
       window.removeEventListener("orientationchange", run);
     };
   }, [map]);
@@ -242,7 +246,7 @@ export function MapCanvas({
       zoomDelta={1}
       fadeAnimation
       zoomAnimation
-      markerZoomAnimation={false}
+      markerZoomAnimation
       className="z-0 h-full w-full"
       style={{ minHeight: 180, height: "100%", background: "#d8d2c6" }}
       zoomControl={false}

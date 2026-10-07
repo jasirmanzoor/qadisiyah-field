@@ -6,7 +6,7 @@ import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { MarketSwitch } from "@/components/market-switch";
 import { COPY } from "@/lib/i18n";
 import { MARKET_CENTERS } from "@/lib/geo";
-import { MARKET_META, marketCounts } from "@/lib/markets";
+import { marketCounts } from "@/lib/markets";
 import { cn } from "@/lib/utils";
 import { useField } from "@/stores/field";
 import { usePrefs } from "@/stores/prefs";
@@ -28,7 +28,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const online = useField((s) => s.online);
   const loaded = useField((s) => s.loaded);
   const gpsError = useField((s) => s.gpsError);
-  const team = useField((s) => s.snapshot.team);
   const dealers = useField((s) => s.snapshot.dealerships);
   const counts = useMemo(() => marketCounts(dealers), [dealers]);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -36,6 +35,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     hydrate();
   }, [hydrate]);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const root = document.documentElement;
+    const sync = () => {
+      root.style.setProperty("--vvh", `${vv.height}px`);
+      root.style.setProperty("--vvtop", `${vv.offsetTop}px`);
+    };
+    sync();
+    vv.addEventListener("resize", sync);
+    vv.addEventListener("scroll", sync);
+    return () => {
+      vv.removeEventListener("resize", sync);
+      vv.removeEventListener("scroll", sync);
+    };
+  }, []);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -86,77 +102,51 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { to: "/dashboard", label: t.dashboard, icon: BarChart3 },
     { to: "/research", label: t.research, icon: Bot },
     { to: "/ops", label: t.ops, icon: Workflow },
-    { to: "/ceo", label: "CEO", icon: BarChart3 },
   ] as const;
 
   const isSurvey = pathname.startsWith("/survey");
 
   return (
-    <div className="flex h-dvh min-h-dvh flex-col bg-bg text-fg">
+    <div
+      className="flex w-full max-w-full min-w-0 flex-col overflow-hidden bg-bg text-fg"
+      style={{ height: "var(--vvh, 100dvh)", transform: "translateY(var(--vvtop, 0px))" }}
+    >
       {isSurvey ? null : (
       <>
-      <header className="relative z-40 shrink-0 border-b border-border/80 bg-bg pt-[max(0.5rem,env(safe-area-inset-top))]">
-        <div className="flex items-center gap-2 px-3 py-2">
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[13px] font-semibold uppercase tracking-[0.14em] text-fg">{t.appName}</p>
-          <div className="truncate text-[11px] text-muted">
-            {lang === "ar" ? MARKET_META[market].labelAr : MARKET_META[market].labelEn}
-            {market === "shifa" ? ` · ${t.usedCarMarket}` : ""}
-            {" · "}
-            {online ? (
-              pending > 0 ? (
-                <button
-                  type="button"
-                  className="font-medium text-status-amber"
-                  onClick={() => setSyncOpen(true)}
-                >
-                  {t.pendingSync} · {pending}{lastError ? ` · ${lastError}` : ""}
-                </button>
-              ) : (
-                t.synced
-              )
-            ) : (
-              t.offline
-            )}
-            {team && team.members.length > 1 ? (
-              <>
-                {" · "}
-                <Link to="/ops" className="font-medium text-primary">
-                  {team.members.length} {t.team}
-                </Link>
-              </>
-            ) : (
-              <>
-                {" · "}
-                <Link to="/ops" className="font-medium text-primary">
-                  {t.team}
-                </Link>
-              </>
-            )}
-            {gpsError ? ` · ${t.usingCenter}` : ""}
+      <header className="relative z-40 shrink-0 border-b border-border/80 bg-bg pt-[max(0.35rem,env(safe-area-inset-top))]">
+        <div className="flex items-center gap-2 px-3 py-1.5">
+          <div className="min-w-0 flex-1">
+            <MarketSwitch counts={counts} compact />
           </div>
-        </div>
-        <button
-          type="button"
-          className="grid size-10 place-items-center rounded-lg text-muted"
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          aria-label={theme === "dark" ? t.light : t.dark}
-        >
-          {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
-        </button>
-        <button
-          type="button"
-          className="min-h-10 rounded-lg px-2 text-xs font-medium text-muted"
-          onClick={() => setLang(lang === "en" ? "ar" : "en")}
-        >
-          {lang === "en" ? t.arabic : t.english}
-        </button>
-        <div className="[&_span.text-sm]:hidden [&_button]:min-h-10 [&_button]:rounded-lg [&_button]:px-2 [&_button]:text-xs">
-          <UserButton />
-        </div>
-        </div>
-        <div className="px-3 pb-2">
-          <MarketSwitch counts={counts} compact />
+          <button
+            type="button"
+            className={cn(
+              "min-h-11 shrink-0 rounded-xl px-2.5 text-xs font-semibold",
+              !online || pending > 0 ? "bg-status-amber/15 text-status-amber" : "text-muted",
+            )}
+            onClick={() => setSyncOpen(true)}
+            title={lastError || (gpsError ? t.usingCenter : undefined)}
+          >
+            {!online ? t.offline : pending > 0 ? `${pending}` : t.synced}
+          </button>
+          <button
+            type="button"
+            className="grid size-11 place-items-center rounded-xl text-muted"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            aria-label={theme === "dark" ? t.light : t.dark}
+          >
+            {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          </button>
+          <button
+            type="button"
+            className="min-h-11 rounded-xl px-2 text-xs font-semibold text-muted"
+            onClick={() => setLang(lang === "en" ? "ar" : "en")}
+          >
+            {lang === "en" ? "ع" : "EN"}
+          </button>
+          <div className="[&_span.text-sm]:hidden [&_button]:min-h-11 [&_button]:rounded-xl [&_button]:px-2 [&_button]:text-xs">
+            <UserButton />
+          </div>
         </div>
       </header>
       {syncOpen ? <SyncSheet onClose={() => setSyncOpen(false)} /> : null}
@@ -167,7 +157,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         className={
           isSurvey
             ? "relative flex min-h-0 flex-1 flex-col overflow-hidden"
-            : "relative flex min-h-0 flex-1 flex-col overflow-hidden pb-[calc(4.25rem+env(safe-area-inset-bottom))]"
+            : "relative flex min-h-0 w-full min-w-0 max-w-full flex-1 flex-col overflow-hidden pb-[calc(4.25rem+env(safe-area-inset-bottom))]"
         }
       >
         {loaded ? children : (
@@ -176,7 +166,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
 
       {isSurvey ? null : (
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border/80 bg-surface/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-border/80 bg-surface/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
         {nav.map((item) => {
           const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
           const Icon = item.icon;

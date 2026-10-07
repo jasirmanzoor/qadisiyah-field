@@ -6,17 +6,6 @@ import appCss from "../styles.css?url";
 
 const APP_NAME = "Qadisiyah Field";
 
-function publicShareHost(): string {
-  const raw = typeof process !== "undefined" ? String(process.env.VITE_PUBLIC_HOSTNAME ?? "") : "";
-  const host = raw.split(",")[0]?.trim().split(":")[0]?.toLowerCase() ?? "";
-  if (!host || !/^[a-z0-9.-]+$/.test(host) || !host.includes(".")) return "";
-  if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(host)) return "";
-  if (host === "vercel.app" || host.endsWith(".vercel.app") || host === "vercel.com" || host.endsWith(".vercel.com")) {
-    return "";
-  }
-  return host;
-}
-
 const fetchSessionUser = createServerFn({ method: "GET" }).handler(async () => {
   const { getSessionUser } = await import("@/lib/auth/verify.server");
   const u = await getSessionUser();
@@ -25,22 +14,16 @@ const fetchSessionUser = createServerFn({ method: "GET" }).handler(async () => {
 
 export const Route = createRootRoute({
   beforeLoad: async () => ({ sessionUser: await fetchSessionUser() }),
-  head: () => {
-    const host = publicShareHost();
-    const ogImage = host ? `https://${host}/og.jpg` : undefined;
-    const xBanner = host ? `https://${host}/x-banner.jpg` : undefined;
-    return {
-      meta: [
+  head: () => ({
+    meta: [
         { charSet: "utf-8" },
-        { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+        { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" },
         { title: APP_NAME },
         { name: "theme-color", content: "#1a1d18" },
         {
           name: "description",
           content: "Offline-first field survey for Al Qadisiyah and Al Shifa independent car dealerships.",
         },
-        ...(ogImage ? [{ property: "og:image", content: ogImage }] : []),
-        ...(xBanner ? [{ property: "x:game:image", content: xBanner }] : []),
       ],
       links: [
         { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
@@ -52,8 +35,7 @@ export const Route = createRootRoute({
           href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap",
         },
       ],
-    };
-  },
+  }),
   component: () => (
     <html lang="en" suppressHydrationWarning>
       <head>

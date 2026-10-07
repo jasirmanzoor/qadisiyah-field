@@ -94,10 +94,16 @@ html.dark {
     -moz-osx-font-smoothing: grayscale;
     background: var(--bg);
     color: var(--fg);
+    height: 100%;
+    max-width: 100%;
+    overflow: hidden;
   }
   body {
     margin: 0;
+    height: 100dvh;
     min-height: 100dvh;
+    max-width: 100%;
+    overflow: hidden;
     background: var(--bg);
     color: var(--fg);
     font-family: var(--font-sans);
@@ -358,14 +364,41 @@ html.dark {
 .qads-map-host .leaflet-container {
   touch-action: none;
 }
+.qads-map-host {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+.qads-map-host .leaflet-container {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
 .leaflet-container {
   background: var(--bg);
   font-family: var(--font-sans);
   touch-action: none;
 }
 .qads-dock {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   touch-action: pan-y;
+  overflow-x: hidden;
+  overflow-y: auto;
   overscroll-behavior: contain;
+}
+.qads-sheet {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+.qads-chips {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .leaflet-div-icon {

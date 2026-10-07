@@ -410,7 +410,7 @@ export function MapPage() {
   const filters = market === "shifa" ? shifaFilters : qadisiyahFilters;
 
   return (
-    <div className="relative flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-bg">
+    <div className="relative flex h-full min-h-0 w-full max-w-full min-w-0 flex-1 flex-col overflow-hidden bg-bg">
       <div className="qads-map-host relative z-0 min-h-0 flex-1">
         <ClientOnly fallback={<div className="grid h-full place-items-center text-sm text-muted">Loading map…</div>}>
           <Suspense fallback={<div className="grid h-full place-items-center text-sm text-muted">Loading map…</div>}>
@@ -531,7 +531,7 @@ export function MapPage() {
         </div>
       ) : null}
       {sheetOpen ? (
-      <div className="qads-dock z-30 max-h-[48%] shrink-0 overflow-y-auto px-3 pb-2">
+      <div className="qads-dock z-30 max-h-[46%] w-full min-w-0 max-w-full shrink-0 overflow-x-hidden overflow-y-auto px-3 pb-2">
       {planning ? (
         <div className="qads-sheet rounded-2xl p-4">
           <div className="mb-2 flex items-center justify-between gap-2"><div><p className="text-sm font-semibold">{t.selectStops}</p><p className="text-xs tabular-nums text-muted">{routeDealers.length} {t.stops}{routeDealers.length ? ` · ${t.routeTotal} ${formatDistance(routeMeters)}` : ""}</p></div><button type="button" className="min-h-10 px-2 text-xs font-medium text-muted" onClick={() => setRouteIds([])}>{t.clearRoute}</button></div>

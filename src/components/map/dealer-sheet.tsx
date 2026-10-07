@@ -173,7 +173,7 @@ function DealerSheetBody({
     }
   }
   return (
-    <div className="qads-sheet overflow-auto rounded-2xl p-4">
+    <div className="qads-sheet max-w-full min-w-0 overflow-x-hidden rounded-2xl p-4">
       <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-surface-2" />
       <div className="mb-2 flex items-start justify-between gap-2">
         <div className="min-w-0">
@@ -190,7 +190,7 @@ function DealerSheetBody({
         <button type="button" onClick={() => libraryRef.current?.click()} disabled={photoBusy} className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-surface-2 text-sm font-semibold text-fg disabled:opacity-40"><ImagePlus className="size-4" />{t.photoLibrary}</button>
       </div>
       {photos.length ? (
-        <div className="mb-3 flex gap-2 overflow-x-auto">
+        <div className="mb-3 flex max-w-full min-w-0 gap-2 overflow-x-auto">
           {photos.map((p) => (
             <button key={p.id} type="button" className="shrink-0 overflow-hidden rounded-xl" onClick={() => setShot(p.id)}>
               <img src={p.dataUrl} alt="" className="size-16 object-cover" />
