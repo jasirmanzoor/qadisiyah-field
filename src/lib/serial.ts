@@ -12,9 +12,9 @@ export function dealerSerials(dealers: Dealership[]): Map<string, number> {
 
 export function pinBox(n: number, selected: boolean) {
   const digits = String(Math.max(0, n)).length;
-  const h = selected ? 24 : 18;
+  const h = selected ? 32 : 26;
   const w = selected
-    ? digits >= 3 ? 32 : digits === 2 ? 26 : 24
-    : digits >= 3 ? 28 : digits === 2 ? 22 : 18;
+    ? digits >= 3 ? 40 : digits === 2 ? 34 : 32
+    : digits >= 3 ? 34 : digits === 2 ? 30 : 26;
   return { w, h };
 }

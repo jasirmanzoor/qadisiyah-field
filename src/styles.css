@@ -256,9 +256,10 @@ html.dark {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background:
-    linear-gradient(180deg, color-mix(in oklab, var(--bg) 28%, transparent) 0%, transparent 12%),
-    linear-gradient(0deg, color-mix(in oklab, var(--bg) 22%, transparent) 0%, transparent 14%);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--bg) 42%, transparent) 0%, transparent 64px);
+}
+.qads-map-inset .leaflet-bottom {
+  margin-bottom: 54px !important;
 }
 
 .qads-pin {

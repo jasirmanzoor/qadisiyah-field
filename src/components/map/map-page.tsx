@@ -236,7 +236,6 @@ export function MapPage() {
   const streetNearby = nearby.find((x) => x.row.flags.street)?.row.flags.street ?? "";
   const sheetOpen = Boolean(selected || nearMe || planning || adding || cluster);
   const surveyedPct = counts.all ? Math.round((counts.surveyed / counts.all) * 100) : 0;
-  const deepPct = counts.all ? Math.round((counts.deep / counts.all) * 100) : 0;
   function flyTo(d: { lat: number; lng: number }, zoom = 17) { setFocus({ lat: d.lat, lng: d.lng, zoom, nonce: Date.now(), padBottom: true }); }
   function exportListExcel() {
     const surveys = listRows.flatMap((d) => {
@@ -411,7 +410,7 @@ export function MapPage() {
 
   return (
     <div className="relative flex h-full min-h-0 w-full max-w-full min-w-0 flex-1 flex-col overflow-hidden bg-bg">
-      <div className="qads-map-host relative z-0 min-h-0 flex-1">
+      <div className={cn("qads-map-host relative z-0 min-h-0 flex-1", !sheetOpen && !listMode && "qads-map-inset")}>
         <ClientOnly fallback={<div className="grid h-full place-items-center text-sm text-muted">Loading map…</div>}>
           <Suspense fallback={<div className="grid h-full place-items-center text-sm text-muted">Loading map…</div>}>
             <MapCanvas key={market} dealers={mapDealers} selectedId={selectedId} highlightIds={search.trim() ? searchHits.map((d) => d.id) : []} onSelect={onSelect} onMapClick={adding ? (lat, lng) => void saveDraft({ lat, lng }) : undefined} onCluster={onCluster} satellite={satellite} me={gps} route={routeDealers} focus={focus} origin={marketCenter} dualIds={dualIds} showDualLabels={market === "shifa" && filter === "dual"} />
@@ -423,11 +422,11 @@ export function MapPage() {
       <div className={cn("pointer-events-none absolute inset-x-3 top-2 z-20 flex items-start gap-2", listMode && "bottom-3")}>
         <div className={cn("flex min-w-0 flex-1 flex-col gap-2", listMode && "min-h-0 self-stretch")}>
           <div className="pointer-events-auto relative z-30 min-w-0">
-            <div className="qads-hud rounded-2xl p-1">
+            <div className="qads-hud rounded-full px-1 shadow-[0_8px_24px_-16px_rgba(26,29,24,0.55)]">
               <div className="relative">
                 <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
-                <input className="min-h-11 w-full bg-transparent pe-11 ps-10 text-sm text-fg placeholder:text-faint focus-visible:outline-none" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t.searchShowrooms} enterKeyHint="search" />
-                {search ? <button type="button" onClick={() => setSearch("")} className="absolute end-0.5 top-1/2 grid size-10 -translate-y-1/2 place-items-center text-muted" aria-label={t.clearSearch}><X className="size-4" /></button> : null}
+                <input className="min-h-10 w-full bg-transparent pe-10 ps-10 text-sm text-fg placeholder:text-faint focus-visible:outline-none" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t.searchShowrooms} enterKeyHint="search" />
+                {search ? <button type="button" onClick={() => setSearch("")} className="absolute end-0.5 top-1/2 grid size-9 -translate-y-1/2 place-items-center text-muted" aria-label={t.clearSearch}><X className="size-4" /></button> : null}
               </div>
             </div>
             {search.trim() && !planning && !adding && !listMode && !selected ? (
@@ -437,8 +436,7 @@ export function MapPage() {
                 ) : searchHits.map((d) => <DealerRow key={d.id} dealer={d} dual={dualIds.has(d.id)} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, hasPin(d) ? (d.nameAr || d.listedPhone || d.flags.street) : t.noPin].filter(Boolean).join(" · ")} lang={lang} onClick={() => pickDealer(d.id)} />)}
               </div>
             ) : (
-              <>
-              <div className="grid grid-cols-3 gap-1">
+              <div className="qads-chips mt-1.5 flex max-w-full gap-1 overflow-x-auto">
                 {([
                   ["all", t.pinsEstablished, counts.all],
                   ["surveyed", t.surveyedCat, counts.surveyed],
@@ -451,41 +449,31 @@ export function MapPage() {
                       type="button"
                       onClick={() => setFilter(id)}
                       className={cn(
-                        "cat-tile",
-                        on && id === "deep" && "bg-status-amber text-primary-fg",
-                        on && id === "surveyed" && "bg-primary text-primary-fg",
-                        on && id === "all" && "bg-fg text-bg",
-                        !on && "qads-hud text-fg",
+                        "flex h-8 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-xs font-semibold",
+                        on ? "bg-primary text-primary-fg" : "qads-hud text-fg",
                       )}
                     >
-                      <span className="block text-base font-semibold tabular-nums leading-none tracking-tight">{count}</span>
-                      <span className={cn("mt-0.5 block truncate text-xs font-medium", on ? "opacity-90" : "text-muted")}>{label}</span>
+                      <span className="tabular-nums">{count}</span>
+                      <span className={on ? "opacity-90" : "text-muted"}>{label}</span>
                     </button>
                   );
                 })}
-              </div>
-              <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={() => setFiltersOpen((v) => !v)}
                   className={cn(
-                    "qads-chip shrink-0 rounded-full px-3 py-2 text-xs font-semibold",
+                    "flex h-8 shrink-0 items-center rounded-full px-2.5 text-xs font-semibold",
                     filtersOpen || filters.some((f) => f.id === filter) ? "bg-primary text-primary-fg" : "qads-hud text-muted",
                   )}
                 >
                   {t.filters}
                 </button>
-                {filtersOpen || filters.some((f) => f.id === filter) ? (
-                  <div className="qads-chips flex min-w-0 flex-1 gap-1 overflow-x-auto">
-                    {filters.map((f) => (
-                      <button key={f.id} type="button" onClick={() => setFilter(f.id)} className={cn("qads-chip shrink-0 rounded-full px-3 py-2 text-xs font-semibold", filter === f.id ? "bg-primary text-primary-fg" : "qads-hud text-muted")}>
-                        {f.label}<span className="ms-1.5 tabular-nums opacity-80">{f.count}</span>
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
+                {filtersOpen || filters.some((f) => f.id === filter) ? filters.map((f) => (
+                  <button key={f.id} type="button" onClick={() => setFilter(f.id)} className={cn("flex h-8 shrink-0 items-center rounded-full px-2.5 text-xs font-semibold", filter === f.id ? "bg-primary text-primary-fg" : "qads-hud text-muted")}>
+                    {f.label}<span className="ms-1.5 tabular-nums opacity-80">{f.count}</span>
+                  </button>
+                )) : null}
               </div>
-              </>
             )}
           </div>
           {listMode && !planning && !adding ? (
@@ -509,7 +497,7 @@ export function MapPage() {
             </div>
           ) : null}
         </div>
-        <div className="qads-hud pointer-events-auto flex shrink-0 flex-col rounded-2xl p-1">
+        <div className="qads-hud pointer-events-auto flex shrink-0 flex-col rounded-full p-1">
           <IconTool label={t.locateMe} active={nearMe} onClick={openNear}><LocateFixed className="size-4" /></IconTool>
           <IconTool label={satellite ? t.streets : t.satellite} active={satellite} onClick={() => setSatellite((v) => !v)}>{satellite ? <MapIcon className="size-4" /> : <Satellite className="size-4" />}</IconTool>
           <IconTool label={t.list} active={listMode} onClick={toggleList}><ListIcon className="size-4" /></IconTool>
@@ -518,16 +506,27 @@ export function MapPage() {
         </div>
       </div>
       {!sheetOpen && !listMode ? (
-        <div className="qads-hud absolute inset-x-3 bottom-3 z-10 rounded-2xl px-3 py-2.5">
-          <div className="flex items-center justify-between gap-3">
+        <div className="qads-hud absolute inset-x-3 bottom-2 z-10 overflow-hidden rounded-2xl">
+          <div className="h-1 bg-surface-2">
+            <div className="h-full bg-primary" style={{ width: `${filter === "all" ? surveyedPct : dealers.length && counts.all ? Math.round((dealers.length / counts.all) * 100) : 0}%` }} />
+          </div>
+          <div className="flex items-center gap-2 px-2.5 py-1.5">
             <LegendDots />
-            <p className="shrink-0 text-xs font-medium tabular-nums text-muted">{market === "shifa" ? <span className="me-2 font-semibold text-fg">{t.usedCarMarket}</span> : null}{filter === "all" ? <><span className="font-semibold text-fg">{counts.surveyed}</span>{` / `}<span className="font-semibold text-fg">{counts.all}</span></> : <>{t.showing} <span className="text-fg">{dealers.length}</span></>}</p>
+            <p className="min-w-0 flex-1 truncate text-xs font-medium tabular-nums text-muted">
+              {market === "shifa" ? <span className="me-1 font-semibold text-fg">{t.usedCarMarket}</span> : null}
+              <span className="font-semibold text-fg">{filter === "all" ? counts.surveyed : dealers.length}</span>
+              <span>{` / `}</span>
+              <span className="font-semibold text-fg">{counts.all}</span>
+            </p>
+            {nextDesk ? (
+              <button type="button" onClick={() => pickDealer(nextDesk.id)} className="flex h-9 max-w-[56%] min-w-0 items-center gap-1.5 rounded-xl bg-primary px-2.5 text-start text-primary-fg">
+                <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide opacity-80">{t.nextDesk}</span>
+                <span className="min-w-0 flex-1 truncate text-sm font-semibold">{lang === "ar" && nextDesk.nameAr ? nextDesk.nameAr : nextDesk.nameEn}</span>
+                <span className="shrink-0 text-xs tabular-nums opacity-80">{formatDistance(haversineM(origin, nextDesk))}</span>
+                <ChevronRight className="size-3.5 shrink-0" />
+              </button>
+            ) : null}
           </div>
-          <div className="relative mt-2 h-1 overflow-hidden rounded-full bg-surface-2">
-            <div className="absolute inset-y-0 start-0 rounded-full bg-primary transition-[width] duration-300" style={{ width: `${filter === "all" ? surveyedPct : dealers.length && counts.all ? Math.round((dealers.length / counts.all) * 100) : 0}%` }} />
-            {filter === "all" ? <div className="absolute inset-y-0 start-0 rounded-full bg-status-amber transition-[width] duration-300" style={{ width: `${deepPct}%` }} /> : null}
-          </div>
-          {nextDesk ? <button type="button" onClick={() => pickDealer(nextDesk.id)} className="mt-2 flex min-h-12 w-full items-center gap-2 rounded-xl bg-primary px-3 text-start text-primary-fg"><span className="shrink-0 text-xs font-semibold uppercase tracking-wide opacity-80">{t.nextDesk}</span><span className="min-w-0 flex-1 truncate text-sm font-semibold">{lang === "ar" && nextDesk.nameAr ? nextDesk.nameAr : nextDesk.nameEn}</span><span className="shrink-0 text-xs tabular-nums opacity-80">{formatDistance(haversineM(origin, nextDesk))}</span><ChevronRight className="size-4 shrink-0" /></button> : null}
         </div>
       ) : null}
       {sheetOpen ? (

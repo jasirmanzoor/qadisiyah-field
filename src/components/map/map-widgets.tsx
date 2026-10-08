@@ -21,7 +21,7 @@ export function IconTool({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "grid size-11 place-items-center rounded-xl transition-colors duration-150",
+        "grid size-10 place-items-center rounded-xl transition-colors duration-150",
         active ? "bg-primary text-primary-fg shadow-[0_0_0_1px_color-mix(in_oklab,var(--gold)_45%,transparent)]" : "text-fg hover:bg-surface-2",
       )}
     >
