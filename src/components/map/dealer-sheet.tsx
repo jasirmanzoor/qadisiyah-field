@@ -2,16 +2,15 @@ import { COPY, trainingCopy } from "@/lib/i18n";
 import { dealerMarket } from "@/lib/markets";
 import { cn, mapsLink, telLink, uid, waLink } from "@/lib/utils";
 import { compressImage } from "@/lib/image";
-import { formatDistance, nearestDealers } from "@/lib/geo";
+import { formatDistance, nearestExpanding } from "@/lib/geo";
 import type { Dealership, SurveyPayload } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input, StatusBadge, FigureBadge, TrainingBadge } from "@/components/ui/field";
 import { usePrefs } from "@/stores/prefs";
 import { useField } from "@/stores/field";
-import { extractNoteProposals } from "@/lib/note-extract";
-import { Navigation, Phone, MessageCircle, MapPinned, Crosshair, Copy, Check, Pencil, X, Camera, ImagePlus } from "lucide-react";
+import { Navigation, Phone, MessageCircle, MapPinned, Crosshair, Pencil, X, Camera, ImagePlus } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { formatCoord, parseCoordPair, parseCoords, collectRoughNotes, formatThisLotPaste } from "./map-notes";
+import { formatCoord, parseCoordPair, parseCoords } from "./map-notes";
 
 export function DealerSheet(props: {
   dealer: Dealership;
@@ -37,6 +36,28 @@ export function DealerSheet(props: {
   return <DealerSheetBody {...props} />;
 }
 
+function blank(v: unknown) {
+  return v == null || v === "" || (Array.isArray(v) && v.length === 0);
+}
+
+function cardGaps(survey?: SurveyPayload) {
+  const gaps: string[] = [];
+  if (blank(survey?.vehicleType)) gaps.push("car type");
+  if (blank(survey?.showroomSizeSqm)) gaps.push("size");
+  if (blank(survey?.mainBrands)) gaps.push("brands");
+  if (blank(survey?.inventoryUnits)) gaps.push("cars");
+  if (blank(survey?.avgSellingPriceSar)) gaps.push("ASP");
+  if (blank(survey?.inventoryAgePctOver5)) gaps.push(">5 years");
+  return gaps;
+}
+
+function nameMatches(row: Dealership, q: string) {
+  if (q.length < 2) return false;
+  const en = row.nameEn.toLowerCase();
+  const ar = (row.nameAr || "").toLowerCase();
+  return en.includes(q) || ar.includes(q);
+}
+
 function DealerSheetBody({
   dealer, partner, distance, source, survey, photos = [], canPinGps, editingCoords, gps,
   onClose, onSurvey, onPinGps, onEditCoords, onCancelCoords, onSaveCoords, onMarkClosed, onOpenPartner, onOpenNearby,
@@ -48,110 +69,97 @@ function DealerSheetBody({
   const addPhoto = useField((s) => s.addPhoto);
   const removePhoto = useField((s) => s.removePhoto);
   const roster = useField((s) => s.snapshot.dealerships);
+  const surveys = useField((s) => s.snapshot.surveys);
   const cameraRef = useRef<HTMLInputElement>(null);
   const libraryRef = useRef<HTMLInputElement>(null);
   const [photoBusy, setPhotoBusy] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [editingNotes, setEditingNotes] = useState(false);
-  const [notesDraft, setNotesDraft] = useState("");
-  const [notesSaved, setNotesSaved] = useState(false);
-  const [noteLine, setNoteLine] = useState("");
-  const [fig, setFig] = useState({ phone: "", cars: "", sqm: "", asp: "" });
+  const [addOpen, setAddOpen] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [nameFocus, setNameFocus] = useState(false);
+  const [nameEn, setNameEn] = useState(dealer.nameEn);
+  const [nameAr, setNameAr] = useState(dealer.nameAr ?? "");
+  const [street, setStreet] = useState(dealer.flags.street ?? "");
+  const [size, setSize] = useState(survey?.showroomSizeSqm != null ? String(survey.showroomSizeSqm) : "");
+  const [brands, setBrands] = useState((survey?.mainBrands ?? []).join(", "));
+  const [cars, setCars] = useState(survey?.inventoryUnits != null ? String(survey.inventoryUnits) : "");
+  const [inside, setInside] = useState(survey?.inventoryInside != null ? String(survey.inventoryInside) : "");
+  const [outside, setOutside] = useState(survey?.inventoryOutside != null ? String(survey.inventoryOutside) : "");
+  const [asp, setAsp] = useState(survey?.avgSellingPriceSar != null ? String(survey.avgSellingPriceSar) : "");
+  const [over5, setOver5] = useState(survey?.inventoryAgePctOver5 != null ? String(survey.inventoryAgePctOver5) : "");
   const [latDraft, setLatDraft] = useState(formatCoord(dealer.lat));
   const [lngDraft, setLngDraft] = useState(formatCoord(dealer.lng));
   const [pasteDraft, setPasteDraft] = useState(`${formatCoord(dealer.lat)}, ${formatCoord(dealer.lng)}`);
   const [coordError, setCoordError] = useState(false);
+  const [shot, setShot] = useState<string | null>(null);
   useEffect(() => {
     setLatDraft(formatCoord(dealer.lat));
     setLngDraft(formatCoord(dealer.lng));
     setPasteDraft(`${formatCoord(dealer.lat)}, ${formatCoord(dealer.lng)}`);
     setCoordError(false);
-    setEditingNotes(false);
-    setNotesSaved(false);
-    setNoteLine("");
     setShot(null);
-    setFig({
-      phone: dealer.listedPhone ?? "",
-      cars: survey?.inventoryUnits != null ? String(survey.inventoryUnits) : "",
-      sqm: survey?.showroomSizeSqm != null ? String(survey.showroomSizeSqm) : "",
-      asp: survey?.avgSellingPriceSar != null ? String(survey.avgSellingPriceSar) : "",
-    });
+    setAddOpen(false);
+    setGalleryOpen(false);
+    setNameFocus(false);
+    setNameEn(dealer.nameEn);
+    setNameAr(dealer.nameAr ?? "");
+    setStreet(dealer.flags.street ?? "");
+    setSize(survey?.showroomSizeSqm != null ? String(survey.showroomSizeSqm) : "");
+    setBrands((survey?.mainBrands ?? []).join(", "));
+    setCars(survey?.inventoryUnits != null ? String(survey.inventoryUnits) : "");
+    setInside(survey?.inventoryInside != null ? String(survey.inventoryInside) : "");
+    setOutside(survey?.inventoryOutside != null ? String(survey.inventoryOutside) : "");
+    setAsp(survey?.avgSellingPriceSar != null ? String(survey.avgSellingPriceSar) : "");
+    setOver5(survey?.inventoryAgePctOver5 != null ? String(survey.inventoryAgePctOver5) : "");
   }, [dealer.id, editingCoords]);
   const call = telLink(dealer.listedPhone);
   const wa = waLink(dealer.listedPhone);
   const maps = dealer.flags.mapsUrl || mapsLink(dealer.lat, dealer.lng, dealer.nameEn);
   const hasSurvey = dealer.status !== "not_visited";
-  const brands = (survey?.mainBrands ?? []).slice(0, 6);
-  const lotPaste = formatThisLotPaste(dealer, survey);
-  const roughBody = collectRoughNotes({ lotPaste });
-  const notesBody = survey?.notes?.trim() || roughBody;
-  const [shot, setShot] = useState<string | null>(null);
-  const near = useMemo(() => {
-    if (dealer.flags.unplaced || dealer.lat === 0 || dealer.lng === 0) return [];
-    return nearestDealers(dealer, roster, { excludeId: dealer.id, radiusM: 140, limit: 4 });
-  }, [dealer, roster]);
-  const noteFigures = useMemo(() => extractNoteProposals(notesBody), [notesBody]);
-  async function copyNotes(text = notesBody) {
-    try { await navigator.clipboard.writeText(text); setCopied(true); window.setTimeout(() => setCopied(false), 1600); } catch { /* clipboard blocked */ }
-  }
-  function saveNotes() {
-    void patchSurvey(dealer.id, { notes: notesDraft });
-    setEditingNotes(false);
-    setNotesSaved(true);
-  }
-  function commitNote() {
-    const line = noteLine.trim();
-    if (!line) return;
-    const prev = (survey?.notes ?? "").trim();
-    void patchSurvey(dealer.id, { notes: prev ? `${prev}\n${line}` : line });
-    setNoteLine("");
-    setNotesSaved(true);
-  }
-  function commitFig(field: "phone" | "cars" | "sqm" | "asp") {
-    if (field === "phone") {
-      const phone = fig.phone.trim();
-      if (phone && phone !== dealer.listedPhone) {
-        void upsertDealer({ ...dealer, listedPhone: phone, updatedAt: new Date().toISOString() });
-      }
-      return;
+  const typeLabel = survey?.vehicleType === "mix" ? t.stdMix : survey?.vehicleType === "new_only" ? t.stdNew : survey?.vehicleType === "used_only" ? t.stdOld : "";
+  const surveyOf = (id: string) => surveys.find((s) => s.dealershipId === id)?.payload;
+  const assist = useMemo(() => {
+    if (!nameFocus || dealer.flags.unplaced || dealer.lat === 0) return null;
+    const q = nameEn.trim().toLowerCase();
+    const point = { lat: dealer.lat, lng: dealer.lng };
+    if (q.length >= 2) {
+      const named = nearestExpanding(point, roster, (row) => row.id !== dealer.id && nameMatches(row, q), { excludeId: dealer.id, limit: 4 });
+      if (named.hits.length) return { ...named, mode: "name" as const };
     }
-    const raw = fig[field].trim();
-    if (!raw || !Number.isFinite(Number(raw))) return;
-    const n = Number(raw);
-    if (field === "cars") {
-      if (survey?.inventoryUnits === n) return;
-      void patchSurvey(dealer.id, { inventoryUnits: n });
-      return;
-    }
-    if (field === "sqm") {
-      if (survey?.showroomSizeSqm === n) return;
-      void patchSurvey(dealer.id, { showroomSizeSqm: n });
-      return;
-    }
-    const asp = n < 1000 ? Math.round(n * 1000) : n;
-    if (survey?.avgSellingPriceSar === asp) return;
-    void patchSurvey(dealer.id, { avgSellingPriceSar: asp });
-    setFig((f) => ({ ...f, asp: String(asp) }));
+    const gaps = nearestExpanding(
+      point,
+      roster,
+      (row) => row.id !== dealer.id && cardGaps(surveyOf(row.id)).length > 0,
+      { excludeId: dealer.id, limit: 4 },
+    );
+    return { ...gaps, mode: "gap" as const };
+  }, [nameFocus, nameEn, dealer, roster, surveys]);
+  function saveName() {
+    const en = nameEn.trim();
+    const ar = nameAr.trim();
+    if (!en || (en === dealer.nameEn && ar === (dealer.nameAr ?? ""))) return;
+    void upsertDealer({ ...dealer, nameEn: en, nameAr: ar, updatedAt: new Date().toISOString() });
   }
-  function applyNoteFigures() {
-    const patch: Partial<SurveyPayload> = {};
-    for (const item of noteFigures) {
-      if (item.key === "phone") {
-        if (!dealer.listedPhone.trim()) {
-          void upsertDealer({ ...dealer, listedPhone: String(item.value), updatedAt: new Date().toISOString() });
-        }
-        continue;
-      }
-      const current = (survey as Record<string, unknown> | undefined)?.[item.key];
-      if (current != null && current !== "" && !(Array.isArray(current) && current.length === 0)) continue;
-      const value = item.key === "mainBrands"
-        ? String(item.value).split(/,|،/).map((s) => s.trim()).filter(Boolean)
-        : item.value;
-      (patch as Record<string, unknown>)[item.key] = value;
-    }
-    if (Object.keys(patch).length) void patchSurvey(dealer.id, patch);
+  function saveStreet() {
+    const next = street.trim();
+    if (next === (dealer.flags.street ?? "")) return;
+    void upsertDealer({ ...dealer, flags: { ...dealer.flags, street: next }, updatedAt: new Date().toISOString() });
   }
-  const typeLabel = survey?.vehicleType === "mix" ? t.mixCars : survey?.vehicleType === "new_only" ? t.newOnly : survey?.vehicleType === "used_only" ? t.usedOnly : "";
+  function saveNum(raw: string, key: "showroomSizeSqm" | "inventoryUnits" | "inventoryInside" | "inventoryOutside" | "avgSellingPriceSar" | "inventoryAgePctOver5") {
+    const trimmed = raw.trim();
+    if (!trimmed) return;
+    const n = Number(trimmed);
+    if (!Number.isFinite(n)) return;
+    const value = key === "avgSellingPriceSar" && n < 1000 ? Math.round(n * 1000) : n;
+    if (survey?.[key] === value) return;
+    void patchSurvey(dealer.id, { [key]: value });
+    if (key === "avgSellingPriceSar") setAsp(String(value));
+  }
+  function saveBrands() {
+    const list = brands.split(/,|،/).map((s) => s.trim()).filter(Boolean);
+    const prev = survey?.mainBrands ?? [];
+    if (list.join("|") === prev.join("|")) return;
+    void patchSurvey(dealer.id, { mainBrands: list });
+  }
   async function savePhotos(list: FileList | null) {
     if (!list?.length) return;
     setPhotoBusy(true);
@@ -168,6 +176,8 @@ function DealerSheetBody({
           capturedAt: new Date().toISOString(),
         });
       }
+      setGalleryOpen(true);
+      setAddOpen(false);
     } finally {
       setPhotoBusy(false);
     }
@@ -185,18 +195,26 @@ function DealerSheetBody({
       </div>
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { void savePhotos(e.target.files); e.target.value = ""; }} />
       <input ref={libraryRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { void savePhotos(e.target.files); e.target.value = ""; }} />
-      <div className="mb-3 grid grid-cols-2 gap-2">
-        <button type="button" onClick={() => cameraRef.current?.click()} disabled={photoBusy} className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-surface-2 text-sm font-semibold text-fg disabled:opacity-40"><Camera className="size-4" />{photoBusy ? t.saving : t.takePhoto}</button>
-        <button type="button" onClick={() => libraryRef.current?.click()} disabled={photoBusy} className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-surface-2 text-sm font-semibold text-fg disabled:opacity-40"><ImagePlus className="size-4" />{t.photoLibrary}</button>
+      <div className="mb-2 grid grid-cols-2 gap-2">
+        <button type="button" onClick={() => setAddOpen((v) => !v)} disabled={photoBusy} className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-surface-2 text-sm font-semibold text-fg disabled:opacity-40"><Camera className="size-4" />{photoBusy ? t.saving : t.addPhotos}</button>
+        <button type="button" onClick={() => setGalleryOpen((v) => !v)} className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-surface-2 text-sm font-semibold text-fg"><ImagePlus className="size-4" />{t.photoLibrary}{photos.length ? ` · ${photos.length}` : ""}</button>
       </div>
-      {photos.length ? (
-        <div className="mb-3 flex max-w-full min-w-0 gap-2 overflow-x-auto">
-          {photos.map((p) => (
-            <button key={p.id} type="button" className="shrink-0 overflow-hidden rounded-xl" onClick={() => setShot(p.id)}>
-              <img src={p.dataUrl} alt="" className="size-16 object-cover" />
-            </button>
-          ))}
+      {addOpen ? (
+        <div className="mb-3 grid grid-cols-2 gap-2">
+          <button type="button" onClick={() => cameraRef.current?.click()} className="min-h-11 rounded-xl bg-primary text-sm font-semibold text-primary-fg">{t.takePhoto}</button>
+          <button type="button" onClick={() => libraryRef.current?.click()} className="min-h-11 rounded-xl bg-primary text-sm font-semibold text-primary-fg">{t.uploadPhoto}</button>
         </div>
+      ) : null}
+      {galleryOpen ? (
+        photos.length ? (
+          <div className="mb-3 flex max-w-full min-w-0 gap-2 overflow-x-auto">
+            {photos.map((p) => (
+              <button key={p.id} type="button" className="shrink-0 overflow-hidden rounded-xl" onClick={() => setShot(p.id)}>
+                <img src={p.dataUrl} alt="" className="size-20 object-cover" />
+              </button>
+            ))}
+          </div>
+        ) : <p className="mb-3 text-xs text-muted">{t.galleryEmpty}</p>
       ) : null}
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <StatusBadge status={dealer.status} />
@@ -207,52 +225,85 @@ function DealerSheetBody({
         {typeLabel ? <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs font-semibold text-muted">{typeLabel}</span> : null}
       </div>
 
-      <div className="mb-3 flex gap-2">
-        <input
-          className="qads-note min-w-0 flex-1"
-          value={noteLine}
-          onChange={(e) => setNoteLine(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commitNote(); } }}
-          placeholder={t.notePh}
-          enterKeyHint="done"
-          aria-label={t.notes}
-        />
-        <button type="button" onClick={commitNote} disabled={!noteLine.trim()} className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary text-primary-fg disabled:opacity-40" aria-label={t.save}>
-          <Check className="size-4" />
-        </button>
-      </div>
-      {notesSaved && !editingNotes ? <p className="-mt-2 mb-2 text-xs text-primary">{t.autoSaved}</p> : null}
-
-      <div className="qads-chips mb-3 flex gap-2 overflow-x-auto pb-1">
-        <input className="qads-mini" value={fig.phone} inputMode="tel" placeholder={t.phone} aria-label={t.phone} onChange={(e) => setFig((f) => ({ ...f, phone: e.target.value }))} onBlur={() => commitFig("phone")} />
-        <input className="qads-mini" value={fig.cars} inputMode="numeric" placeholder={t.floorCars} aria-label={t.floorCars} onChange={(e) => setFig((f) => ({ ...f, cars: e.target.value }))} onBlur={() => commitFig("cars")} />
-        <input className="qads-mini" value={fig.sqm} inputMode="decimal" placeholder={t.floorSqm} aria-label={t.floorSqm} onChange={(e) => setFig((f) => ({ ...f, sqm: e.target.value }))} onBlur={() => commitFig("sqm")} />
-        <input className="qads-mini" value={fig.asp} inputMode="decimal" placeholder={t.floorAsp} aria-label={t.floorAsp} onChange={(e) => setFig((f) => ({ ...f, asp: e.target.value }))} onBlur={() => commitFig("asp")} />
-      </div>
-
-      <div className="qads-chips mb-3 flex gap-2 overflow-x-auto">
-        <button type="button" className={cn("min-h-11 shrink-0 rounded-full px-3 text-xs font-semibold", survey?.vehicleType === "used_only" ? "bg-primary text-primary-fg" : "bg-surface-2 text-fg")} onClick={() => void patchSurvey(dealer.id, { vehicleType: "used_only" })}>{t.usedOnly}</button>
-        <button type="button" className={cn("min-h-11 shrink-0 rounded-full px-3 text-xs font-semibold", survey?.vehicleType === "mix" ? "bg-primary text-primary-fg" : "bg-surface-2 text-fg")} onClick={() => void patchSurvey(dealer.id, { vehicleType: "mix" })}>{t.mixCars}</button>
-        <button type="button" className={cn("min-h-11 shrink-0 rounded-full px-3 text-xs font-semibold", survey?.financeAvailable === "no" ? "bg-primary text-primary-fg" : "bg-surface-2 text-fg")} onClick={() => void patchSurvey(dealer.id, { financeAvailable: "no" })}>{t.cashOnly}</button>
-        <button type="button" className={cn("min-h-11 shrink-0 rounded-full px-3 text-xs font-semibold", survey?.financeAvailable === "yes" ? "bg-primary text-primary-fg" : "bg-surface-2 text-fg")} onClick={() => void patchSurvey(dealer.id, { financeAvailable: "yes" })}>{t.financeYes}</button>
-      </div>
-
-      {near.length ? (
-        <div className="mb-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted">{t.aroundHere}</p>
-          <div className="mt-1">
-            {near.map(({ row, meters }) => (
-              <button key={row.id} type="button" onClick={() => onOpenNearby(row.id)} className="flex min-h-11 w-full items-center justify-between gap-2 text-start">
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium">{lang === "ar" && row.nameAr ? row.nameAr : row.nameEn}</span>
-                  {row.flags.street ? <span className="block truncate text-xs text-muted">{row.flags.street}</span> : null}
-                </span>
-                <span className="shrink-0 text-xs tabular-nums text-muted">{formatDistance(meters)}{meters < 28 ? ` · ${t.nearbyDup}` : ""}</span>
-              </button>
+      <div className="mb-3 rounded-xl bg-surface-2 px-3 py-2">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted">{t.onFile}</p>
+        <label className="mt-2 block">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">{t.stdName}</span>
+          <input className="mt-0.5 min-h-9 w-full rounded-lg bg-surface px-2 text-sm" value={nameEn} onChange={(e) => setNameEn(e.target.value)} onFocus={() => setNameFocus(true)} onBlur={() => { setNameFocus(false); saveName(); }} />
+        </label>
+        <label className="mt-2 block">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">{t.stdNameAr}</span>
+          <input className="mt-0.5 min-h-9 w-full rounded-lg bg-surface px-2 text-sm" dir="rtl" value={nameAr} onChange={(e) => setNameAr(e.target.value)} onFocus={() => setNameFocus(true)} onBlur={() => { setNameFocus(false); saveName(); }} />
+        </label>
+        {nameFocus && assist ? (
+          <div className="mt-2 rounded-lg bg-surface px-2 py-1">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">
+              {assist.hits.length ? (assist.mode === "name" ? t.assistName : t.assistGap) : t.assistNone}
+              {assist.hits.length ? ` · ${assist.radius} m` : ""}
+            </p>
+            {assist.hits.map(({ row, meters }) => {
+              const gaps = cardGaps(surveyOf(row.id));
+              return (
+                <button key={row.id} type="button" onPointerDown={(e) => e.preventDefault()} onClick={() => onOpenNearby(row.id)} className="flex min-h-10 w-full items-center justify-between gap-2 text-start">
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium">{lang === "ar" && row.nameAr ? row.nameAr : row.nameEn}</span>
+                    <span className="block truncate text-[11px] text-muted">{[row.flags.street, gaps.length ? gaps.join(", ") : null].filter(Boolean).join(" · ")}</span>
+                  </span>
+                  <span className="shrink-0 text-xs tabular-nums text-muted">{formatDistance(meters)}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
+        <label className="mt-2 block">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">{t.location}</span>
+          <input className="mt-0.5 min-h-9 w-full rounded-lg bg-surface px-2 text-sm" value={street} onChange={(e) => setStreet(e.target.value)} onBlur={saveStreet} />
+        </label>
+        <div className="mt-2">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">{t.stdCarType}</span>
+          <div className="mt-1 flex gap-1">
+            {([
+              ["used_only", t.stdOld],
+              ["new_only", t.stdNew],
+              ["mix", t.stdMix],
+            ] as const).map(([id, label]) => (
+              <button key={id} type="button" onClick={() => void patchSurvey(dealer.id, { vehicleType: id })} className={cn("min-h-9 flex-1 rounded-full text-xs font-semibold", survey?.vehicleType === id ? "bg-primary text-primary-fg" : "bg-surface text-fg")}>{label}</button>
             ))}
           </div>
         </div>
-      ) : null}
+        <label className="mt-2 block">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">{t.stdSize}</span>
+          <input className="mt-0.5 min-h-9 w-full rounded-lg bg-surface px-2 text-sm tabular-nums" inputMode="decimal" value={size} placeholder="m²" onChange={(e) => setSize(e.target.value)} onBlur={() => saveNum(size, "showroomSizeSqm")} />
+        </label>
+        <label className="mt-2 block">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">{t.stdBrands}</span>
+          <input className="mt-0.5 min-h-9 w-full rounded-lg bg-surface px-2 text-sm" value={brands} placeholder="Hyundai, Kia, Toyota" onChange={(e) => setBrands(e.target.value)} onBlur={saveBrands} />
+        </label>
+        <label className="mt-2 block">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">{t.stdTotal}</span>
+          <input className="mt-0.5 min-h-9 w-full rounded-lg bg-surface px-2 text-sm tabular-nums" inputMode="numeric" value={cars} onChange={(e) => setCars(e.target.value)} onBlur={() => saveNum(cars, "inventoryUnits")} />
+        </label>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <label className="block">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">{t.stdInside}</span>
+            <input className="mt-0.5 min-h-9 w-full rounded-lg bg-surface px-2 text-sm tabular-nums" inputMode="numeric" value={inside} onChange={(e) => setInside(e.target.value)} onBlur={() => saveNum(inside, "inventoryInside")} />
+          </label>
+          <label className="block">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">{t.stdOutside}</span>
+            <input className="mt-0.5 min-h-9 w-full rounded-lg bg-surface px-2 text-sm tabular-nums" inputMode="numeric" value={outside} onChange={(e) => setOutside(e.target.value)} onBlur={() => saveNum(outside, "inventoryOutside")} />
+          </label>
+        </div>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <label className="block">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">{t.stdAsp}</span>
+            <input className="mt-0.5 min-h-9 w-full rounded-lg bg-surface px-2 text-sm tabular-nums" inputMode="decimal" value={asp} onChange={(e) => setAsp(e.target.value)} onBlur={() => saveNum(asp, "avgSellingPriceSar")} />
+          </label>
+          <label className="block">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">{t.stdOver5}</span>
+            <input className="mt-0.5 min-h-9 w-full rounded-lg bg-surface px-2 text-sm tabular-nums" inputMode="decimal" value={over5} placeholder="%" onChange={(e) => setOver5(e.target.value)} onBlur={() => saveNum(over5, "inventoryAgePctOver5")} />
+          </label>
+        </div>
+      </div>
 
       {editingCoords ? (
         <div className="mb-3 rounded-xl bg-surface-2 p-3">
@@ -289,36 +340,6 @@ function DealerSheetBody({
           <button type="button" className="mt-1 min-h-10 text-xs font-semibold text-primary" onClick={() => onOpenPartner(partner)}>{t.openOtherDesk}</button>
         </div>
       ) : dealer.flags.relatedSdId ? <p className="mb-2 text-xs text-muted">{t.relatedDesk} {dealer.flags.relatedSdId}</p> : null}
-      {brands.length ? <div className="mb-3 flex flex-wrap gap-1">{brands.map((b) => <span key={b} className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">{b}</span>)}</div> : null}
-
-      <div className="mb-3 rounded-xl bg-surface-2 px-3 py-2">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted">{t.onFile}</p>
-          <div className="flex items-center">
-            {editingNotes ? (
-              <>
-                <button type="button" onClick={() => setEditingNotes(false)} className="flex min-h-10 items-center gap-1 px-1 text-xs font-semibold text-muted"><X className="size-3.5" />{t.cancel}</button>
-                <button type="button" onClick={saveNotes} className="flex min-h-10 items-center gap-1 px-1 text-xs font-semibold text-primary"><Check className="size-3.5" />{t.save}</button>
-              </>
-            ) : (
-              <>
-                <button type="button" onClick={() => { setNotesDraft(notesBody); setNotesSaved(false); setEditingNotes(true); }} className="flex min-h-10 items-center gap-1 px-1 text-xs font-semibold text-primary"><Pencil className="size-3.5" />{t.editNote}</button>
-                <button type="button" onClick={() => void copyNotes()} disabled={!notesBody} className="flex min-h-10 items-center gap-1 px-1 text-xs font-semibold text-primary disabled:text-faint">{copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}{copied ? t.copied : t.copyNotes}</button>
-              </>
-            )}
-          </div>
-        </div>
-        {editingNotes ? (
-          <textarea value={notesDraft} onChange={(e) => setNotesDraft(e.target.value)} rows={6} className="mt-1 w-full resize-y rounded-lg border border-primary/40 bg-surface px-2 py-2 text-xs leading-relaxed text-fg outline-none" />
-        ) : notesBody ? (
-          <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-xs leading-relaxed text-fg">{notesBody}</p>
-        ) : (
-          <p className="mt-1 text-xs text-faint">{t.notes}</p>
-        )}
-        {noteFigures.length && !editingNotes ? (
-          <button type="button" onClick={applyNoteFigures} className="mt-2 min-h-10 text-start text-xs font-semibold text-primary">{t.useNoteFigures}</button>
-        ) : null}
-      </div>
 
       <div className="grid grid-cols-3 gap-2">
         <a href={maps} target="_blank" rel="noreferrer" className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-surface-2 text-xs font-medium text-fg"><MapPinned className="size-4" />{t.openMaps}</a>

@@ -52,6 +52,23 @@ export function nearestDealers<T extends { id: string; lat: number; lng: number;
   return out.slice(0, limit);
 }
 
+/** Nearest rows, widening 500 → 1,000 → 1,500 m until something matches. */
+export function nearestExpanding<T extends { id: string; lat: number; lng: number; flags?: { unplaced?: boolean } }>(
+  point: { lat: number; lng: number },
+  rows: T[],
+  match: (row: T, meters: number) => boolean,
+  opts?: { excludeId?: string | null; limit?: number },
+): { radius: number; hits: { row: T; meters: number }[] } {
+  const limit = opts?.limit ?? 5;
+  for (const radius of [500, 1000, 1500]) {
+    const hits = nearestDealers(point, rows, { excludeId: opts?.excludeId, radiusM: radius, limit: 24 }).filter((h) =>
+      match(h.row, h.meters),
+    );
+    if (hits.length) return { radius, hits: hits.slice(0, limit) };
+  }
+  return { radius: 1500, hits: [] };
+}
+
 export function optimizeWalkOrder<T extends { lat: number; lng: number }>(
   start: { lat: number; lng: number },
   points: T[],

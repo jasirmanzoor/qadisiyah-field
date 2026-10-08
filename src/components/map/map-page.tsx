@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { COPY, STATUS_LABEL } from "@/lib/i18n";
-import { formatDistance, haversineM, MARKET_CENTERS, nearestDealers, optimizeWalkOrder } from "@/lib/geo";
+import { formatDistance, haversineM, MARKET_CENTERS, nearestDealers, nearestExpanding, optimizeWalkOrder } from "@/lib/geo";
 import { dealersInMarket, dealerMarket, dualPartner, isDualLocation } from "@/lib/markets";
 import { buildExcelXml, downloadBlob } from "@/lib/export";
 import { isDeepDived, isSurveyedShowroom } from "@/lib/survey-schema";
@@ -230,10 +230,21 @@ export function MapPage() {
   }, [origin, routeDealers]);
   const pinPoint = draftAt ?? (gps && !gpsError && gps.accuracy < 800 ? { lat: gps.lat, lng: gps.lng } : null);
   const nearby = useMemo(() => {
-    if (!adding || !pinPoint) return [];
-    return nearestDealers(pinPoint, roster, { excludeId: draftId, radiusM: 140, limit: 5 });
-  }, [adding, roster, pinPoint, draftId]);
-  const streetNearby = nearby.find((x) => x.row.flags.street)?.row.flags.street ?? "";
+    if (!adding || !pinPoint) return { radius: 500, mode: "gap" as const, hits: [] as { row: Dealership; meters: number }[] };
+    const q = newName.trim().toLowerCase();
+    const named = (row: Dealership) => q.length >= 2 && (row.nameEn.toLowerCase().includes(q) || (row.nameAr || "").toLowerCase().includes(q));
+    const missing = (row: Dealership) => {
+      const s = surveyByDealer.get(row.id);
+      return !s?.vehicleType || s.showroomSizeSqm == null || !(s.mainBrands && s.mainBrands.length) || s.inventoryUnits == null || s.avgSellingPriceSar == null || s.inventoryAgePctOver5 == null;
+    };
+    if (q.length >= 2) {
+      const hit = nearestExpanding(pinPoint, roster, (row) => named(row), { excludeId: draftId, limit: 4 });
+      if (hit.hits.length) return { ...hit, mode: "name" as const };
+    }
+    const gaps = nearestExpanding(pinPoint, roster, (row) => missing(row), { excludeId: draftId, limit: 4 });
+    return { ...gaps, mode: "gap" as const };
+  }, [adding, roster, pinPoint, draftId, newName, surveyByDealer]);
+  const streetNearby = nearby.hits.find((x) => x.row.flags.street)?.row.flags.street ?? "";
   const sheetOpen = Boolean(selected || nearMe || planning || adding || cluster);
   const surveyedPct = counts.all ? Math.round((counts.surveyed / counts.all) * 100) : 0;
   function flyTo(d: { lat: number; lng: number }, zoom = 17) { setFocus({ lat: d.lat, lng: d.lng, zoom, nonce: Date.now(), padBottom: true }); }
@@ -530,7 +541,7 @@ export function MapPage() {
         </div>
       ) : null}
       {sheetOpen ? (
-      <div className="qads-dock z-30 max-h-[46%] w-full min-w-0 max-w-full shrink-0 overflow-x-hidden overflow-y-auto px-3 pb-2">
+      <div className="qads-dock z-30 max-h-[58%] w-full min-w-0 max-w-full shrink-0 overflow-x-hidden overflow-y-auto px-3 pb-2">
       {planning ? (
         <div className="qads-sheet rounded-2xl p-4">
           <div className="mb-2 flex items-center justify-between gap-2"><div><p className="text-sm font-semibold">{t.selectStops}</p><p className="text-xs tabular-nums text-muted">{routeDealers.length} {t.stops}{routeDealers.length ? ` · ${t.routeTotal} ${formatDistance(routeMeters)}` : ""}</p></div><button type="button" className="min-h-10 px-2 text-xs font-medium text-muted" onClick={() => setRouteIds([])}>{t.clearRoute}</button></div>
@@ -560,36 +571,25 @@ export function MapPage() {
             enterKeyHint="done"
           />
           <p className="mt-2 text-xs text-muted">
-            {locBusy ? t.fetchingGps : pinPoint && !draftAt ? `${t.stoodHere}${gps ? ` · ${Math.round(gps.accuracy)} m` : ""}` : t.dropPin}
-            {draftAt ? ` · ${draftAt.lat.toFixed(5)}, ${draftAt.lng.toFixed(5)}` : draftId ? ` · ${t.noPin}` : ""}
+            {locBusy ? t.fetchingGps : pinPoint ? `${pinPoint.lat.toFixed(5)}, ${pinPoint.lng.toFixed(5)}${gps && !draftAt ? ` · ${Math.round(gps.accuracy)} m` : ""}` : t.dropPin}
           </p>
           {streetNearby && streetPick !== streetNearby ? (
             <button type="button" onClick={() => acceptStreet(streetNearby)} className="mt-2 flex min-h-11 w-full items-center justify-between gap-2 rounded-xl bg-surface-2 px-3 text-start">
               <span className="min-w-0"><span className="block text-xs text-muted">{t.streetHint}</span><span className="block truncate text-sm font-semibold">{streetNearby}</span></span>
             </button>
           ) : streetPick ? <p className="mt-2 text-xs font-medium text-fg">{streetPick}</p> : null}
-          {nearby.length ? (
-            <div className="mt-2">
-              <p className="text-xs font-semibold text-muted">{t.aroundHere}</p>
-              {nearby.map(({ row, meters }) => (
-                <button key={row.id} type="button" onClick={() => pickDealer(row.id)} className="flex min-h-11 w-full items-center justify-between gap-2 text-start">
-                  <span className="min-w-0 truncate text-sm">{lang === "ar" && row.nameAr ? row.nameAr : row.nameEn}</span>
-                  <span className="shrink-0 text-xs tabular-nums text-muted">{formatDistance(meters)}{meters < 28 ? ` · ${t.nearbyDup}` : ""}</span>
-                </button>
-              ))}
-            </div>
-          ) : null}
-          {draftId ? (
-            <div className="mt-3">
-              <p className="text-xs text-muted">{t.detailsLater}</p>
-              <div className="qads-chips mt-2 flex gap-2 overflow-x-auto pb-1">
-                <input className="qads-mini" value={newPhone} inputMode="tel" placeholder={t.phone} onChange={(e) => { phoneRef.current = e.target.value; setNewPhone(e.target.value); }} onBlur={() => void saveDraft()} />
-                <input className="qads-mini" value={detailUnits} inputMode="numeric" placeholder={t.floorCars} onChange={(e) => { unitsRef.current = e.target.value; setDetailUnits(e.target.value); }} onBlur={() => void saveDraftDetails()} />
-                <input className="qads-mini" value={detailSqm} inputMode="decimal" placeholder={t.floorSqm} onChange={(e) => { sqmRef.current = e.target.value; setDetailSqm(e.target.value); }} onBlur={() => void saveDraftDetails()} />
-                <input className="qads-mini" value={detailAsp} inputMode="decimal" placeholder={t.floorAsp} onChange={(e) => { aspRef.current = e.target.value; setDetailAsp(e.target.value); }} onBlur={() => void saveDraftDetails()} />
-              </div>
-            </div>
-          ) : null}
+          <div className="mt-2">
+            <p className="text-xs font-semibold text-muted">
+              {nearby.hits.length ? (nearby.mode === "name" ? t.assistName : t.assistGap) : t.assistNone}
+              {nearby.hits.length ? ` · ${nearby.radius} m` : ""}
+            </p>
+            {nearby.hits.map(({ row, meters }) => (
+              <button key={row.id} type="button" onClick={() => pickDealer(row.id)} className="flex min-h-11 w-full items-center justify-between gap-2 text-start">
+                <span className="min-w-0 truncate text-sm">{lang === "ar" && row.nameAr ? row.nameAr : row.nameEn}</span>
+                <span className="shrink-0 text-xs tabular-nums text-muted">{formatDistance(meters)}</span>
+              </button>
+            ))}
+          </div>
         </div>
       ) : null}
       </div>
