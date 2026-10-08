@@ -6,8 +6,8 @@ import type { Dealership, SurveyPayload } from "@/lib/types";
 import { StatusBadge, TrainingBadge } from "@/components/ui/field";
 import { usePrefs } from "@/stores/prefs";
 import { useField } from "@/stores/field";
-import { Phone, MessageCircle, MapPinned, X, Camera, ImagePlus, ChevronRight, MoreHorizontal } from "lucide-react";
-import { useRef, useState, type PointerEvent } from "react";
+import { Phone, MessageCircle, MapPinned, X, Camera, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
+import { useRef, useState } from "react";
 import { formatCoord } from "./map-notes";
 
 export function DealerSheet(props: {
@@ -71,9 +71,7 @@ function DealerSheetBody({
   const removePhoto = useField((s) => s.removePhoto);
   const cameraRef = useRef<HTMLInputElement>(null);
   const libraryRef = useRef<HTMLInputElement>(null);
-  const dragY = useRef(0);
   const [addOpen, setAddOpen] = useState(false);
-  const [galleryOpen, setGalleryOpen] = useState(false);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [shot, setShot] = useState<string | null>(null);
 
@@ -96,18 +94,6 @@ function DealerSheetBody({
   const maps = dealer.flags.mapsUrl || (placed ? mapsLink(dealer.lat, dealer.lng, dealer.nameEn) : "");
   const statusLabel = trainingCopy(lang, dealer.flags);
 
-  function onDragStart(e: PointerEvent) {
-    dragY.current = e.clientY;
-  }
-  function onDragEnd(e: PointerEvent) {
-    const dy = e.clientY - dragY.current;
-    if (dy < -28) onExpand();
-    else if (dy > 28) {
-      if (expanded) onCollapse();
-      else onClose();
-    }
-  }
-
   async function savePhotos(list: FileList | null) {
     if (!list?.length) return;
     setPhotoBusy(true);
@@ -124,7 +110,6 @@ function DealerSheetBody({
           capturedAt: new Date().toISOString(),
         });
       }
-      setGalleryOpen(true);
       setAddOpen(false);
     } finally {
       setPhotoBusy(false);
@@ -140,105 +125,99 @@ function DealerSheetBody({
   );
 
   return (
-    <div className="qads-card" data-open={expanded ? "1" : "0"} key={dealer.id}>
-      <div
-        className="shrink-0 cursor-grab touch-none px-5 pt-2"
-        onPointerDown={onDragStart}
-        onPointerUp={onDragEnd}
+    <div className="qads-card" data-open={expanded ? "1" : "0"}>
+      <button
+        type="button"
+        onClick={expanded ? onCollapse : onExpand}
+        className="flex h-11 w-full shrink-0 items-center justify-center gap-1.5 text-xs font-semibold text-muted"
+        aria-label={expanded ? t.collapseCard : t.swipeHint}
       >
-        <div className="mx-auto h-1 w-9 rounded-full bg-surface-2" />
-      </div>
+        {expanded ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />}
+        {expanded ? t.collapseCard : t.swipeHint}
+      </button>
       <div className={cn("min-h-0 flex-1", expanded ? "overflow-y-auto overscroll-contain" : "overflow-hidden")}>
-        <div className="px-5 pb-4 pt-3.5" onPointerDown={expanded ? undefined : onDragStart} onPointerUp={expanded ? undefined : onDragEnd}>
+        <div className="px-4 pb-3">
           <div className="flex items-start gap-2">
+            <button type="button" onClick={onClose} className="grid size-9 shrink-0 place-items-center text-muted" aria-label={t.cancel}>
+              <X className="size-4" />
+            </button>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-lg font-semibold leading-tight tracking-tight" dir="rtl">{dealer.nameAr}</p>
+              <p className="line-clamp-2 text-end text-base font-semibold leading-snug" dir="rtl">{dealer.nameAr}</p>
               <p className="truncate text-sm text-muted">{dealer.nameEn}</p>
             </div>
-            <button type="button" onPointerDown={(e) => e.stopPropagation()} onClick={onClose} className="grid size-9 shrink-0 place-items-center text-muted" aria-label={t.cancel}>
-              <MoreHorizontal className="size-4" />
-            </button>
           </div>
-          <div className="mt-3.5">{metrics}</div>
-          <p className="mt-3 truncate text-xs font-semibold uppercase tracking-wide text-fg">
+          <div className="mt-3">{metrics}</div>
+          <p className="mt-2.5 truncate text-xs font-semibold uppercase tracking-wide text-fg">
             {[carType, brands].filter(Boolean).join("  ·  ")}
           </p>
-          {expanded ? null : <p className="mt-3 text-center text-[11px] font-medium text-muted">{t.swipeHint}</p>}
         </div>
 
-        {expanded ? (
-          <div className="px-5 pb-5">
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              <StatusBadge status={dealer.status} />
-              {statusLabel ? <TrainingBadge stage={dealer.flags.trainingStage} priority={dealer.flags.trainingPriority} label={statusLabel} /> : null}
-              {partner ? <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-fg">{t.bothMarkets}</span> : null}
-            </div>
+        <div className="px-4 pb-6">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <StatusBadge status={dealer.status} />
+            {statusLabel ? <TrainingBadge stage={dealer.flags.trainingStage} priority={dealer.flags.trainingPriority} label={statusLabel} /> : null}
+            {partner ? <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-fg">{t.bothMarkets}</span> : null}
+          </div>
 
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">{t.keyMetrics}</p>
-            <div className="mt-2">{metrics}</div>
-
-            <p className="mb-1 mt-5 text-[10px] font-semibold uppercase tracking-wide text-muted">{t.surveyRecord}</p>
-            <Record label={t.location} value={location} />
-            <Record label={t.stdCarType} value={carType} />
-            <Record label={t.stdSize} value={survey?.showroomSizeSqm != null ? `${survey.showroomSizeSqm} mtrs` : ""} />
-            <Record label={t.stdBrands} value={brands} />
-            <Record label={t.stdTotal} value={cars} />
-            <Record label={t.stdInside} value={survey?.inventoryInside != null ? String(survey.inventoryInside) : ""} />
-            <Record label={t.stdOutside} value={survey?.inventoryOutside != null ? String(survey.inventoryOutside) : ""} />
-            <Record label={t.stdAsp} value={survey?.avgSellingPriceSar != null ? `${survey.avgSellingPriceSar.toLocaleString("en-US")} SAR` : ""} />
-            <Record label={t.stdOver5} value={over5} />
-
-            <div className="mt-5">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">{t.noteLabel}</p>
-              <div className="mt-1 min-h-16 whitespace-pre-wrap text-sm leading-relaxed text-fg">{note}</div>
-            </div>
-
-            <button type="button" onClick={() => onSurvey(dealer.id)} className="mt-4 flex min-h-12 w-full items-center justify-between gap-3 border-t border-border pt-3 text-start">
-              <span>
-                <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted">{t.phase2}</span>
-                <span className="mt-0.5 block text-sm font-semibold text-fg">{deep ? `✓ ${phase}` : phase}</span>
-              </span>
-              <ChevronRight className="size-4 shrink-0 text-muted" />
-            </button>
-
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              {maps ? <a href={maps} target="_blank" rel="noreferrer" className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-surface-2 text-xs font-medium text-fg"><MapPinned className="size-4" />{t.openMaps}</a> : <span className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl text-xs text-faint"><MapPinned className="size-4" />{t.openMaps}</span>}
-              {call ? <a href={call} className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-surface-2 text-xs font-medium text-fg"><Phone className="size-4" />{t.call}</a> : <span className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl text-xs text-faint"><Phone className="size-4" />{t.call}</span>}
-              {wa ? <a href={wa} target="_blank" rel="noreferrer" className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-surface-2 text-xs font-medium text-fg"><MessageCircle className="size-4" />{t.whatsapp}</a> : <span className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl text-xs text-faint"><MessageCircle className="size-4" />{t.whatsapp}</span>}
-            </div>
-            <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { void savePhotos(e.target.files); e.target.value = ""; }} />
-            <input ref={libraryRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { void savePhotos(e.target.files); e.target.value = ""; }} />
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <button type="button" onClick={() => setAddOpen((v) => !v)} disabled={photoBusy} className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-surface-2 text-sm font-semibold disabled:opacity-40"><Camera className="size-4" />{photoBusy ? t.saving : t.addPhotos}</button>
-              <button type="button" onClick={() => setGalleryOpen((v) => !v)} className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-surface-2 text-sm font-semibold"><ImagePlus className="size-4" />{t.photoLibrary}{photos.length ? ` · ${photos.length}` : ""}</button>
-            </div>
-            {addOpen ? (
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <button type="button" onClick={() => cameraRef.current?.click()} className="min-h-11 rounded-xl bg-primary text-sm font-semibold text-primary-fg">{t.takePhoto}</button>
-                <button type="button" onClick={() => libraryRef.current?.click()} className="min-h-11 rounded-xl bg-primary text-sm font-semibold text-primary-fg">{t.uploadPhoto}</button>
-              </div>
-            ) : null}
-            {galleryOpen ? (
-              photos.length ? (
-                <div className="mt-2 flex gap-2 overflow-x-auto">
-                  {photos.map((p) => (
-                    <button key={p.id} type="button" className="shrink-0 overflow-hidden rounded-xl" onClick={() => setShot(p.id)}>
-                      <img src={p.dataUrl} alt="" className="size-16 object-cover" />
-                    </button>
-                  ))}
-                </div>
-              ) : <p className="mt-2 text-xs text-muted">{t.galleryEmpty}</p>
-            ) : null}
-            <button
-              type="button"
-              disabled={surveyLocked || dealer.status === "competitor"}
-              onClick={() => onSurvey(dealer.id)}
-              className="mt-3 flex min-h-12 w-full items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-fg disabled:opacity-40"
-            >
-              {dealer.status === "not_visited" ? t.startSurvey : t.continueSurvey}
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">{t.photoLibrary}</p>
+          <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+            {photos.map((p) => (
+              <button key={p.id} type="button" className="size-[4.75rem] shrink-0 overflow-hidden rounded-xl bg-surface-2" onClick={() => setShot(p.id)}>
+                <img src={p.dataUrl} alt="" className="size-full object-cover" />
+              </button>
+            ))}
+            <button type="button" onClick={() => setAddOpen((v) => !v)} disabled={photoBusy} className="flex size-[4.75rem] shrink-0 flex-col items-center justify-center gap-1 rounded-xl bg-surface-2 text-[10px] font-semibold text-muted">
+              <Camera className="size-4" />
+              {photoBusy ? t.saving : t.addPhotos}
             </button>
           </div>
-        ) : null}
+          {addOpen ? (
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => cameraRef.current?.click()} className="min-h-11 rounded-xl bg-primary text-sm font-semibold text-primary-fg">{t.takePhoto}</button>
+              <button type="button" onClick={() => libraryRef.current?.click()} className="min-h-11 rounded-xl bg-primary text-sm font-semibold text-primary-fg">{t.uploadPhoto}</button>
+            </div>
+          ) : null}
+          <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { void savePhotos(e.target.files); e.target.value = ""; }} />
+          <input ref={libraryRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { void savePhotos(e.target.files); e.target.value = ""; }} />
+
+          <p className="mb-1 mt-5 text-[10px] font-semibold uppercase tracking-wide text-muted">{t.surveyRecord}</p>
+          <Record label={t.location} value={location} />
+          <Record label={t.stdCarType} value={carType} />
+          <Record label={t.stdSize} value={survey?.showroomSizeSqm != null ? `${survey.showroomSizeSqm} mtrs` : ""} />
+          <Record label={t.stdBrands} value={brands} />
+          <Record label={t.stdTotal} value={cars} />
+          <Record label={t.stdInside} value={survey?.inventoryInside != null ? String(survey.inventoryInside) : ""} />
+          <Record label={t.stdOutside} value={survey?.inventoryOutside != null ? String(survey.inventoryOutside) : ""} />
+          <Record label={t.stdAsp} value={survey?.avgSellingPriceSar != null ? `${survey.avgSellingPriceSar.toLocaleString("en-US")} SAR` : ""} />
+          <Record label={t.stdOver5} value={over5} />
+
+          <div className="mt-5">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">{t.noteLabel}</p>
+            <div className="mt-1 min-h-16 whitespace-pre-wrap text-sm leading-relaxed text-fg">{note}</div>
+          </div>
+
+          <button type="button" onClick={() => onSurvey(dealer.id)} className="mt-4 flex min-h-12 w-full items-center justify-between gap-3 border-t border-border pt-3 text-start">
+            <span>
+              <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted">{t.phase2}</span>
+              <span className="mt-0.5 block text-sm font-semibold text-fg">{deep ? `✓ ${phase}` : phase}</span>
+            </span>
+            <ChevronRight className="size-4 shrink-0 text-muted" />
+          </button>
+
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            {maps ? <a href={maps} target="_blank" rel="noreferrer" className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-surface-2 text-xs font-medium text-fg"><MapPinned className="size-4" />{t.openMaps}</a> : <span className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl text-xs text-faint"><MapPinned className="size-4" />{t.openMaps}</span>}
+            {call ? <a href={call} className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-surface-2 text-xs font-medium text-fg"><Phone className="size-4" />{t.call}</a> : <span className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl text-xs text-faint"><Phone className="size-4" />{t.call}</span>}
+            {wa ? <a href={wa} target="_blank" rel="noreferrer" className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-surface-2 text-xs font-medium text-fg"><MessageCircle className="size-4" />{t.whatsapp}</a> : <span className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl text-xs text-faint"><MessageCircle className="size-4" />{t.whatsapp}</span>}
+          </div>
+          <button
+            type="button"
+            disabled={surveyLocked || dealer.status === "competitor"}
+            onClick={() => onSurvey(dealer.id)}
+            className="mt-3 flex min-h-12 w-full items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-fg disabled:opacity-40"
+          >
+            {dealer.status === "not_visited" ? t.startSurvey : t.continueSurvey}
+          </button>
+        </div>
       </div>
       {shot ? (
         <div className="evidence-lightbox fixed inset-0 z-50 flex flex-col bg-fg/95" onClick={() => setShot(null)}>

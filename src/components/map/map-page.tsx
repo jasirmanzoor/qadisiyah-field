@@ -90,6 +90,7 @@ export function MapPage() {
   const [newName, setNewName] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [search, setSearch] = useState("");
+  const [searchFocus, setSearchFocus] = useState(false);
   const [filter, setFilter] = useState<FilterId>("all");
   const [cluster, setCluster] = useState<Dealership[] | null>(null);
   const [focus, setFocus] = useState<MapFocus | null>(null);
@@ -266,7 +267,8 @@ export function MapPage() {
     return () => window.removeEventListener("popstate", onPop);
   }, []);
   const dockOpen = Boolean(nearMe || planning || adding || cluster);
-  const cardOpen = Boolean(selected && !planning && !nearMe && !cluster);
+  const searching = searchFocus || search.trim().length > 0;
+  const cardOpen = Boolean(selected && !searching && !planning && !nearMe && !cluster);
   const surveyedPct = counts.all ? Math.round((counts.surveyed / counts.all) * 100) : 0;
   function flyTo(d: { lat: number; lng: number }, zoom = 17, pad = false) { setFocus({ lat: d.lat, lng: d.lng, zoom, nonce: Date.now(), padBottom: pad }); }
   function exportListExcel() {
@@ -480,15 +482,15 @@ export function MapPage() {
             <div className="qads-hud rounded-full px-1 shadow-[0_8px_24px_-16px_rgba(26,29,24,0.55)]">
               <div className="relative">
                 <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
-                <input className="min-h-10 w-full bg-transparent pe-10 ps-10 text-sm text-fg placeholder:text-faint focus-visible:outline-none" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t.searchShowrooms} enterKeyHint="search" />
+                <input className="min-h-10 w-full bg-transparent pe-10 ps-10 text-sm text-fg placeholder:text-faint focus-visible:outline-none" value={search} onChange={(e) => setSearch(e.target.value)} onFocus={() => { setSearchFocus(true); if (selectedId) { setSheetMode("collapsed"); setSelectedId(null); setEditingCoords(false); cardPushed.current = false; } }} onBlur={() => window.setTimeout(() => setSearchFocus(false), 180)} placeholder={t.searchShowrooms} enterKeyHint="search" />
                 {search ? <button type="button" onClick={() => setSearch("")} className="absolute end-0.5 top-1/2 grid size-9 -translate-y-1/2 place-items-center text-muted" aria-label={t.clearSearch}><X className="size-4" /></button> : null}
               </div>
             </div>
-            {search.trim() && !planning && !adding && !listMode && !selected ? (
-              <div className="qads-sheet relative z-30 mt-1 max-h-56 overflow-auto rounded-2xl p-1">
-                {searchHits.length === 0 ? (
+            {search.trim() && !planning && !adding && !listMode ? (
+              <div className="qads-sheet relative z-40 mt-1 max-h-[min(24rem,calc(100dvh-16rem))] overflow-auto rounded-2xl bg-bg p-1">
+                {!search.trim() ? null : searchHits.length === 0 ? (
                   <div className="px-2 py-2"><p className="px-1 py-2 text-sm text-muted">{t.noShowroomMatch}</p><Button data-add="1" size="sm" className="w-full" onClick={() => openAdd(search)}><MapPinPlus className="size-4" />{t.addThisLot}</Button></div>
-                ) : searchHits.map((d) => <DealerRow key={d.id} dealer={d} dual={dualIds.has(d.id)} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, hasPin(d) ? (d.nameAr || d.listedPhone || d.flags.street) : t.noPin].filter(Boolean).join(" · ")} lang={lang} onClick={() => pickDealer(d.id)} />)}
+                ) : searchHits.map((d) => <DealerRow key={d.id} dealer={d} dual={dualIds.has(d.id)} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, hasPin(d) ? (d.nameAr || d.listedPhone || d.flags.street) : t.noPin].filter(Boolean).join(" · ")} lang={lang} onClick={() => { setSearch(""); setSearchFocus(false); pickDealer(d.id); }} />)}
               </div>
             ) : (
               <div className="qads-chips mt-1.5 flex max-w-full gap-1 overflow-x-auto">
