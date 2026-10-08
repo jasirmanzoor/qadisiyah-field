@@ -7,8 +7,9 @@ import { StatusBadge, TrainingBadge } from "@/components/ui/field";
 import { usePrefs } from "@/stores/prefs";
 import { useField } from "@/stores/field";
 import { Phone, MessageCircle, MapPinned, X, Camera, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
-import { useRef, useState } from "react";
-import { formatCoord } from "./map-notes";
+import { useEffect, useRef, useState } from "react";
+import { formatCoord, parseStandardNote, standardNoteText } from "./map-notes";
+import { isProtectedGps } from "@/lib/types";
 
 export function DealerSheet(props: {
   dealer: Dealership;
@@ -33,6 +34,7 @@ export function DealerSheet(props: {
   onMarkClosed: () => void;
   onOpenPartner: (p: Dealership) => void;
   onOpenNearby: (id: string) => void;
+  onSaved: () => void;
 }) {
   return <DealerSheetBody {...props} />;
 }
@@ -63,17 +65,23 @@ function aspLabel(n: number | null | undefined) {
 }
 
 function DealerSheetBody({
-  dealer, partner, survey, photos = [], gps, expanded, onExpand, onCollapse, onClose, onSurvey,
+  dealer, partner, survey, photos = [], gps, expanded, onExpand, onCollapse, onClose, onSurvey, onSaved,
 }: Parameters<typeof DealerSheet>[0]) {
   const { lang } = usePrefs();
   const t = COPY[lang];
   const addPhoto = useField((s) => s.addPhoto);
   const removePhoto = useField((s) => s.removePhoto);
+  const upsertDealer = useField((s) => s.upsertDealer);
+  const patchSurvey = useField((s) => s.patchSurvey);
+  const knownDealer = useField((s) => s.snapshot.dealerships.some((d) => d.id === dealer.id));
   const cameraRef = useRef<HTMLInputElement>(null);
   const libraryRef = useRef<HTMLInputElement>(null);
+  const noteRef = useRef<HTMLTextAreaElement>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [shot, setShot] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+  const [noteSaving, setNoteSaving] = useState(false);
 
   const cars = survey?.inventoryUnits != null ? String(survey.inventoryUnits) : "";
   const asp = aspLabel(survey?.avgSellingPriceSar);
@@ -89,10 +97,50 @@ function DealerSheetBody({
   );
   const phase = deep ? t.phaseDone : phaseStarted ? t.phaseProgress : t.phaseNot;
   const surveyLocked = basicRatio(dealer, survey) >= 0.7;
+  const needsDetails = placed && !surveyLocked && dealer.status !== "competitor";
   const call = telLink(dealer.listedPhone);
   const wa = waLink(dealer.listedPhone);
   const maps = dealer.flags.mapsUrl || (placed ? mapsLink(dealer.lat, dealer.lng, dealer.nameEn) : "");
   const statusLabel = trainingCopy(lang, dealer.flags);
+
+  useEffect(() => {
+    setDraft(standardNoteText(dealer, survey));
+    setNoteSaving(false);
+  }, [dealer.id, survey?.notes, survey?.inventoryUnits, survey?.avgSellingPriceSar, survey?.inventoryAgePctOver5, survey?.showroomSizeSqm, survey?.vehicleType]);
+
+  function openNotes() {
+    onExpand();
+    window.setTimeout(() => {
+      noteRef.current?.focus();
+      noteRef.current?.scrollIntoView({ block: "center" });
+    }, 340);
+  }
+
+  async function saveNote() {
+    setNoteSaving(true);
+    try {
+      const edit = parseStandardNote(draft);
+      if (!knownDealer) await upsertDealer(dealer);
+      const nextNameEn = edit.nameEn || dealer.nameEn;
+      const nextNameAr = edit.nameAr || dealer.nameAr;
+      const canMove = edit.coords && !isProtectedGps(dealer.flags);
+      const moved = Boolean(canMove && edit.coords && (edit.coords.lat !== dealer.lat || edit.coords.lng !== dealer.lng));
+      if (nextNameEn !== dealer.nameEn || nextNameAr !== dealer.nameAr || moved) {
+        await upsertDealer({
+          ...dealer,
+          nameEn: nextNameEn,
+          nameAr: nextNameAr,
+          lat: moved && edit.coords ? edit.coords.lat : dealer.lat,
+          lng: moved && edit.coords ? edit.coords.lng : dealer.lng,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+      await patchSurvey(dealer.id, edit.patch);
+      onSaved();
+    } finally {
+      setNoteSaving(false);
+    }
+  }
 
   async function savePhotos(list: FileList | null) {
     if (!list?.length) return;
@@ -128,12 +176,12 @@ function DealerSheetBody({
     <div className="qads-card" data-open={expanded ? "1" : "0"}>
       <button
         type="button"
-        onClick={expanded ? onCollapse : onExpand}
+        onClick={needsDetails && !expanded ? openNotes : expanded ? onCollapse : onExpand}
         className="flex h-11 w-full shrink-0 items-center justify-center gap-1.5 text-xs font-semibold text-muted"
-        aria-label={expanded ? t.collapseCard : t.swipeHint}
+        aria-label={needsDetails && !expanded ? t.addDetails : expanded ? t.collapseCard : t.swipeHint}
       >
         {expanded ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />}
-        {expanded ? t.collapseCard : t.swipeHint}
+        {needsDetails && !expanded ? t.addDetails : expanded ? t.collapseCard : t.swipeHint}
       </button>
       <div className={cn("min-h-0 flex-1", expanded ? "overflow-y-auto overscroll-contain" : "overflow-hidden")}>
         <div className="px-4 pb-3">
@@ -193,7 +241,22 @@ function DealerSheetBody({
 
           <div className="mt-5">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">{t.noteLabel}</p>
-            <div className="mt-1 min-h-16 whitespace-pre-wrap text-sm leading-relaxed text-fg">{note}</div>
+            {needsDetails ? (
+              <>
+                <textarea
+                  ref={noteRef}
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  rows={12}
+                  className="mt-2 w-full resize-y rounded-xl bg-surface-2 px-3 py-3 text-sm leading-relaxed text-fg focus-visible:outline-none"
+                />
+                <button type="button" onClick={() => void saveNote()} disabled={noteSaving} className="mt-2 flex min-h-12 w-full items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-fg disabled:opacity-40">
+                  {noteSaving ? t.saving : t.save}
+                </button>
+              </>
+            ) : (
+              <div className="mt-1 min-h-16 whitespace-pre-wrap text-sm leading-relaxed text-fg">{note}</div>
+            )}
           </div>
 
           <button type="button" onClick={() => onSurvey(dealer.id)} className="mt-4 flex min-h-12 w-full items-center justify-between gap-3 border-t border-border pt-3 text-start">
@@ -209,14 +272,6 @@ function DealerSheetBody({
             {call ? <a href={call} className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-surface-2 text-xs font-medium text-fg"><Phone className="size-4" />{t.call}</a> : <span className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl text-xs text-faint"><Phone className="size-4" />{t.call}</span>}
             {wa ? <a href={wa} target="_blank" rel="noreferrer" className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl bg-surface-2 text-xs font-medium text-fg"><MessageCircle className="size-4" />{t.whatsapp}</a> : <span className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl text-xs text-faint"><MessageCircle className="size-4" />{t.whatsapp}</span>}
           </div>
-          <button
-            type="button"
-            disabled={surveyLocked || dealer.status === "competitor"}
-            onClick={() => onSurvey(dealer.id)}
-            className="mt-3 flex min-h-12 w-full items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-fg disabled:opacity-40"
-          >
-            {dealer.status === "not_visited" ? t.startSurvey : t.continueSurvey}
-          </button>
         </div>
       </div>
       {shot ? (

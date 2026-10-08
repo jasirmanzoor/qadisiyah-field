@@ -171,3 +171,118 @@ export function collectRoughNotes(opts: {
 }): string {
   return (opts.lotPaste ?? "").trim();
 }
+
+const NOTE_LINES: { label: string; key: string }[] = [
+  { label: "Showroom name", key: "name" },
+  { label: "Location", key: "location" },
+  { label: "Car type", key: "type" },
+  { label: "Showroom size", key: "size" },
+  { label: "Mostly sold brands", key: "brands" },
+  { label: "Total cars in inventory", key: "total" },
+  { label: "Inside inventory / outside inventory", key: "split" },
+  { label: "ASP", key: "asp" },
+  { label: ">5 years model cars ratio", key: "age" },
+];
+
+function carTypeLabel(value?: string) {
+  if (value === "new_only") return "New";
+  if (value === "mix") return "New and used";
+  if (value === "used_only") return "Used";
+  return "";
+}
+
+function noteNum(n: number | null | undefined) {
+  return n == null ? "" : String(n);
+}
+
+/** Locked field order. Blank values stay blank. Existing custom notes are kept under the form. */
+export function standardNoteText(dealer: Dealership, survey?: SurveyPayload): string {
+  const existing = (survey?.notes ?? "").trim();
+  if (/^showroom name\s*:/i.test(existing)) return existing;
+  const name = [dealer.nameEn, dealer.nameAr].filter(Boolean).join(" | ");
+  const placed = !dealer.flags.unplaced && dealer.lat !== 0 && dealer.lng !== 0;
+  const inside = noteNum(survey?.inventoryInside);
+  const outside = noteNum(survey?.inventoryOutside);
+  const split = inside || outside ? `${inside} / ${outside}` : "";
+  const values: Record<string, string> = {
+    name,
+    location: placed ? `${formatCoord(dealer.lat)}, ${formatCoord(dealer.lng)}` : "",
+    type: carTypeLabel(survey?.vehicleType),
+    size: survey?.showroomSizeSqm != null ? `${survey.showroomSizeSqm} mtrs` : "",
+    brands: (survey?.mainBrands ?? []).join(" · "),
+    total: noteNum(survey?.inventoryUnits),
+    split,
+    asp: noteNum(survey?.avgSellingPriceSar),
+    age: survey?.inventoryAgePctOver5 != null ? `${survey.inventoryAgePctOver5}%` : "",
+  };
+  const form = NOTE_LINES.map((row) => `${row.label}: ${values[row.key] ?? ""}`).join("\n");
+  if (!existing || CENSUS_PROSE.test(existing)) return form;
+  return `${form}\n\n${existing}`;
+}
+
+function parseLooseNumber(raw: string): number | null {
+  const t = raw.trim();
+  if (!t) return null;
+  const k = t.match(/(\d+(?:\.\d+)?)\s*k\b/i);
+  if (k) return Math.round(Number(k[1]) * 1000);
+  const n = t.replace(/,/g, "").match(/-?\d+(?:\.\d+)?/);
+  if (!n) return null;
+  const value = Number(n[0]);
+  return Number.isFinite(value) ? value : null;
+}
+
+function splitShowroomName(raw: string): { nameEn?: string; nameAr?: string } {
+  const parts = raw.split("|").map((s) => s.trim()).filter(Boolean);
+  if (!parts.length) return {};
+  const arabic = /[\u0600-\u06FF]/;
+  if (parts.length === 1) return arabic.test(parts[0]) ? { nameAr: parts[0] } : { nameEn: parts[0] };
+  const nameAr = parts.find((p) => arabic.test(p));
+  const nameEn = parts.find((p) => p !== nameAr);
+  return { nameEn, nameAr };
+}
+
+export function parseStandardNote(text: string): {
+  patch: Partial<SurveyPayload>;
+  nameEn?: string;
+  nameAr?: string;
+  coords?: { lat: number; lng: number };
+} {
+  const patch: Partial<SurveyPayload> = { notes: text };
+  let nameEn: string | undefined;
+  let nameAr: string | undefined;
+  let coords: { lat: number; lng: number } | undefined;
+  for (const rawLine of text.split(/\r?\n/)) {
+    const splitAt = rawLine.indexOf(":");
+    if (splitAt < 0) continue;
+    const label = rawLine.slice(0, splitAt).trim().toLowerCase();
+    const value = rawLine.slice(splitAt + 1).trim();
+    const row = NOTE_LINES.find((item) => item.label.toLowerCase() === label);
+    if (!row) continue;
+    if (row.key === "name") {
+      const names = splitShowroomName(value);
+      nameEn = names.nameEn;
+      nameAr = names.nameAr;
+    } else if (row.key === "location") {
+      const pair = parseCoordPair(value);
+      if (pair) coords = pair;
+    } else if (row.key === "type") {
+      const v = value.toLowerCase();
+      patch.vehicleType = !v ? "" : /mix|both|new and used/.test(v) ? "mix" : /\bnew\b/.test(v) ? "new_only" : /used|old/.test(v) ? "used_only" : "";
+    } else if (row.key === "size") {
+      patch.showroomSizeSqm = parseLooseNumber(value);
+    } else if (row.key === "brands") {
+      patch.mainBrands = value ? value.split(/[·,;|/]+/).map((s) => s.trim()).filter(Boolean) : [];
+    } else if (row.key === "total") {
+      patch.inventoryUnits = parseLooseNumber(value);
+    } else if (row.key === "split") {
+      const [left, right] = value.split("/");
+      patch.inventoryInside = parseLooseNumber(left ?? "");
+      patch.inventoryOutside = value.includes("/") ? parseLooseNumber(right ?? "") : null;
+    } else if (row.key === "asp") {
+      patch.avgSellingPriceSar = parseLooseNumber(value);
+    } else if (row.key === "age") {
+      patch.inventoryAgePctOver5 = parseLooseNumber(value);
+    }
+  }
+  return { patch, nameEn, nameAr, coords };
+}

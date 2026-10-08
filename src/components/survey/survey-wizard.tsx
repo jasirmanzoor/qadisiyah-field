@@ -6,6 +6,7 @@ import { BANK_OPTIONS, BRAND_OPTIONS, FAIL_REASON_OPTIONS } from "@/lib/seed";
 import { COPY } from "@/lib/i18n";
 import { compressImage } from "@/lib/image";
 import { dealerMarket } from "@/lib/markets";
+import { shifaFloorDealers } from "@/lib/shifa-floor-overlay";
 import { canSubmitSurvey, isDeepDived, isSurveyedShowroom, surveyCompleteness, SURVEY_STEPS } from "@/lib/survey-schema";
 import type { SurveyPayload, VisitStatus } from "@/lib/types";
 import { todayISO, uid } from "@/lib/utils";
@@ -45,7 +46,7 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
   const reorderPhotos = useField((s) => s.reorderPhotos);
   const loaded = useField((s) => s.loaded);
 
-  const dealer = snapshot.dealerships.find((d) => d.id === dealershipId);
+  const dealer = snapshot.dealerships.find((d) => d.id === dealershipId) ?? shifaFloorDealers().find((d) => d.id === dealershipId) ?? null;
   const record = surveyFor(snapshot, dealershipId);
   const payload: SurveyPayload = record?.payload ?? {};
   const step = record?.step ?? 0;
@@ -75,6 +76,11 @@ export function SurveyWizard({ dealershipId }: { dealershipId: string }) {
       setSaveState("error");
     }
   }
+
+  useEffect(() => {
+    if (!dealer) return;
+    if (!snapshot.dealerships.some((d) => d.id === dealer.id)) void upsertDealer(dealer);
+  }, [dealer, snapshot.dealerships, upsertDealer]);
 
   useEffect(() => {
     if (!dealer) return;

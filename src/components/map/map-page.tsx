@@ -66,6 +66,7 @@ export function MapPage() {
   const pendingJump = useRef<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sheetMode, setSheetMode] = useState<"collapsed" | "expanded">("collapsed");
+  const [cardHidden, setCardHidden] = useState(false);
   const [satellite, setSatellite] = useState(false);
   const [nearMe, setNearMe] = useState(false);
   const [planning, setPlanning] = useState(false);
@@ -268,7 +269,7 @@ export function MapPage() {
   }, []);
   const dockOpen = Boolean(nearMe || planning || adding || cluster);
   const searching = searchFocus || search.trim().length > 0;
-  const cardOpen = Boolean(selected && !searching && !planning && !nearMe && !cluster);
+  const cardOpen = Boolean(selected && !cardHidden && !searching && !planning && !nearMe && !cluster);
   const surveyedPct = counts.all ? Math.round((counts.surveyed / counts.all) * 100) : 0;
   function flyTo(d: { lat: number; lng: number }, zoom = 17, pad = false) { setFocus({ lat: d.lat, lng: d.lng, zoom, nonce: Date.now(), padBottom: pad }); }
   function exportListExcel() {
@@ -300,6 +301,7 @@ export function MapPage() {
     const opening = id !== selectedId;
     setSelectedId(id); setEditingCoords(false); setNearMe(false); setCluster(null); setAdding(false);
     setSheetMode("collapsed");
+    setCardHidden(false);
     if (d) flyTo(d, 17, true);
     if (opening && !cardPushed.current) {
       history.pushState({ qads: "card" }, "");
@@ -313,7 +315,11 @@ export function MapPage() {
   }, [search, searchHits, listMode, selectedId]);
   function onSelect(id: string) {
     if (planning) { setRouteIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])); return; }
-    if (id === selectedId) { expandSheet(); return; }
+    if (id === selectedId) {
+      if (cardHidden) { setCardHidden(false); setSheetMode("collapsed"); return; }
+      expandSheet();
+      return;
+    }
     pickDealer(id);
   }
   function onCluster(items: Dealership[], lat: number, lng: number) { setSelectedId(null); setNearMe(false); setAdding(false); setCluster(items); flyTo({ lat, lng }, 17); }
@@ -610,6 +616,7 @@ export function MapPage() {
           onMarkClosed={() => void markClosed(selected.id)}
           onOpenPartner={(p) => { pendingJump.current = p.id; setMarket(dealerMarket(p)); }}
           onOpenNearby={(id) => pickDealer(id)}
+          onSaved={() => { setSheetMode("collapsed"); setCardHidden(true); if (selected) flyTo(selected, 17, false); }}
         />
       ) : null}
       {dockOpen ? (
