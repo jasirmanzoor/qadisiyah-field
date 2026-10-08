@@ -1,8 +1,28 @@
 import { createServerFn } from "@tanstack/react-start";
 import { authMiddleware } from "@/lib/auth/middleware";
-import type { AgentFinding } from "@/lib/types";
+import { getAiConfig, liveSearch } from "@/lib/ai/provider";
+import { FLOOR_WATCH_ID, floorWatchPrompt, knownRecord, parseFloorFacts } from "@/lib/floor-watch";
+import type { AgentFinding, DealershipFlags, SurveyPayload } from "@/lib/types";
 import { uid } from "@/lib/utils";
 import { type DealerRow, scoped } from "@/lib/api-shared";
+
+function asFlags(raw: unknown): DealershipFlags {
+  if (raw && typeof raw === "object") return raw as DealershipFlags;
+  try {
+    return JSON.parse(String(raw ?? "{}")) as DealershipFlags;
+  } catch {
+    return {};
+  }
+}
+
+function asPayload(raw: unknown): Partial<SurveyPayload> {
+  if (raw && typeof raw === "object") return raw as Partial<SurveyPayload>;
+  try {
+    return JSON.parse(String(raw ?? "{}")) as Partial<SurveyPayload>;
+  } catch {
+    return {};
+  }
+}
 
 export const runResearch = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
@@ -22,159 +42,76 @@ export const runResearch = createServerFn({ method: "POST" })
     const cap = Number(settings[0]?.daily_cap ?? 20);
     if (settings[0]?.runs_date !== today) runsToday = 0;
 
-    const apiKey = process.env.XAI_API_KEY;
-    if (!apiKey) {
-      return { ok: false as const, error: "AI research is not available in this environment." };
+    const cfg = getAiConfig();
+    if (!cfg?.canWebSearch) {
+      return { ok: false as const, error: "Public search is not available in this environment." };
+    }
+    if (!data.taskIds.includes(FLOOR_WATCH_ID)) {
+      return { ok: false as const, error: "The research tab only runs the floor watch." };
+    }
+    if (runsToday >= cap) {
+      return { ok: false as const, error: `Daily cap reached (${runsToday}/${cap}). The watch continues tomorrow.` };
     }
 
-    const dealers = await sql<DealerRow>`
-      select * from dealerships where user_id = ${scope}
-    `;
-    const tasks = await sql<{
-      id: string;
-      name: string;
-      instruction: string;
-      target_field: string;
-      sources: string;
-    }>`select * from research_tasks where user_id = ${scope}`;
-
+    const dealers = await sql<DealerRow>`select * from dealerships where user_id = ${scope}`;
     const dealerMap = new Map(dealers.map((d) => [d.id, d]));
-    const taskList = tasks.filter((t) => data.taskIds.includes(t.id));
-    const wanted = data.dealershipIds
-      .map((id) => dealerMap.get(id))
-      .filter((d): d is DealerRow => Boolean(d));
+    const dealer = data.dealershipIds.map((id) => dealerMap.get(id)).find((d): d is DealerRow => Boolean(d));
+    if (!dealer) return { ok: false as const, error: "That showroom is not on the saved roster." };
 
-    const planned = wanted.length * taskList.length;
-    if (runsToday + planned > cap) {
-      return {
-        ok: false as const,
-        error: `This batch needs ${planned} runs. ${runsToday}/${cap} already used today.`,
-      };
-    }
+    const surveys = await sql<{ dealership_id: string; payload: unknown }>`
+      select dealership_id, payload from surveys where user_id = ${scope} and dealership_id = ${dealer.id}
+    `;
+    const flags = asFlags(dealer.flags);
+    const known = knownRecord({
+      nameEn: dealer.name_en,
+      nameAr: dealer.name_ar || "",
+      phone: dealer.listed_phone || "",
+      lat: Number(dealer.lat),
+      lng: Number(dealer.lng),
+      notes: dealer.seed_note || "",
+      flags,
+      survey: asPayload(surveys[0]?.payload),
+    });
+    const market = flags.market === "shifa" ? "Al Shifa" : flags.market === "qadisiyah" ? "Al Qadisiyah" : "Al Shifa or Al Qadisiyah";
+    const searched = await liveSearch(cfg.apiKey, floorWatchPrompt(known, market));
 
     const findings: AgentFinding[] = [];
-    for (const dealer of wanted) {
-      for (const task of taskList) {
-        const prompt = [
-          `You are a research agent for a Riyadh auto-finance field team covering Al Qadisiyah (East Riyadh, Exit 8).`,
-          `Task: ${task.name}`,
-          `Instruction: ${task.instruction}`,
-          `Write the result for field: ${task.target_field}`,
-          `Dealership English name: ${dealer.name_en}`,
-          `Dealership Arabic name: ${dealer.name_ar || "(none)"}`,
-          `Phone: ${dealer.listed_phone || "(none)"}`,
-          `Coordinates: ${dealer.lat}, ${dealer.lng}`,
-          `Notes: ${dealer.seed_note || "(none)"}`,
-          `Preferred sources: ${task.sources}`,
-          `Search in BOTH Arabic and English. Saudi marketplaces: Haraj, Motory, OpenSooq, Syarah, YallaMotor, Soum.`,
-          `Return STRICT JSON: {"value": string, "sourceUrl": string | null, "confidence": "high"|"medium"|"low", "changeFlags": string[] }`,
-          `value should be a concise finding (1-6 sentences or a number/CR). Never invent a CR number.`,
-        ].join("\n");
+    const now = new Date().toISOString();
+    if ("error" in searched) {
+      return { ok: false as const, error: searched.error };
+    }
+    const facts = parseFloorFacts(searched.text, known);
+    const rows = facts.length
+      ? facts
+      : [{ fieldKey: "watch_checked", value: "No new public fact beyond the record.", sourceUrl: "", confidence: "low" as const }];
 
-        try {
-          const res = await fetch("https://api.x.ai/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${apiKey}`,
-            },
-            body: JSON.stringify({
-              model: "grok-4.5",
-              messages: [{ role: "user", content: prompt }],
-              temperature: 0.2,
-              max_tokens: 700,
-            }),
-          });
-          if (!res.ok) {
-            const errText = await res.text().catch(() => "");
-            findings.push({
-              id: uid(),
-              dealershipId: dealer.id,
-              taskId: task.id,
-              fieldKey: task.target_field,
-              value: `Research failed (${res.status}). ${errText.slice(0, 180)}`,
-              sourceUrl: null,
-              confidence: "low",
-              retrievedAt: new Date().toISOString(),
-              accepted: null,
-            });
-            continue;
-          }
-          const body = (await res.json()) as {
-            choices: { message: { content: string } }[];
-          };
-          const text = body.choices[0]?.message.content ?? "";
-          const jsonMatch = text.match(/\{[\s\S]*\}/);
-          let parsed: {
-            value?: string;
-            sourceUrl?: string | null;
-            confidence?: string;
-            changeFlags?: string[];
-          } = {};
-          if (jsonMatch) {
-            try {
-              parsed = JSON.parse(jsonMatch[0]) as typeof parsed;
-            } catch {
-              parsed = { value: text };
-            }
-          } else {
-            parsed = { value: text };
-          }
-          const finding: AgentFinding = {
-            id: uid(),
-            dealershipId: dealer.id,
-            taskId: task.id,
-            fieldKey: task.target_field,
-            value: String(parsed.value ?? text).slice(0, 4000),
-            sourceUrl: parsed.sourceUrl ? String(parsed.sourceUrl).slice(0, 500) : null,
-            confidence:
-              parsed.confidence === "high" || parsed.confidence === "low"
-                ? parsed.confidence
-                : "medium",
-            retrievedAt: new Date().toISOString(),
-            accepted: null,
-          };
-          await sql`
-            insert into agent_findings (
-              id, user_id, dealership_id, task_id, field_key, value, source_url, confidence, retrieved_at
-            ) values (
-              ${finding.id}, ${scope}, ${finding.dealershipId}, ${finding.taskId},
-              ${finding.fieldKey}, ${finding.value}, ${finding.sourceUrl}, ${finding.confidence}, now()
-            )
-          `;
-          if (parsed.changeFlags && parsed.changeFlags.length) {
-            await sql`
-              insert into notifications (id, user_id, kind, title, body, dealership_id, read)
-              values (
-                ${uid()}, ${scope}, 'change',
-                ${`Change: ${dealer.name_en}`},
-                ${parsed.changeFlags.join("; ").slice(0, 500)},
-                ${dealer.id}, false
-              )
-            `;
-          }
-          findings.push(finding);
-        } catch (err) {
-          findings.push({
-            id: uid(),
-            dealershipId: dealer.id,
-            taskId: task.id,
-            fieldKey: task.target_field,
-            value: `Research error: ${err instanceof Error ? err.message : "unknown"}`,
-            sourceUrl: null,
-            confidence: "low",
-            retrievedAt: new Date().toISOString(),
-            accepted: null,
-          });
-        }
-        runsToday += 1;
-      }
+    for (const fact of rows) {
+      const finding: AgentFinding = {
+        id: uid(),
+        dealershipId: dealer.id,
+        taskId: FLOOR_WATCH_ID,
+        fieldKey: fact.fieldKey,
+        value: fact.value,
+        sourceUrl: fact.sourceUrl || null,
+        confidence: fact.confidence,
+        retrievedAt: now,
+        accepted: null,
+      };
+      await sql`
+        insert into agent_findings (
+          id, user_id, dealership_id, task_id, field_key, value, source_url, confidence, retrieved_at
+        ) values (
+          ${finding.id}, ${scope}, ${finding.dealershipId}, ${finding.taskId},
+          ${finding.fieldKey}, ${finding.value}, ${finding.sourceUrl}, ${finding.confidence}, now()
+        )
+      `;
+      findings.push(finding);
     }
 
+    runsToday += 1;
     await sql`
       update research_settings set runs_today = ${runsToday}, runs_date = ${today}
       where user_id = ${scope}
     `;
-
     return { ok: true as const, findings, runsToday, cap };
   });
