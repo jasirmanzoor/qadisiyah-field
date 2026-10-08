@@ -162,14 +162,20 @@ function FlyTo({ target }: { target: MapFocus | null }) {
   useEffect(() => {
     if (!target) return;
     const zoom = Math.round(target.zoom ?? Math.max(map.getZoom(), 16));
-    const offsetY = 0;
-    const point = map.project([target.lat, target.lng], zoom);
-    point.y += offsetY;
-    const latlng = map.unproject(point, zoom);
+    let latlng = L.latLng(target.lat, target.lng);
+    if (target.padBottom) {
+      const size = map.getSize();
+      const sheet = 230;
+      const visible = Math.max(160, size.y - sheet);
+      const targetY = visible * 0.38;
+      const point = map.project(latlng, zoom);
+      point.y += size.y / 2 - targetY;
+      latlng = map.unproject(point, zoom);
+    }
     const reduce =
       typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce) map.setView(latlng, zoom, { animate: false });
-    else map.flyTo(latlng, zoom, { duration: 0.65, easeLinearity: 0.22 });
+    else map.flyTo(latlng, zoom, { duration: 0.3, easeLinearity: 0.25 });
   }, [target, map]);
   return null;
 }

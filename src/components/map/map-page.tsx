@@ -65,6 +65,7 @@ export function MapPage() {
   }, [snapshot.dealerships]);
   const pendingJump = useRef<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [sheetMode, setSheetMode] = useState<"collapsed" | "expanded">("collapsed");
   const [satellite, setSatellite] = useState(false);
   const [nearMe, setNearMe] = useState(false);
   const [planning, setPlanning] = useState(false);
@@ -245,9 +246,29 @@ export function MapPage() {
     return { ...gaps, mode: "gap" as const };
   }, [adding, roster, pinPoint, draftId, newName, surveyByDealer]);
   const streetNearby = nearby.hits.find((x) => x.row.flags.street)?.row.flags.street ?? "";
-  const sheetOpen = Boolean(selected || nearMe || planning || adding || cluster);
+  const sheetModeRef = useRef(sheetMode);
+  const selectedRef = useRef(selectedId);
+  const cardPushed = useRef(false);
+  sheetModeRef.current = sheetMode;
+  selectedRef.current = selectedId;
+  useEffect(() => {
+    const onPop = () => {
+      if (sheetModeRef.current === "expanded") {
+        setSheetMode("collapsed");
+        return;
+      }
+      if (selectedRef.current) {
+        setSelectedId(null);
+        cardPushed.current = false;
+      }
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  const dockOpen = Boolean(nearMe || planning || adding || cluster);
+  const cardOpen = Boolean(selected && !planning && !nearMe && !cluster);
   const surveyedPct = counts.all ? Math.round((counts.surveyed / counts.all) * 100) : 0;
-  function flyTo(d: { lat: number; lng: number }, zoom = 17) { setFocus({ lat: d.lat, lng: d.lng, zoom, nonce: Date.now(), padBottom: true }); }
+  function flyTo(d: { lat: number; lng: number }, zoom = 17, pad = false) { setFocus({ lat: d.lat, lng: d.lng, zoom, nonce: Date.now(), padBottom: pad }); }
   function exportListExcel() {
     const surveys = listRows.flatMap((d) => {
       const live = surveyFor(snapshot, d.id) ?? (d.flags.sdId ? surveyFor(snapshot, d.flags.sdId) : undefined);
@@ -256,10 +277,32 @@ export function MapPage() {
     const xml = buildExcelXml(listRows, surveys, snapshot.photos);
     downloadBlob(`${market}-survey-${listRows.length}.xls`, "application/vnd.ms-excel", xml);
   }
+  function expandSheet() {
+    setSheetMode("expanded");
+    if (history.state?.qads !== "expanded") history.pushState({ qads: "expanded" }, "");
+  }
+  function collapseSheet() {
+    setSheetMode("collapsed");
+    if (history.state?.qads === "expanded") history.back();
+  }
+  function closeCard() {
+    if (!selectedId) return;
+    setSheetMode("collapsed");
+    setSelectedId(null);
+    setEditingCoords(false);
+    cardPushed.current = false;
+    if (history.state?.qads === "expanded" || history.state?.qads === "card") history.back();
+  }
   function pickDealer(id: string) {
     const d = roster.find((x) => x.id === id) ?? snapshot.dealerships.find((x) => x.id === id);
+    const opening = id !== selectedId;
     setSelectedId(id); setEditingCoords(false); setNearMe(false); setCluster(null); setAdding(false);
-    if (d) flyTo(d);
+    setSheetMode("collapsed");
+    if (d) flyTo(d, 17, true);
+    if (opening && !cardPushed.current) {
+      history.pushState({ qads: "card" }, "");
+      cardPushed.current = true;
+    }
   }
   useEffect(() => {
     const q = search.trim();
@@ -268,6 +311,7 @@ export function MapPage() {
   }, [search, searchHits, listMode, selectedId]);
   function onSelect(id: string) {
     if (planning) { setRouteIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])); return; }
+    if (id === selectedId) { expandSheet(); return; }
     pickDealer(id);
   }
   function onCluster(items: Dealership[], lat: number, lng: number) { setSelectedId(null); setNearMe(false); setAdding(false); setCluster(items); flyTo({ lat, lng }, 17); }
@@ -421,10 +465,10 @@ export function MapPage() {
 
   return (
     <div className="relative flex h-full min-h-0 w-full max-w-full min-w-0 flex-1 flex-col overflow-hidden bg-bg">
-      <div className={cn("qads-map-host relative z-0 min-h-0 flex-1", !sheetOpen && !listMode && "qads-map-inset")}>
+      <div className={cn("qads-map-host relative z-0 min-h-0 flex-1", !dockOpen && !cardOpen && !listMode && "qads-map-inset", cardOpen && "qads-map-card")} data-card={cardOpen ? sheetMode : undefined}>
         <ClientOnly fallback={<div className="grid h-full place-items-center text-sm text-muted">Loading map…</div>}>
           <Suspense fallback={<div className="grid h-full place-items-center text-sm text-muted">Loading map…</div>}>
-            <MapCanvas key={market} dealers={mapDealers} selectedId={selectedId} highlightIds={search.trim() ? searchHits.map((d) => d.id) : []} onSelect={onSelect} onMapClick={adding ? (lat, lng) => void saveDraft({ lat, lng }) : undefined} onCluster={onCluster} satellite={satellite} me={gps} route={routeDealers} focus={focus} origin={marketCenter} dualIds={dualIds} showDualLabels={market === "shifa" && filter === "dual"} />
+            <MapCanvas key={market} dealers={mapDealers} selectedId={selectedId} highlightIds={search.trim() ? searchHits.map((d) => d.id) : []} onSelect={onSelect} onMapClick={adding ? (lat, lng) => void saveDraft({ lat, lng }) : () => closeCard()} onCluster={onCluster} satellite={satellite} me={gps} route={routeDealers} focus={focus} origin={marketCenter} dualIds={dualIds} showDualLabels={market === "shifa" && filter === "dual"} />
           </Suspense>
         </ClientOnly>
         <div className="qads-vignette" aria-hidden />
@@ -516,7 +560,7 @@ export function MapPage() {
           <IconTool label={t.addDealer} active={adding} onClick={() => openAdd()}><MapPinPlus className="size-4" /></IconTool>
         </div>
       </div>
-      {!sheetOpen && !listMode ? (
+      {!dockOpen && !cardOpen && !listMode ? (
         <div className="qads-hud absolute inset-x-3 bottom-2 z-10 overflow-hidden rounded-2xl">
           <div className="h-1 bg-surface-2">
             <div className="h-full bg-primary" style={{ width: `${filter === "all" ? surveyedPct : dealers.length && counts.all ? Math.round((dealers.length / counts.all) * 100) : 0}%` }} />
@@ -540,7 +584,33 @@ export function MapPage() {
           </div>
         </div>
       ) : null}
-      {sheetOpen ? (
+      {cardOpen && selected ? (
+        <DealerSheet
+          dealer={selected}
+          partner={partner}
+          partnerSurvey={partnerSurvey}
+          distance={haversineM(origin, selected)}
+          source={survey?.volumeFiguresAre}
+          survey={survey}
+          photos={snapshot.photos.filter((p) => p.dealershipId === selected.id)}
+          canPinGps={Boolean(gps && !gpsError)}
+          editingCoords={editingCoords}
+          gps={gps && !gpsError ? gps : null}
+          expanded={sheetMode === "expanded"}
+          onExpand={expandSheet}
+          onCollapse={collapseSheet}
+          onClose={closeCard}
+          onSurvey={(id) => void navigate({ to: "/survey/$id", params: { id } })}
+          onPinGps={() => void pinSelectedToGps()}
+          onEditCoords={() => setEditingCoords(true)}
+          onCancelCoords={() => setEditingCoords(false)}
+          onSaveCoords={(lat, lng) => void saveSelectedCoords(lat, lng)}
+          onMarkClosed={() => void markClosed(selected.id)}
+          onOpenPartner={(p) => { pendingJump.current = p.id; setMarket(dealerMarket(p)); }}
+          onOpenNearby={(id) => pickDealer(id)}
+        />
+      ) : null}
+      {dockOpen ? (
       <div className="qads-dock z-30 max-h-[58%] w-full min-w-0 max-w-full shrink-0 overflow-x-hidden overflow-y-auto px-3 pb-2">
       {planning ? (
         <div className="qads-sheet rounded-2xl p-4">
@@ -551,7 +621,6 @@ export function MapPage() {
       ) : null}
       {nearMe && !planning ? <ListSheet title={t.nearest} hint={gpsError ? t.usingCenter : undefined} onClose={() => setNearMe(false)}>{nearest.map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} meta={formatDistance(haversineM(origin, d))} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, STATUS_LABEL[lang][d.status]].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} />)}</ListSheet> : null}
       {cluster && !planning && !nearMe ? <ListSheet title={t.clusterHere} hint={`${cluster.length}`} onClose={() => setCluster(null)}>{[...cluster].sort((a, b) => haversineM(origin, a) - haversineM(origin, b)).map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} meta={formatDistance(haversineM(origin, d))} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, STATUS_LABEL[lang][d.status]].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} />)}</ListSheet> : null}
-      {selected && !planning && !nearMe && !cluster ? <DealerSheet dealer={selected} partner={partner} partnerSurvey={partnerSurvey} distance={haversineM(origin, selected)} source={survey?.volumeFiguresAre} survey={survey} photos={snapshot.photos.filter((p) => p.dealershipId === selected.id)} canPinGps={Boolean(gps && !gpsError)} editingCoords={editingCoords} gps={gps && !gpsError ? gps : null} onClose={() => { setEditingCoords(false); setSelectedId(null); }} onSurvey={(id) => void navigate({ to: "/survey/$id", params: { id } })} onPinGps={() => void pinSelectedToGps()} onEditCoords={() => setEditingCoords(true)} onCancelCoords={() => setEditingCoords(false)} onSaveCoords={(lat, lng) => void saveSelectedCoords(lat, lng)} onMarkClosed={() => void markClosed(selected.id)} onOpenPartner={(p) => { pendingJump.current = p.id; setMarket(dealerMarket(p)); }} onOpenNearby={(id) => pickDealer(id)} /> : null}
       {adding ? (
         <div className="qads-sheet qads-add overflow-y-auto rounded-2xl p-3">
           <div className="mb-2 flex items-start justify-between gap-2">
