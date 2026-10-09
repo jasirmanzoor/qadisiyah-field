@@ -483,7 +483,7 @@ export function MapPage() {
       </div>
       {listMode ? <div className="absolute inset-0 z-10 bg-bg" aria-hidden /> : null}
       <div className={cn("pointer-events-none absolute inset-x-3 top-2 z-20 flex items-start gap-2", listMode && "bottom-3")}>
-        <div className={cn("flex min-w-0 flex-1 flex-col gap-2", listMode && "min-h-0 self-stretch")}>
+        <div className={cn("flex min-w-0 flex-1 flex-col gap-2 lg:max-w-xl", listMode && "min-h-0 self-stretch")}>
           <div className="pointer-events-auto relative z-30 min-w-0">
             <div className="qads-hud rounded-full px-1 shadow-[0_8px_24px_-16px_rgba(26,29,24,0.55)]">
               <div className="relative">

@@ -115,7 +115,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <>
       <header className="relative z-40 shrink-0 border-b border-border/80 bg-bg pt-[max(0.35rem,env(safe-area-inset-top))]">
         <div className="flex items-center gap-2 px-3 py-1.5">
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 lg:max-w-md">
             <MarketSwitch counts={counts} compact />
           </div>
           <button
@@ -153,20 +153,43 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </>
       )}
 
+      <div className="flex min-h-0 min-w-0 flex-1">
+      {isSurvey ? null : (
+      <nav className="hidden w-[4.75rem] shrink-0 flex-col border-r border-border/80 bg-surface lg:flex">
+        {nav.map((item) => {
+          const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={cn(
+                "flex flex-1 flex-col items-center justify-center gap-1 text-[11px] font-medium",
+                active ? "text-primary" : "text-muted",
+              )}
+            >
+              <Icon className="size-5" />
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+      )}
       <main
         className={
           isSurvey
             ? "relative flex min-h-0 flex-1 flex-col overflow-hidden"
-            : "relative flex min-h-0 w-full min-w-0 max-w-full flex-1 flex-col overflow-hidden pb-[calc(4.25rem+env(safe-area-inset-bottom))]"
+            : "relative flex min-h-0 w-full min-w-0 max-w-full flex-1 flex-col overflow-hidden pb-[calc(4.25rem+env(safe-area-inset-bottom))] lg:pb-0"
         }
       >
         {loaded ? children : (
           <div className="grid flex-1 place-items-center text-sm text-muted">Loading roster…</div>
         )}
       </main>
+      </div>
 
       {isSurvey ? null : (
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-border/80 bg-surface/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-border/80 bg-surface/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
         {nav.map((item) => {
           const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
           const Icon = item.icon;
