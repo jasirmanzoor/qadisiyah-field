@@ -6,7 +6,9 @@ import type { Dealership, SurveyPayload } from "@/lib/types";
 import { StatusBadge, TrainingBadge } from "@/components/ui/field";
 import { usePrefs } from "@/stores/prefs";
 import { useField } from "@/stores/field";
-import { Phone, MessageCircle, MapPinned, X, Camera, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
+import { toast } from "sonner";
+import { haptic } from "@/lib/haptics";
+import { Phone, MessageCircle, Footprints, Share2, X, Camera, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { formatCoord, parseStandardNote, standardNoteText } from "./map-notes";
 import { isProtectedGps } from "@/lib/types";
@@ -102,6 +104,28 @@ function DealerSheetBody({
   const wa = waLink(dealer.listedPhone);
   const maps = dealer.flags.mapsUrl || (placed ? mapsLink(dealer.lat, dealer.lng, dealer.nameEn) : "");
   const statusLabel = trainingCopy(lang, dealer.flags);
+  const walk = placed ? `https://www.google.com/maps/dir/?api=1&destination=${dealer.lat},${dealer.lng}&travelmode=walking` : "";
+
+  async function share() {
+    haptic();
+    const title = dealer.nameEn + (dealer.nameAr ? ` · ${dealer.nameAr}` : "");
+    const lines = [title, dealer.flags.street, dealer.listedPhone, [cars && `${cars} cars`, asp && `ASP ${asp}`].filter(Boolean).join(" · ")].filter(Boolean);
+    const url = maps || undefined;
+    try {
+      if (typeof navigator.share === "function") {
+        await navigator.share({ title, text: lines.join("\n"), url });
+        return;
+      }
+    } catch (e) {
+      if ((e as Error)?.name === "AbortError") return;
+    }
+    try {
+      await navigator.clipboard.writeText([...lines, url].filter(Boolean).join("\n"));
+      toast.success(t.shareCopied);
+    } catch {
+      /* clipboard blocked */
+    }
+  }
 
   useEffect(() => {
     setDraft(standardNoteText(dealer, survey));
@@ -172,11 +196,13 @@ function DealerSheetBody({
     </div>
   );
 
+  const btn = "flex h-9 min-w-0 flex-1 items-center justify-center gap-1 rounded-lg bg-surface-2 text-xs font-medium text-fg transition-colors hover:bg-border active:scale-[0.98]";
   const actions = (
     <div className="flex gap-1.5">
-      {maps ? <a href={maps} target="_blank" rel="noreferrer" className="flex h-9 min-w-0 flex-1 items-center justify-center gap-1 rounded-lg bg-surface-2 text-xs font-medium text-fg"><MapPinned className="size-3.5" />{t.openMaps}</a> : null}
-      {call ? <a href={call} className="flex h-9 min-w-0 flex-1 items-center justify-center gap-1 rounded-lg bg-surface-2 text-xs font-medium text-fg"><Phone className="size-3.5" />{t.call}</a> : null}
-      {wa ? <a href={wa} target="_blank" rel="noreferrer" className="flex h-9 min-w-0 flex-1 items-center justify-center gap-1 rounded-lg bg-surface-2 text-xs font-medium text-fg"><MessageCircle className="size-3.5" />{t.whatsapp}</a> : null}
+      {walk || maps ? <a href={walk || maps} target="_blank" rel="noreferrer" onClick={() => haptic()} className={btn}><Footprints className="size-3.5" />{t.directions}</a> : null}
+      {call ? <a href={call} onClick={() => haptic()} className={btn}><Phone className="size-3.5" />{t.call}</a> : null}
+      {wa ? <a href={wa} target="_blank" rel="noreferrer" onClick={() => haptic()} className={btn}><MessageCircle className="size-3.5" />{t.whatsapp}</a> : null}
+      <button type="button" onClick={() => void share()} className="grid h-9 w-10 shrink-0 place-items-center rounded-lg bg-surface-2 text-fg transition-colors hover:bg-border" aria-label={t.share}><Share2 className="size-3.5" /></button>
     </div>
   );
 
@@ -219,7 +245,7 @@ function DealerSheetBody({
         {(carType || brands) ? (
           <p className="mt-1 truncate text-xs font-medium text-fg">{[carType, brands].filter(Boolean).join(" · ")}</p>
         ) : null}
-        {(maps || call || wa) ? <div className="mt-1.5">{actions}</div> : null}
+        <div className="mt-1.5">{actions}</div>
       </div>
 
       {expanded ? (

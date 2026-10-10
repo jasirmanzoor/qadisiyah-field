@@ -20,6 +20,7 @@ import { useField, surveyFor } from "@/stores/field";
 import { displaySurvey } from "@/components/map/map-notes";
 import { usePrefs } from "@/stores/prefs";
 import { RefreshCw } from "lucide-react";
+import { PulseSection } from "./pulse";
 import { lazy, Suspense, useMemo, useState } from "react";
 
 const MapCanvas = lazy(() => import("../map/map-canvas").then((m) => ({ default: m.MapCanvas })));
@@ -51,16 +52,6 @@ export function DashboardPage() {
   const [insightId, setInsightId] = useState<string | null>(null);
   const [swapKey, setSwapKey] = useState(0);
 
-  const coverage = useMemo(() => {
-    let surveyed = 0;
-    let deep = 0;
-    for (const d of snapshot.dealerships) {
-      const payload = displaySurvey(d, surveyFor(snapshot, d.id)?.payload);
-      if (isDeepDived(payload)) deep += 1;
-      if (isSurveyedShowroom(d.status, payload)) surveyed += 1;
-    }
-    return { pins: snapshot.dealerships.length, surveyed, deep };
-  }, [snapshot]);
 
   const engine = useMemo(
     () =>
@@ -116,10 +107,11 @@ export function DashboardPage() {
           : t.highCoverage;
 
   return (
-    <div className="flex flex-col gap-4 overflow-auto px-4 py-4">
+    <div className="overflow-auto">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-4 py-4 lg:px-6 lg:py-6">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-xl font-semibold tracking-tight">{t.dashboard}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{t.dashboard}</h1>
           <p className="text-xs text-muted">{market === "shifa" ? t.engineSubShifa : t.engineSub}</p>
         </div>
         <button
@@ -130,11 +122,7 @@ export function DashboardPage() {
           {observedOnly ? t.observedOnly : t.disclosedFigures}
         </button>
       </div>
-      <div className="grid grid-cols-3 gap-2">
-        <StatCard label={t.pinsEstablished} value={formatNumber(coverage.pins)} />
-        <StatCard label={t.surveyedCat} value={formatNumber(coverage.surveyed)} />
-        <StatCard label={t.deepDived} value={formatNumber(coverage.deep)} />
-      </div>
+      <PulseSection snapshot={snapshot} lang={lang} />
 
       {market === "shifa" ? (
         <section className="rounded-2xl bg-surface p-4 shadow-[var(--shadow-border)]">
@@ -367,6 +355,7 @@ export function DashboardPage() {
         </Button>
         <Button onClick={exportXls}>{t.exportExcel}</Button>
       </div>
+    </div>
     </div>
   );
 }

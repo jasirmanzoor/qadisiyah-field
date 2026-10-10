@@ -31,17 +31,19 @@ export const bulkSearch = createServerFn({ method: "POST" })
     const roster = rows.map(asMatchable);
     const hits: BulkSearchHit[] = lines.map((query) => {
       const m = matchQueryToDealer(query, roster);
-      return {
+      const hit: BulkSearchHit = {
         id: uid(),
         query,
+        nameEn: m?.nameEn ?? "",
+        nameAr: m?.nameAr ?? "",
+        phone: m?.phone ?? "",
         matchDealershipId: m?.id ?? null,
-        confidence: m?.confidence ?? 0,
-        reason: m?.reason ?? "no_match",
         lat: null,
         lng: null,
         sourceUrl: null,
-        note: "",
-      } as BulkSearchHit;
+        note: m ? "" : "no_match",
+      };
+      return hit;
     });
     return { ok: true as const, hits, runsToday: 0, cap: 0, charged: 0 };
   });

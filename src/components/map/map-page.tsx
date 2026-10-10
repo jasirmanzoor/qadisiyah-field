@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { COPY, STATUS_LABEL } from "@/lib/i18n";
-import { formatDistance, haversineM, MARKET_CENTERS, nearestDealers, nearestExpanding, optimizeWalkOrder } from "@/lib/geo";
+import { bearingDeg, formatDistance, haversineM, MARKET_CENTERS, nearestDealers, nearestExpanding, optimizeWalkOrder } from "@/lib/geo";
 import { dealersInMarket, dealerMarket, dualPartner, isDualLocation } from "@/lib/markets";
 import { buildExcelXml, downloadBlob } from "@/lib/export";
 import { isDeepDived, isSurveyedShowroom } from "@/lib/survey-schema";
@@ -11,9 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
 import { ClientOnly } from "@/components/client-only";
 import { useField, surveyFor } from "@/stores/field";
+import { useUi } from "@/stores/ui";
+import { haptic } from "@/lib/haptics";
+import { useHeading } from "@/lib/use-heading";
+import { useVoiceInput } from "@/lib/use-voice";
 import { usePrefs } from "@/stores/prefs";
 import { SHIFA_CORRIDOR_ORDER, shifaCorridor } from "@/lib/shifa-seed";
-import { MapPinPlus, LocateFixed, Route as RouteIcon, Satellite, Map as MapIcon, Search, X, List as ListIcon, ChevronRight, FileSpreadsheet } from "lucide-react";
+import { MapPinPlus, LocateFixed, Route as RouteIcon, Satellite, Map as MapIcon, Search, X, List as ListIcon, ChevronRight, FileSpreadsheet, Navigation, Command as CommandIcon, Mic } from "lucide-react";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { MapFocus } from "./map-canvas";
 import { IconTool, ListSheet, DealerRow } from "./map-widgets";
@@ -111,6 +115,32 @@ export function MapPage() {
     setSelectedId(null);
     setFocus({ lat: marketCenter.lat, lng: marketCenter.lng, zoom: marketCenter.zoom, nonce: Date.now() });
   }, [market, marketCenter.lat, marketCenter.lng, marketCenter.zoom]);
+
+  const focusRequest = useUi((s) => s.focusRequest);
+  const clearFocus = useUi((s) => s.clearFocus);
+  const mapAction = useUi((s) => s.mapAction);
+  const clearMapAction = useUi((s) => s.clearMapAction);
+  const setPaletteOpen = useUi((s) => s.setPaletteOpen);
+  useEffect(() => {
+    if (!focusRequest) return;
+    setSearch("");
+    setListMode(false);
+    setPlanning(false);
+    pickDealer(focusRequest.id);
+    clearFocus();
+  }, [focusRequest]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!mapAction) return;
+    const kind = mapAction.kind;
+    clearMapAction();
+    if (kind === "near") { if (!nearMe) openNear(); }
+    else if (kind === "list") { if (!listMode) toggleList(); }
+    else if (kind === "route") { setPlanning(true); setNearMe(false); setAdding(false); setCluster(null); setSelectedId(null); setListMode(false); }
+    else if (kind === "add") openAdd();
+    else if (kind === "satellite") setSatellite((v) => !v);
+  }, [mapAction]); // eslint-disable-line react-hooks/exhaustive-deps
+  const compass = useHeading();
+  const voice = useVoiceInput(lang, (text) => setSearch(text));
 
   const surveyByDealer = useMemo(() => {
     const live = new Map<string, (typeof snapshot.surveys)[number]["payload"]>();
@@ -299,6 +329,7 @@ export function MapPage() {
   function pickDealer(id: string) {
     const d = roster.find((x) => x.id === id) ?? snapshot.dealerships.find((x) => x.id === id);
     const opening = id !== selectedId;
+    if (opening) haptic();
     setSelectedId(id); setEditingCoords(false); setNearMe(false); setCluster(null); setAdding(false);
     setSheetMode("collapsed");
     setCardHidden(false);
@@ -488,8 +519,10 @@ export function MapPage() {
             <div className="qads-hud rounded-full px-1 shadow-[0_8px_24px_-16px_rgba(26,29,24,0.55)]">
               <div className="relative">
                 <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
-                <input className="min-h-10 w-full bg-transparent pe-10 ps-10 text-sm text-fg placeholder:text-faint focus-visible:outline-none" value={search} onChange={(e) => setSearch(e.target.value)} onFocus={() => { setSearchFocus(true); if (selectedId) { setSheetMode("collapsed"); setSelectedId(null); setEditingCoords(false); cardPushed.current = false; } }} onBlur={() => window.setTimeout(() => setSearchFocus(false), 180)} placeholder={t.searchShowrooms} enterKeyHint="search" />
-                {search ? <button type="button" onClick={() => setSearch("")} className="absolute end-0.5 top-1/2 grid size-9 -translate-y-1/2 place-items-center text-muted" aria-label={t.clearSearch}><X className="size-4" /></button> : null}
+                <input className="min-h-10 w-full bg-transparent pe-10 ps-10 text-sm text-fg placeholder:text-faint focus-visible:outline-none" value={search} onChange={(e) => setSearch(e.target.value)} onFocus={() => { setSearchFocus(true); if (selectedId) { setSheetMode("collapsed"); setSelectedId(null); setEditingCoords(false); cardPushed.current = false; } }} onBlur={() => window.setTimeout(() => setSearchFocus(false), 180)} placeholder={voice.listening ? t.listening : t.searchShowrooms} enterKeyHint="search" />
+                {search ? <button type="button" onClick={() => setSearch("")} className="absolute end-0.5 top-1/2 grid size-9 -translate-y-1/2 place-items-center text-muted" aria-label={t.clearSearch}><X className="size-4" /></button> : voice.supported ? (
+                  <button type="button" onClick={() => (voice.listening ? voice.stop() : voice.start())} aria-pressed={voice.listening} aria-label={t.voiceSearch} className={cn("absolute end-1 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full", voice.listening ? "qads-mic-live bg-status-red text-white" : "text-muted")}><Mic className="size-4" /></button>
+                ) : null}
               </div>
             </div>
             {search.trim() && !planning && !adding && !listMode ? (
@@ -569,26 +602,22 @@ export function MapPage() {
         </div>
       </div>
       {!dockOpen && !cardOpen && !listMode ? (
-        <div className="qads-hud absolute inset-x-3 bottom-2 z-10 overflow-hidden rounded-2xl">
-          <div className="h-1 bg-surface-2">
-            <div className="h-full bg-primary" style={{ width: `${filter === "all" ? surveyedPct : dealers.length && counts.all ? Math.round((dealers.length / counts.all) * 100) : 0}%` }} />
-          </div>
-          <div className="flex items-center gap-2 px-2.5 py-1.5">
-            <p className="shrink-0 text-xs font-medium tabular-nums text-muted">
-              <span className="font-semibold text-fg">{filter === "all" ? counts.surveyed : dealers.length}</span>
-              <span>{` / `}</span>
-              <span className="font-semibold text-fg">{counts.all}</span>
-            </p>
-            {nextDesk ? (
-              <button type="button" onClick={() => pickDealer(nextDesk.id)} className="flex h-9 min-w-0 flex-1 items-center gap-1.5 rounded-xl bg-primary px-2.5 text-start text-primary-fg">
-                <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide opacity-80">{t.nextDesk}</span>
-                <span className="min-w-0 flex-1 truncate text-sm font-semibold">{lang === "ar" && nextDesk.nameAr ? nextDesk.nameAr : nextDesk.nameEn}</span>
-                <span className="shrink-0 text-xs tabular-nums opacity-80">{formatDistance(haversineM(origin, nextDesk))}</span>
-                <ChevronRight className="size-3.5 shrink-0" />
-              </button>
-            ) : null}
-          </div>
-        </div>
+        <NextDeskBar
+          lang={lang}
+          done={filter === "all" ? counts.surveyed : dealers.length}
+          total={counts.all}
+          pct={filter === "all" ? surveyedPct : dealers.length && counts.all ? Math.round((dealers.length / counts.all) * 100) : 0}
+          label={t.nextDesk}
+          next={nextDesk}
+          distance={nextDesk ? formatDistance(haversineM(origin, nextDesk)) : ""}
+          bearing={nextDesk ? bearingDeg(origin, nextDesk) : 0}
+          heading={compass.heading}
+          needsCompass={compass.needsPermission}
+          onCompass={() => void compass.enable()}
+          onOpen={() => nextDesk && pickDealer(nextDesk.id)}
+          onSearch={() => setPaletteOpen(true)}
+          searchLabel={t.palette}
+        />
       ) : null}
       {cardOpen && selected ? (
         <DealerSheet
@@ -671,6 +700,64 @@ export function MapPage() {
       </div>
       ) : null}
       {aiAdding ? <AiSurveySheet mode="new" dealershipId={null} onClose={() => setAiAdding(false)} onSaved={(id) => { setAiAdding(false); void navigate({ to: "/survey/$id", params: { id } }); }} /> : null}
+    </div>
+  );
+}
+
+function NextDeskBar(props: {
+  lang: "en" | "ar";
+  done: number;
+  total: number;
+  pct: number;
+  label: string;
+  next: Dealership | null;
+  distance: string;
+  bearing: number;
+  heading: number | null;
+  needsCompass: boolean;
+  onCompass: () => void;
+  onOpen: () => void;
+  onSearch: () => void;
+  searchLabel: string;
+}) {
+  const { lang, done, total, pct, label, next, distance, bearing, heading, needsCompass, onCompass, onOpen, onSearch, searchLabel } = props;
+  const r = 15;
+  const c = 2 * Math.PI * r;
+  const rotate = heading == null ? bearing : bearing - heading;
+  return (
+    <div className="qads-hud absolute inset-x-3 bottom-2 z-10 flex items-center gap-2 rounded-2xl p-1.5 lg:inset-x-auto lg:end-4 lg:bottom-4 lg:w-[26rem]">
+      <div className="relative grid size-11 shrink-0 place-items-center" title={`${done} / ${total}`}>
+        <svg viewBox="0 0 36 36" className="absolute inset-0 size-full -rotate-90">
+          <circle cx="18" cy="18" r={r} fill="none" stroke="var(--surface-2)" strokeWidth="3.5" />
+          <circle cx="18" cy="18" r={r} fill="none" stroke="var(--primary)" strokeWidth="3.5" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} style={{ transition: "stroke-dashoffset 600ms var(--ease-out)" }} />
+        </svg>
+        <span className="text-[10px] font-bold tabular-nums">{pct}%</span>
+      </div>
+      {next ? (
+        <button type="button" onClick={onOpen} className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-xl bg-primary px-2.5 text-start text-primary-fg shadow-[0_6px_16px_-8px_rgba(0,0,0,0.5)]">
+          <span className="min-w-0 flex-1">
+            <span className="block text-[10px] font-semibold uppercase leading-tight tracking-wide opacity-75">{label} · <span className="tabular-nums">{done}/{total}</span></span>
+            <span className="block truncate text-sm font-semibold leading-tight">{lang === "ar" && next.nameAr ? next.nameAr : next.nameEn}</span>
+          </span>
+          <span className="flex shrink-0 items-center gap-1 text-xs font-semibold tabular-nums">
+            <span
+              role={needsCompass ? "button" : undefined}
+              onClick={needsCompass ? (e) => { e.stopPropagation(); onCompass(); } : undefined}
+              className="grid size-7 place-items-center rounded-full bg-primary-fg/15"
+              aria-label={heading == null ? "North-up direction" : "Live compass"}
+            >
+              <Navigation className="qads-compass size-3.5 fill-current" style={{ transform: `rotate(${rotate - 45}deg)` }} />
+            </span>
+            {distance}
+          </span>
+          <ChevronRight className="size-4 shrink-0 opacity-70 rtl:rotate-180" />
+        </button>
+      ) : (
+        <p className="flex-1 px-2 text-sm font-medium text-muted tabular-nums">{done} / {total}</p>
+      )}
+      <button type="button" onClick={onSearch} className="grid size-11 shrink-0 place-items-center rounded-xl text-muted hover:bg-surface-2 lg:hidden" aria-label={searchLabel}>
+        <CommandIcon className="size-4" />
+      </button>
     </div>
   );
 }

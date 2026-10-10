@@ -90,6 +90,151 @@ function routeIcon(n: number) {
   return icon;
 }
 
+function clusterIcon(n: number) {
+  const size = Math.round(Math.min(40, 28 + Math.log2(n) * 3));
+  const key = `c:${n}:${size}`;
+  const hit = iconCache.get(key);
+  if (hit) return hit;
+  const icon = L.divIcon({
+    className: "",
+    html: `<div class="qads-cluster" style="width:${size}px;height:${size}px">${n}</div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  });
+  iconCache.set(key, icon);
+  return icon;
+}
+
+/** Pixel radius inside which pins fold into one bubble. Pins are 26px wide. */
+const CLUSTER_PX = 42;
+/** From this zoom up every pin is drawn on its own. */
+const CLUSTER_OFF_ZOOM = 18;
+
+type PinGroup = { key: string; lat: number; lng: number; items: Dealership[] };
+
+/** Greedy screen-space grouping: only pins that would overlap are folded. */
+function groupPins(map: L.Map, items: Dealership[], zoom: number): PinGroup[] {
+  if (zoom >= CLUSTER_OFF_ZOOM) return items.map((d) => ({ key: d.id, lat: d.lat, lng: d.lng, items: [d] }));
+  const groups: { x: number; y: number; items: Dealership[] }[] = [];
+  const cell = new Map<string, number[]>();
+  for (const d of items) {
+    const p = map.project([d.lat, d.lng], zoom);
+    const cx = Math.floor(p.x / CLUSTER_PX);
+    const cy = Math.floor(p.y / CLUSTER_PX);
+    let joined = -1;
+    for (let dx = -1; dx <= 1 && joined < 0; dx++) {
+      for (let dy = -1; dy <= 1 && joined < 0; dy++) {
+        for (const gi of cell.get(`${cx + dx}:${cy + dy}`) ?? []) {
+          const g = groups[gi];
+          if (Math.hypot(g.x - p.x, g.y - p.y) < CLUSTER_PX) {
+            joined = gi;
+            break;
+          }
+        }
+      }
+    }
+    if (joined >= 0) {
+      const g = groups[joined];
+      const n = g.items.length;
+      g.x = (g.x * n + p.x) / (n + 1);
+      g.y = (g.y * n + p.y) / (n + 1);
+      g.items.push(d);
+    } else {
+      groups.push({ x: p.x, y: p.y, items: [d] });
+      const k = `${cx}:${cy}`;
+      const arr = cell.get(k) ?? [];
+      arr.push(groups.length - 1);
+      cell.set(k, arr);
+    }
+  }
+  return groups.map((g) => {
+    const ll = map.unproject([g.x, g.y], zoom);
+    return { key: g.items.length === 1 ? g.items[0].id : `c:${g.items[0].id}:${g.items.length}`, lat: ll.lat, lng: ll.lng, items: g.items };
+  });
+}
+
+function PinLayer({
+  pins,
+  numbers,
+  hits,
+  filtering,
+  dualIds,
+  showDualLabels,
+  onSelect,
+  onCluster,
+}: {
+  pins: Dealership[];
+  numbers: Map<string, number>;
+  hits: Set<string>;
+  filtering: boolean;
+  dualIds?: Set<string>;
+  showDualLabels: boolean;
+  onSelect: (id: string) => void;
+  onCluster?: (items: Dealership[], lat: number, lng: number) => void;
+}) {
+  const map = useMap();
+  const [zoom, setZoom] = useState(() => map.getZoom());
+  useMapEvents({ zoomend: () => setZoom(map.getZoom()) });
+
+  const groups = useMemo(() => {
+    const loose: Dealership[] = [];
+    const fixed: Dealership[] = [];
+    for (const d of pins) {
+      if (hits.has(d.id) || (showDualLabels && dualIds?.has(d.id))) fixed.push(d);
+      else loose.push(d);
+    }
+    return [...groupPins(map, loose, zoom), ...fixed.map((d) => ({ key: d.id, lat: d.lat, lng: d.lng, items: [d] }))];
+  }, [map, pins, zoom, hits, showDualLabels, dualIds]);
+
+  function openGroup(g: PinGroup) {
+    const bounds = L.latLngBounds(g.items.map((d) => [d.lat, d.lng] as [number, number]));
+    const target = Math.min(map.getBoundsZoom(bounds.pad(0.35)), CLUSTER_OFF_ZOOM);
+    if (target <= map.getZoom() || bounds.getNorthEast().distanceTo(bounds.getSouthWest()) < 6) {
+      onCluster?.(g.items, g.lat, g.lng);
+      return;
+    }
+    if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") navigator.vibrate(8);
+    map.flyToBounds(bounds.pad(0.35), { maxZoom: target, duration: 0.35 });
+  }
+
+  return (
+    <>
+      {groups.map((g) => {
+        if (g.items.length > 1) {
+          return (
+            <Marker
+              key={g.key}
+              position={[g.lat, g.lng]}
+              icon={clusterIcon(g.items.length)}
+              zIndexOffset={500 + g.items.length}
+              opacity={filtering ? 0.45 : 1}
+              eventHandlers={{ click: () => openGroup(g) }}
+            />
+          );
+        }
+        const d = g.items[0];
+        const dual = Boolean(dualIds?.has(d.id));
+        const n = numbers.get(d.id) ?? 0;
+        return (
+          <Marker
+            key={d.id}
+            position={[d.lat, d.lng]}
+            icon={numberedIcon(d.status, n, false, d.flags?.trainingStage === "trained", dual, hits.has(d.id), filtering && !hits.has(d.id))}
+            zIndexOffset={hits.has(d.id) ? 800 : dual ? 600 : n}
+            eventHandlers={{ click: () => onSelect(d.id) }}
+          >
+            {dual && showDualLabels ? (
+              <Tooltip direction="top" offset={[0, -14]} permanent className="qads-tip qads-tip-dual">
+                {d.nameEn}
+              </Tooltip>
+            ) : null}
+          </Marker>
+        );
+      })}
+    </>
+  );
+}
+
 const meIcon = L.divIcon({
   className: "",
   html: `<div class="qads-me"></div>`,
@@ -185,6 +330,7 @@ export function MapCanvas({
   selectedId,
   onSelect,
   onMapClick,
+  onCluster,
   satellite,
   me,
   route,
@@ -280,27 +426,18 @@ export function MapCanvas({
           ))
         : null}
 
-      {!heat
-        ? pins.map((d) => {
-            const dual = Boolean(dualIds?.has(d.id));
-            const n = numbers.get(d.id) ?? 0;
-            return (
-              <Marker
-                key={d.id}
-                position={[d.lat, d.lng]}
-                icon={numberedIcon(d.status, n, false, d.flags?.trainingStage === "trained", dual, hits.has(d.id), filtering && !hits.has(d.id))}
-                zIndexOffset={hits.has(d.id) ? 800 : dual ? 600 : n}
-                eventHandlers={{ click: () => onSelect(d.id) }}
-              >
-                {dual && showDualLabels ? (
-                  <Tooltip direction="top" offset={[0, -14]} permanent className="qads-tip qads-tip-dual">
-                    {d.nameEn}
-                  </Tooltip>
-                ) : null}
-              </Marker>
-            );
-          })
-        : null}
+      {!heat ? (
+        <PinLayer
+          pins={pins}
+          numbers={numbers}
+          hits={hits}
+          filtering={filtering}
+          dualIds={dualIds}
+          showDualLabels={showDualLabels}
+          onSelect={onSelect}
+          onCluster={onCluster}
+        />
+      ) : null}
 
       {route.map((d, i) => (
         <Marker

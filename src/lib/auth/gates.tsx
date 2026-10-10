@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Navigate } from "@tanstack/react-router";
+import { useField } from "@/stores/field";
 import { authEnabled, signOut } from "./client";
 import { useCurrentUser, useCurrentUserState } from "./use-current-user";
 
