@@ -10,11 +10,6 @@ export function dealerSerials(dealers: Dealership[]): Map<string, number> {
   return new Map(sorted.map((d, i) => [d.id, i + 1]));
 }
 
-export function pinBox(n: number, selected: boolean) {
-  const digits = String(Math.max(0, n)).length;
-  const h = selected ? 32 : 26;
-  const w = selected
-    ? digits >= 3 ? 40 : digits === 2 ? 34 : 32
-    : digits >= 3 ? 34 : digits === 2 ? 30 : 26;
-  return { w, h };
+export function pinBox(_n: number, _selected: boolean) {
+  return { w: 26, h: 26 };
 }

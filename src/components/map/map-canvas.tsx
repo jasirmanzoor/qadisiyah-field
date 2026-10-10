@@ -68,7 +68,7 @@ function numberedIcon(
   const { w, h } = pinBox(n, selected || hit);
   const icon = L.divIcon({
     className: "",
-    html: `<div class="qads-pin-num qads-pin-${status}${selected ? " qads-pin-selected" : ""}${hit ? " qads-pin-hit" : ""}${dim ? " qads-pin-dim" : ""}${trained ? " qads-pin-trained" : ""}${dual ? " qads-pin-dual" : ""}">${n}</div>`,
+    html: `<div class="qads-pin-num${selected ? " qads-pin-selected" : ""}${hit ? " qads-pin-hit" : ""}${dim ? " qads-pin-dim" : ""}">${n}</div>`,
     iconSize: [w, h],
     iconAnchor: [w / 2, h / 2],
   });
@@ -82,9 +82,9 @@ function routeIcon(n: number) {
   if (hit) return hit;
   const icon = L.divIcon({
     className: "",
-    html: `<div class="qads-route-num">${n}</div>`,
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
+    html: `<div class="qads-pin-num">${n}</div>`,
+    iconSize: [26, 26],
+    iconAnchor: [13, 13],
   });
   iconCache.set(key, icon);
   return icon;

@@ -16,7 +16,7 @@ import { SHIFA_CORRIDOR_ORDER, shifaCorridor } from "@/lib/shifa-seed";
 import { MapPinPlus, LocateFixed, Route as RouteIcon, Satellite, Map as MapIcon, Search, X, List as ListIcon, ChevronRight, FileSpreadsheet } from "lucide-react";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { MapFocus } from "./map-canvas";
-import { IconTool, LegendDots, ListSheet, DealerRow } from "./map-widgets";
+import { IconTool, ListSheet, DealerRow } from "./map-widgets";
 import { DealerSheet } from "./dealer-sheet";
 import { displaySurvey } from "./map-notes";
 
@@ -574,15 +574,13 @@ export function MapPage() {
             <div className="h-full bg-primary" style={{ width: `${filter === "all" ? surveyedPct : dealers.length && counts.all ? Math.round((dealers.length / counts.all) * 100) : 0}%` }} />
           </div>
           <div className="flex items-center gap-2 px-2.5 py-1.5">
-            <LegendDots />
-            <p className="min-w-0 flex-1 truncate text-xs font-medium tabular-nums text-muted">
-              {market === "shifa" ? <span className="me-1 font-semibold text-fg">{t.usedCarMarket}</span> : null}
+            <p className="shrink-0 text-xs font-medium tabular-nums text-muted">
               <span className="font-semibold text-fg">{filter === "all" ? counts.surveyed : dealers.length}</span>
               <span>{` / `}</span>
               <span className="font-semibold text-fg">{counts.all}</span>
             </p>
             {nextDesk ? (
-              <button type="button" onClick={() => pickDealer(nextDesk.id)} className="flex h-9 max-w-[56%] min-w-0 items-center gap-1.5 rounded-xl bg-primary px-2.5 text-start text-primary-fg">
+              <button type="button" onClick={() => pickDealer(nextDesk.id)} className="flex h-9 min-w-0 flex-1 items-center gap-1.5 rounded-xl bg-primary px-2.5 text-start text-primary-fg">
                 <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide opacity-80">{t.nextDesk}</span>
                 <span className="min-w-0 flex-1 truncate text-sm font-semibold">{lang === "ar" && nextDesk.nameAr ? nextDesk.nameAr : nextDesk.nameEn}</span>
                 <span className="shrink-0 text-xs tabular-nums opacity-80">{formatDistance(haversineM(origin, nextDesk))}</span>

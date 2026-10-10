@@ -112,9 +112,6 @@ export function DealerRow({
         <span
           className={cn(
             "qads-pin-num qads-pin-row shrink-0",
-            `qads-pin-${dealer.status}`,
-            dealer.flags.trainingStage === "trained" && "qads-pin-trained",
-            dual && "qads-pin-dual",
           )}
         >
           {serial}
@@ -123,9 +120,6 @@ export function DealerRow({
         <span
           className={cn(
             "qads-pin shrink-0",
-            `qads-pin-${dealer.status}`,
-            dealer.flags.trainingStage === "trained" && "qads-pin-trained",
-            dual && "qads-pin-dual",
           )}
         />
       )}
