@@ -10,10 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CeoRouteImport } from './routes/ceo'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OpsRouteImport } from './routes/ops'
-import { Route as CeoRouteImport } from './routes/ceo'
 import { Route as ResearchRouteImport } from './routes/research'
 import { Route as SurveyIdRouteImport } from './routes/survey.$id'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -21,6 +21,11 @@ import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CeoRoute = CeoRouteImport.update({
+  id: '/ceo',
+  path: '/ceo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -36,11 +41,6 @@ const LoginRoute = LoginRouteImport.update({
 const OpsRoute = OpsRouteImport.update({
   id: '/ops',
   path: '/ops',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CeoRoute = CeoRouteImport.update({
-  id: '/ceo',
-  path: '/ceo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResearchRoute = ResearchRouteImport.update({
@@ -61,20 +61,20 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ceo': typeof CeoRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/ops': typeof OpsRoute
-  '/ceo': typeof CeoRoute
   '/research': typeof ResearchRoute
   '/survey/$id': typeof SurveyIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ceo': typeof CeoRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/ops': typeof OpsRoute
-  '/ceo': typeof CeoRoute
   '/research': typeof ResearchRoute
   '/survey/$id': typeof SurveyIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -82,10 +82,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ceo': typeof CeoRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/ops': typeof OpsRoute
-  '/ceo': typeof CeoRoute
   '/research': typeof ResearchRoute
   '/survey/$id': typeof SurveyIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -94,6 +94,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ceo'
     | '/dashboard'
     | '/login'
     | '/ops'
@@ -103,6 +104,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ceo'
     | '/dashboard'
     | '/login'
     | '/ops'
@@ -112,6 +114,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/ceo'
     | '/dashboard'
     | '/login'
     | '/ops'
@@ -122,10 +125,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CeoRoute: typeof CeoRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   OpsRoute: typeof OpsRoute
-  CeoRoute: typeof CeoRoute
   ResearchRoute: typeof ResearchRoute
   SurveyIdRoute: typeof SurveyIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -138,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ceo': {
+      id: '/ceo'
+      path: '/ceo'
+      fullPath: '/ceo'
+      preLoaderRoute: typeof CeoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -159,13 +169,6 @@ declare module '@tanstack/react-router' {
       path: '/ops'
       fullPath: '/ops'
       preLoaderRoute: typeof OpsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ceo': {
-      id: '/ceo'
-      path: '/ceo'
-      fullPath: '/ceo'
-      preLoaderRoute: typeof CeoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/research': {
@@ -194,10 +197,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CeoRoute: CeoRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   OpsRoute: OpsRoute,
-  CeoRoute: CeoRoute,
   ResearchRoute: ResearchRoute,
   SurveyIdRoute: SurveyIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
