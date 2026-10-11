@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Pause, Play, Search, SkipBack, SkipForward } from "lucide-react";
+import { ChevronDown, Pause, Play, Search, SkipBack, SkipForward } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MarketSwitch } from "@/components/market-switch";
 import { displaySurvey } from "@/components/map/map-notes";
@@ -107,6 +107,9 @@ export function MarketTour() {
 
   const selected = placed.find((d) => d.id === selectedId) ?? null;
   const selectedSurvey = selected ? surveyOf(selected) : undefined;
+  const selectedPhotos = selected
+    ? snapshot.photos.filter((photo) => photo.dealershipId === selected.id && photo.dataUrl)
+    : [];
   const meta = MARKET_META[market];
   const center = MARKET_CENTERS[market];
 
@@ -330,6 +333,14 @@ export function MarketTour() {
               </span>
             ) : null}
           </div>
+          {selectedPhotos.length ? (
+            <PhotoStrip
+              key={selected.id}
+              label={ar ? "صور المعرض" : "Showroom"}
+              name={selected.nameEn || selected.nameAr}
+              photos={selectedPhotos.map((photo) => ({ id: photo.id, dataUrl: photo.dataUrl }))}
+            />
+          ) : null}
           <dl className="mt-4 space-y-2 text-sm">
             <Row label={ar ? "الهاتف" : "Phone"} value={selected.listedPhone} />
             <Row
@@ -374,8 +385,16 @@ export function MarketTour() {
               value={(selectedSurvey?.mainBrands ?? []).filter(Boolean).join(", ")}
             />
             <Row label={ar ? "جهة الاتصال" : "Contact"} value={selectedSurvey?.pocName ?? ""} />
-            <Row label={ar ? "ملاحظات" : "Notes"} value={selectedSurvey?.notes ?? ""} />
           </dl>
+          {selectedSurvey?.notes?.trim() ? (
+            <NotesDisclosure
+              key={selected.id}
+              label={ar ? "ملاحظات" : "Notes"}
+              text={selectedSurvey.notes}
+              more={ar ? "عرض الملاحظات" : "Show notes"}
+              less={ar ? "طي الملاحظات" : "Hide notes"}
+            />
+          ) : null}
         </article>
       ) : null}
 
@@ -483,6 +502,80 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
         {value}
         {hint ? <span className="ms-1 text-[10px] font-medium text-muted">{hint}</span> : null}
       </dd>
+    </div>
+  );
+}
+
+function NotesDisclosure({
+  label,
+  text,
+  more,
+  less,
+}: {
+  label: string;
+  text: string;
+  more: string;
+  less: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const long = text.length > 110 || text.split("\n").length > 2;
+  return (
+    <div className="mt-3 border-t border-border/70 pt-2">
+      {long ? (
+        <button
+          type="button"
+          className="flex min-h-9 w-full items-center justify-between gap-2 text-start"
+          aria-expanded={open}
+          onClick={() => setOpen((value) => !value)}
+        >
+          <span className="text-xs text-muted">{label}</span>
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-status-amber">
+            {open ? less : more}
+            <ChevronDown className={`size-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+          </span>
+        </button>
+      ) : (
+        <p className="text-xs text-muted">{label}</p>
+      )}
+      <p className={`mt-1 text-sm leading-snug ${long && !open ? "line-clamp-2" : "whitespace-pre-wrap"}`}>{text}</p>
+    </div>
+  );
+}
+
+function PhotoStrip({
+  photos,
+  label,
+  name,
+}: {
+  photos: { id: string; dataUrl: string }[];
+  label: string;
+  name: string;
+}) {
+  const [active, setActive] = useState(photos[0]?.id ?? "");
+  const shot = photos.find((photo) => photo.id === active) ?? photos[0];
+  if (!shot) return null;
+  return (
+    <div className="mt-3">
+      <p className="text-[10px] font-semibold tracking-wide text-muted uppercase">{label}</p>
+      <img src={shot.dataUrl} alt={name} className="mt-1.5 aspect-[16/10] w-full rounded-xl bg-surface-2 object-cover" />
+      {photos.length > 1 ? (
+        <div className="mt-1.5 flex gap-1.5 overflow-x-auto">
+          {photos.map((photo, index) => {
+            const on = photo.id === shot.id;
+            return (
+              <button
+                key={photo.id}
+                type="button"
+                onClick={() => setActive(photo.id)}
+                className={`size-12 shrink-0 overflow-hidden rounded-lg ${on ? "ring-2 ring-status-amber" : "opacity-70"}`}
+                aria-label={`${name} ${index + 1}`}
+              >
+                <img src={photo.dataUrl} alt="" className="size-full object-cover" />
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
     </div>
   );
 }
