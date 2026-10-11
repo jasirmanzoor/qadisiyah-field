@@ -10,7 +10,7 @@ import { marketCounts } from "@/lib/markets";
 import { cn } from "@/lib/utils";
 import { useField } from "@/stores/field";
 import { usePrefs } from "@/stores/prefs";
-import { BarChart3, Bot, Map as MapIcon, Moon, Sun, Workflow } from "lucide-react";
+import { BarChart3, Bot, Compass, Map as MapIcon, Moon, Sun, Workflow } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -98,13 +98,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (!user) return <RedirectToSignIn />;
 
   const nav = [
-    { to: "/", label: t.map, icon: MapIcon },
+    { to: "/", label: lang === "ar" ? "جولة" : "Tour", icon: Compass },
+    { to: "/field", label: t.map, icon: MapIcon },
     { to: "/dashboard", label: t.dashboard, icon: BarChart3 },
     { to: "/research", label: t.research, icon: Bot },
     { to: "/ops", label: t.ops, icon: Workflow },
   ] as const;
 
-  const isSurvey = pathname.startsWith("/survey");
+  const isSurvey = pathname === "/" || pathname.startsWith("/survey");
 
   return (
     <div
@@ -189,7 +190,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {isSurvey ? null : (
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-border/80 bg-surface/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border/80 bg-surface/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
         {nav.map((item) => {
           const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
           const Icon = item.icon;
