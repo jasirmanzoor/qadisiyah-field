@@ -551,6 +551,7 @@ html.dark {
     linear-gradient(to bottom, color-mix(in oklab, var(--bg) 40%, transparent), transparent 18%);
 }
 .tour-map.leaflet-container {
+  z-index: 0;
   background: #10120e;
   font-family: var(--font-sans);
 }

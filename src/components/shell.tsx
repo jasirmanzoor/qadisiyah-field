@@ -105,7 +105,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { to: "/ops", label: t.ops, icon: Workflow },
   ] as const;
 
-  const isSurvey = pathname === "/" || pathname.startsWith("/survey");
+  const isSurvey = pathname.startsWith("/survey");
 
   return (
     <div

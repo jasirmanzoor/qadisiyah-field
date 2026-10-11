@@ -117,7 +117,7 @@ export function TourMap({
       maxZoom={MAP_MAX_ZOOM}
       zoomControl={false}
       attributionControl={false}
-      className="tour-map absolute inset-0"
+      className="tour-map absolute inset-0 z-0"
     >
       <TileLayer url={ESRI_SAT} maxNativeZoom={19} maxZoom={MAP_MAX_ZOOM} />
       <ZoomControl position="bottomright" />

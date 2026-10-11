@@ -221,7 +221,7 @@ export function MarketTour() {
 
   return (
     <div className="relative min-h-0 flex-1 overflow-hidden bg-bg text-fg">
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 z-0">
         {MapView ? (
           <MapView
             stops={stops}
@@ -243,9 +243,9 @@ export function MarketTour() {
           </div>
         )}
       </div>
-      <div className="tour-vignette absolute inset-0" />
+      <div className="tour-vignette pointer-events-none absolute inset-0 z-[1]" />
 
-      <header className="tour-glass absolute inset-x-3 top-3 z-20 flex flex-wrap items-center gap-2 rounded-2xl px-3 py-2 md:inset-x-4">
+      <header className="tour-glass absolute inset-x-3 top-3 z-30 flex flex-wrap items-center gap-2 rounded-2xl px-3 py-2 md:inset-x-4">
         <div className="min-w-0 pr-1">
           <p className="text-[10px] font-semibold tracking-[0.18em] text-status-amber uppercase">{sub}</p>
           <h1 className="text-base font-semibold tracking-tight">{title}</h1>
@@ -274,7 +274,7 @@ export function MarketTour() {
         </div>
       </header>
 
-      <section className="tour-glass absolute top-36 left-3 z-20 hidden w-64 rounded-2xl p-4 md:top-32 md:block">
+      <section className="tour-glass absolute top-36 left-3 z-30 hidden w-64 rounded-2xl p-4 md:top-32 md:block">
         <p className="text-[10px] font-semibold tracking-[0.16em] text-muted uppercase">
           {ar ? "كما هو مسجّل" : "As recorded"}
         </p>
@@ -307,7 +307,7 @@ export function MarketTour() {
       </section>
 
       {selected ? (
-        <article className="tour-glass absolute inset-x-3 bottom-20 z-20 max-h-[46%] overflow-auto rounded-2xl p-4 md:inset-x-auto md:top-32 md:right-4 md:bottom-auto md:max-h-[calc(100%-10rem)] md:w-[22rem]">
+        <article className="tour-glass absolute inset-x-3 bottom-20 z-30 max-h-[46%] overflow-auto rounded-2xl p-4 md:inset-x-auto md:top-32 md:right-4 md:bottom-auto md:max-h-[calc(100%-10rem)] md:w-[22rem]">
           <p className="text-[10px] font-semibold tracking-[0.16em] text-status-amber uppercase">
             {selected.flags.sdId || "—"} · {tourAt >= 0 ? `${tourAt + 1}/${visible.length}` : `${visible.length}`}
           </p>
@@ -402,7 +402,7 @@ export function MarketTour() {
         </aside>
       ) : null}
 
-      <footer className="tour-glass absolute inset-x-3 bottom-3 z-20 flex items-center gap-2 rounded-2xl px-2 py-1.5 md:inset-x-auto md:bottom-4 md:left-1/2 md:-translate-x-1/2">
+      <footer className="tour-glass absolute inset-x-3 bottom-3 z-30 flex items-center gap-2 rounded-2xl px-2 py-1.5 md:inset-x-auto md:bottom-4 md:left-1/2 md:-translate-x-1/2">
         <button type="button" className="grid size-11 place-items-center rounded-xl" onClick={() => step(-1)} aria-label="Previous">
           <SkipBack className="size-4" />
         </button>
