@@ -117,6 +117,22 @@ function gpsStamp(d: Dealership): number {
   return Date.parse(d.flags?.gpsTimestamp || d.updatedAt || "") || 0;
 }
 
+function localWins(local: Dealership, remote: Dealership): boolean {
+  const lt = Date.parse(local.updatedAt || "") || 0;
+  const rt = Date.parse(remote.updatedAt || "") || 0;
+  return lt > 0 && lt >= rt;
+}
+
+/** A newer or still-queued edit keeps every field, including a removal. */
+function localOver(local: Dealership, remote: Dealership): Dealership {
+  return {
+    ...remote,
+    ...local,
+    id: remote.id,
+    flags: { ...remote.flags, ...local.flags },
+  };
+}
+
 function keepLocalGps(local: Dealership, remote: Dealership): Dealership {
   if (local.lat === remote.lat && local.lng === remote.lng) {
     if (isProtectedGps(local.flags) && !isProtectedGps(remote.flags)) {
@@ -214,15 +230,7 @@ function mergeSnapshot(local: Snapshot, remote: Snapshot, pendingIds: Set<string
       pendingIds.has(l.id) ||
       (r.flags?.sdId ? pendingIds.has(r.flags.sdId) : false) ||
       (l.flags?.sdId ? pendingIds.has(l.flags.sdId) : false);
-    if (pending) {
-      return {
-        ...r,
-        lat: l.lat,
-        lng: l.lng,
-        flags: { ...r.flags, ...pickGpsFlags(l.flags) },
-        updatedAt: l.updatedAt,
-      };
-    }
+    if (pending || localWins(l, r)) return localOver(l, r);
     return keepLocalGps(l, r);
   });
   for (const l of local.dealerships) {

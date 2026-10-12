@@ -64,6 +64,8 @@ export type DealershipFlags = {
   market?: MarketId;
   /** Floor records the walk marked hidden (duplicate door). */
   hidden?: boolean;
+  /** A person saved this door. Census refresh must not overwrite it. */
+  rosterLock?: boolean;
   /** On the list, but no door coordinate yet. Hidden from the map. */
   unplaced?: boolean;
   /** Set when floor figures were filed. Not a pin. */

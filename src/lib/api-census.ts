@@ -56,7 +56,7 @@ export async function applyShifaCensus(workspaceId: string) {
         select id, lat, lng, name_ar, seed_note, flags
         from dealerships
         where user_id = ${workspaceId}
-          and (flags->>'sdId' = ${d.sdId} or id = ${prefixed})
+          and ((case when left(flags, 1) = '{' then flags::jsonb->>'sdId' else null end) = ${d.sdId} or id = ${prefixed})
         limit 1
       `) as typeof existing;
     }
@@ -73,6 +73,7 @@ export async function applyShifaCensus(workspaceId: string) {
 
     const cur = existing[0];
     const prevFlags = parseFlags(cur.flags);
+    if (prevFlags.rosterLock || prevFlags.hidden) continue;
     const keepFieldGps = isProtectedGps(prevFlags);
     if (keepFieldGps) {
       const touch = d.sdId.startsWith("S15") || d.sdId === "S0061" || d.sdId === "S0069";
@@ -163,7 +164,7 @@ async function applyFloorSurveys(workspaceId: string, rows: CensusRow[]) {
       existing = (await sql`
         select id, status from dealerships
         where user_id = ${workspaceId}
-          and (flags->>'sdId' = ${d.sdId} or id = ${prefixed})
+          and ((case when left(flags, 1) = '{' then flags::jsonb->>'sdId' else null end) = ${d.sdId} or id = ${prefixed})
         limit 1
       `) as typeof existing;
     }

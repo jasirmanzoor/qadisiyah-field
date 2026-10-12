@@ -102,7 +102,7 @@ export const upsertDealership = createServerFn({ method: "POST" })
     const { sql, scope } = await scoped(context.userId);
     const d = ((data as { dealer?: Partial<Dealership> }).dealer ?? data) as Partial<Dealership> & { id?: string };
     const id = d.id || uid();
-    const flags = d.flags ?? {};
+    const flags = { ...(d.flags ?? {}), rosterLock: true };
     const sdId = flags.sdId || (id.includes("::") ? id.split("::").pop() : id) || id;
     const prefixed = `${scope}::${sdId}`;
     const payload = JSON.stringify(flags);
@@ -123,8 +123,18 @@ export const upsertDealership = createServerFn({ method: "POST" })
         status = coalesce(${d.status ?? null}, status),
         flags = ${payload},
         updated_at = now()
-      where user_id = ${scope}
-        and (id = ${id} or id = ${sdId} or id = ${prefixed} or flags->>'sdId' = ${sdId})
+      where user_id = ${scope} and id = (
+        select id from dealerships
+        where user_id = ${scope}
+          and (
+            id = ${id}
+            or id = ${sdId}
+            or id = ${prefixed}
+            or (case when left(flags, 1) = '{' then flags::jsonb->>'sdId' else null end) = ${sdId}
+          )
+        order by case when id = ${id} then 0 when id = ${prefixed} then 1 else 2 end
+        limit 1
+      )
       returning id
     `) as { id: string }[];
 
