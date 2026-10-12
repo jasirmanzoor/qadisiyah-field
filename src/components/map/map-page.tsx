@@ -5,7 +5,8 @@ import { dealersInMarket, dealerMarket, dualPartner, isDualLocation } from "@/li
 import { buildExcelXml, downloadBlob } from "@/lib/export";
 import { isDeepDived, isSurveyedShowroom } from "@/lib/survey-schema";
 import { cn, uid } from "@/lib/utils";
-import type { Dealership } from "@/lib/types";
+import type { Dealership, VisitStatus } from "@/lib/types";
+import { VISIT_STATUSES } from "@/lib/types";
 import { AiSurveySheet } from "@/components/ai/ai-survey-sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
@@ -98,6 +99,15 @@ export function MapPage() {
   const [listMode, setListMode] = useState(false);
   const [editingCoords, setEditingCoords] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState({
+    nameEn: "",
+    nameAr: "",
+    phone: "",
+    street: "",
+    status: "not_visited" as VisitStatus,
+  });
 
   useEffect(() => {
     setCluster(null); setNearMe(false); setRouteIds([]); setFilter("all"); setSearch("");
@@ -457,6 +467,45 @@ export function MapPage() {
     const nxt = rest.length ? rest.reduce((best, d) => (haversineM(origin, d) < haversineM(origin, best) ? d : best)) : null;
     if (nxt) pickDealer(nxt.id); else setSelectedId(null);
   }
+  function openEdit(dealer: Dealership) {
+    setDeleteId(null);
+    setEditId(dealer.id);
+    setEditDraft({
+      nameEn: dealer.nameEn,
+      nameAr: dealer.nameAr,
+      phone: dealer.listedPhone,
+      street: dealer.flags.street ?? "",
+      status: dealer.status,
+    });
+  }
+  async function saveEdit() {
+    if (!editId) return;
+    const prev = useField.getState().snapshot.dealerships.find((d) => d.id === editId);
+    if (!prev) return;
+    const nameEn = editDraft.nameEn.trim() || prev.nameEn;
+    await upsertDealer({
+      ...prev,
+      nameEn,
+      nameAr: editDraft.nameAr.trim(),
+      listedPhone: editDraft.phone.trim(),
+      status: editDraft.status,
+      flags: { ...prev.flags, street: editDraft.street.trim() || prev.flags.street },
+      updatedAt: new Date().toISOString(),
+    });
+    setEditId(null);
+  }
+  async function deleteShowroom(id: string) {
+    const prev = useField.getState().snapshot.dealerships.find((d) => d.id === id);
+    if (!prev) return;
+    await upsertDealer({
+      ...prev,
+      flags: { ...prev.flags, hidden: true },
+      updatedAt: new Date().toISOString(),
+    });
+    if (selectedId === id) setSelectedId(null);
+    setDeleteId(null);
+    setEditId(null);
+  }
   const qadisiyahFilters: { id: FilterId; label: string; count: number }[] = [
     { id: "dual", label: t.bothMarkets, count: counts.dual },
     { id: "unvisited", label: t.unvisited, count: counts.unvisited }, { id: "partial", label: t.partialFilter, count: counts.partial },
@@ -549,13 +598,49 @@ export function MapPage() {
                 {listRows.length === 0 ? (
                   <div className="px-3 py-6"><p className="text-sm text-muted">{t.noShowroomMatch}</p><Button data-add="1" size="sm" className="mt-3 w-full" onClick={() => openAdd(search)}><MapPinPlus className="size-4" />{t.addThisLot}</Button></div>
                 ) : listGroups ? listGroups.map((g) => (
-                  <div key={g.key}><p className="sticky top-0 z-10 bg-surface px-3 py-1.5 text-xs font-semibold text-muted">{g.key}<span className="ms-1.5 tabular-nums opacity-80">{g.items.length}</span></p>{g.items.map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} selected={d.id === selectedId} meta={rowMeta(d)} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, hasPin(d) ? STATUS_LABEL[lang][d.status] : t.noPin].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} />)}</div>
-                )) : listRows.map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} selected={d.id === selectedId} meta={rowMeta(d)} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, hasPin(d) ? STATUS_LABEL[lang][d.status] : t.noPin].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} />)}
+                  <div key={g.key}><p className="sticky top-0 z-10 bg-surface px-3 py-1.5 text-xs font-semibold text-muted">{g.key}<span className="ms-1.5 tabular-nums opacity-80">{g.items.length}</span></p>{g.items.map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} selected={d.id === selectedId} meta={rowMeta(d)} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, hasPin(d) ? STATUS_LABEL[lang][d.status] : t.noPin].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} onEdit={() => openEdit(d)} onDelete={() => { setEditId(null); setDeleteId(d.id); }} />)}</div>
+                )) : listRows.map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} selected={d.id === selectedId} meta={rowMeta(d)} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, hasPin(d) ? STATUS_LABEL[lang][d.status] : t.noPin].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} onEdit={() => openEdit(d)} onDelete={() => { setEditId(null); setDeleteId(d.id); }} />)}
               </div>
               <div className="border-t border-border px-3 py-2">
-                <button type="button" onClick={exportListExcel} disabled={listRows.length === 0} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 text-sm font-semibold text-primary-fg disabled:opacity-40">
-                  <FileSpreadsheet className="size-4" />{t.exportExcel}<span className="tabular-nums opacity-80">{listRows.length}</span>
-                </button>
+                {editId ? (
+                  <form
+                    className="mb-2 grid grid-cols-2 gap-1.5"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      void saveEdit();
+                    }}
+                  >
+                    <p className="col-span-2 text-xs font-semibold">{lang === "ar" ? "تعديل المعرض" : "Edit showroom"}</p>
+                    <input className="min-h-10 rounded-lg bg-surface-2 px-2 text-sm" value={editDraft.nameEn} onChange={(event) => setEditDraft((draft) => ({ ...draft, nameEn: event.target.value }))} placeholder={t.name} aria-label={t.name} />
+                    <input className="min-h-10 rounded-lg bg-surface-2 px-2 text-sm" dir="rtl" value={editDraft.nameAr} onChange={(event) => setEditDraft((draft) => ({ ...draft, nameAr: event.target.value }))} placeholder={lang === "ar" ? "الاسم العربي" : "Arabic name"} aria-label={lang === "ar" ? "الاسم العربي" : "Arabic name"} />
+                    <input className="min-h-10 rounded-lg bg-surface-2 px-2 text-sm" value={editDraft.phone} onChange={(event) => setEditDraft((draft) => ({ ...draft, phone: event.target.value }))} placeholder={t.phone} aria-label={t.phone} />
+                    <input className="min-h-10 rounded-lg bg-surface-2 px-2 text-sm" value={editDraft.street} onChange={(event) => setEditDraft((draft) => ({ ...draft, street: event.target.value }))} placeholder={lang === "ar" ? "الشارع" : "Street"} aria-label={lang === "ar" ? "الشارع" : "Street"} />
+                    <select className="col-span-2 min-h-10 rounded-lg bg-surface-2 px-2 text-sm" value={editDraft.status} onChange={(event) => setEditDraft((draft) => ({ ...draft, status: event.target.value as VisitStatus }))} aria-label={t.status}>
+                      {VISIT_STATUSES.map((status) => (
+                        <option key={status} value={status}>{STATUS_LABEL[lang][status] ?? status}</option>
+                      ))}
+                    </select>
+                    <button type="submit" className="min-h-10 rounded-lg bg-primary text-sm font-semibold text-primary-fg">{t.save}</button>
+                    <button type="button" onClick={() => setEditId(null)} className="min-h-10 rounded-lg bg-surface-2 text-sm font-semibold">{t.cancel}</button>
+                  </form>
+                ) : null}
+                {deleteId ? (
+                  <div className="mb-2">
+                    <p className="text-xs text-muted">{lang === "ar" ? "حذف هذا المعرض من القائمة؟" : "Delete this showroom from the list?"}</p>
+                    <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+                      <button type="button" onClick={() => void deleteShowroom(deleteId)} className="min-h-10 rounded-lg bg-danger text-sm font-semibold text-white">{lang === "ar" ? "حذف" : "Delete"}</button>
+                      <button type="button" onClick={() => setDeleteId(null)} className="min-h-10 rounded-lg bg-surface-2 text-sm font-semibold">{t.cancel}</button>
+                    </div>
+                  </div>
+                ) : null}
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button type="button" data-add="1" onClick={() => openAdd()} className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-surface-2 px-3 text-sm font-semibold">
+                    <MapPinPlus className="size-4" />{t.addDealer}
+                  </button>
+                  <button type="button" onClick={exportListExcel} disabled={listRows.length === 0} className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-3 text-sm font-semibold text-primary-fg disabled:opacity-40">
+                    <FileSpreadsheet className="size-4" />{t.exportExcel}<span className="tabular-nums opacity-80">{listRows.length}</span>
+                  </button>
+                </div>
               </div>
             </div>
           ) : null}

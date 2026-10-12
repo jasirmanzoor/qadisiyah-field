@@ -1,7 +1,7 @@
 import "@/styles-pins.css";
 import { cn } from "@/lib/utils";
 import type { Dealership } from "@/lib/types";
-import { X } from "lucide-react";
+import { Pencil, Trash2, X } from "lucide-react";
 
 export function IconTool({
   children,
@@ -88,6 +88,8 @@ export function DealerRow({
   dual,
   selected,
   onClick,
+  onEdit,
+  onDelete,
 }: {
   dealer: Dealership;
   serial?: number;
@@ -97,37 +99,53 @@ export function DealerRow({
   dual?: boolean;
   selected?: boolean;
   onClick: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }) {
   const name = lang === "ar" && dealer.nameAr ? dealer.nameAr : dealer.nameEn;
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <div
       className={cn(
-        "flex min-h-11 w-full items-center gap-2 rounded-xl px-2 py-2 text-left transition-colors duration-150 hover:bg-surface-2",
+        "flex min-h-11 w-full items-center gap-0.5 rounded-xl pe-1 transition-colors duration-150",
         selected && "bg-surface-2",
       )}
     >
-      {serial != null ? (
-        <span
-          className={cn(
-            "qads-pin-num qads-pin-row shrink-0",
-          )}
-        >
-          {serial}
+      <button
+        type="button"
+        onClick={onClick}
+        className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-xl px-2 py-2 text-left hover:bg-surface-2"
+      >
+        {serial != null ? (
+          <span className="qads-pin-num qads-pin-row shrink-0">{serial}</span>
+        ) : (
+          <span className="qads-pin shrink-0" />
+        )}
+        <span className="min-w-0 flex-1">
+          <span className={cn("block truncate text-sm font-medium", dual && "text-primary")}>{name}</span>
+          {subtitle ? <span className="block truncate text-xs text-muted">{subtitle}</span> : null}
         </span>
-      ) : (
-        <span
-          className={cn(
-            "qads-pin shrink-0",
-          )}
-        />
-      )}
-      <span className="min-w-0 flex-1">
-        <span className={cn("block truncate text-sm font-medium", dual && "text-primary")}>{name}</span>
-        {subtitle ? <span className="block truncate text-xs text-muted">{subtitle}</span> : null}
-      </span>
-      {meta ? <span className="shrink-0 text-xs tabular-nums text-muted">{meta}</span> : null}
-    </button>
+        {meta ? <span className="shrink-0 text-xs tabular-nums text-muted">{meta}</span> : null}
+      </button>
+      {onEdit ? (
+        <button
+          type="button"
+          onClick={onEdit}
+          className="grid size-9 shrink-0 place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-fg"
+          aria-label={lang === "ar" ? "تعديل" : "Edit"}
+        >
+          <Pencil className="size-3.5" />
+        </button>
+      ) : null}
+      {onDelete ? (
+        <button
+          type="button"
+          onClick={onDelete}
+          className="grid size-9 shrink-0 place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-danger"
+          aria-label={lang === "ar" ? "حذف" : "Delete"}
+        >
+          <Trash2 className="size-3.5" />
+        </button>
+      ) : null}
+    </div>
   );
 }
