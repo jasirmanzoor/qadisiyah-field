@@ -137,8 +137,12 @@
   -webkit-transition: none !important;
 }
 .leaflet-fade-anim .leaflet-tile,
-.leaflet-zoom-anim .leaflet-tile,
-.leaflet-zoom-anim .leaflet-tile-container {
+.leaflet-zoom-anim .leaflet-tile {
   transition: none !important;
   -webkit-transition: none !important;
+}
+/* Scale the satellite with the pins. Do not cancel the tile-pane transform. */
+.leaflet-zoom-anim .leaflet-zoom-animated {
+  transition: transform 0.25s cubic-bezier(0, 0, 0.25, 1) !important;
+  -webkit-transition: -webkit-transform 0.25s cubic-bezier(0, 0, 0.25, 1) !important;
 }

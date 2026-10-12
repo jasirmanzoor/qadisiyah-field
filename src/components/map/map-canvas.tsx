@@ -22,7 +22,7 @@ const TILE = {
   maxZoom: MAP_MAX_ZOOM,
   maxNativeZoom: 19,
   keepBuffer: 12,
-  updateWhenZooming: true,
+  updateWhenZooming: false,
   updateWhenIdle: true,
   detectRetina: false as const,
 };
