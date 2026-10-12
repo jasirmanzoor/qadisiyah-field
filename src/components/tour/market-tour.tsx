@@ -107,9 +107,7 @@ export function MarketTour() {
 
   const selected = placed.find((d) => d.id === selectedId) ?? null;
   const selectedSurvey = selected ? surveyOf(selected) : undefined;
-  const selectedPhotos = selected
-    ? snapshot.photos.filter((photo) => photo.dealershipId === selected.id && photo.dataUrl)
-    : [];
+  const selectedPhotos = selected ? photosFor(selected, snapshot.photos, snapshot.dealerships) : [];
   const meta = MARKET_META[market];
   const center = MARKET_CENTERS[market];
 
@@ -310,7 +308,7 @@ export function MarketTour() {
       </section>
 
       {selected ? (
-        <article className="tour-glass absolute inset-x-3 bottom-20 z-30 max-h-[46%] overflow-auto rounded-2xl p-4 md:inset-x-auto md:top-32 md:right-4 md:bottom-auto md:max-h-[calc(100%-10rem)] md:w-[22rem]">
+        <article key={selected.id} className="tour-glass absolute inset-x-3 bottom-20 z-30 max-h-[46%] overflow-auto rounded-2xl p-4 md:inset-x-auto md:top-32 md:right-4 md:bottom-auto md:max-h-[calc(100%-10rem)] md:w-[22rem]">
           <p className="text-[10px] font-semibold tracking-[0.16em] text-status-amber uppercase">
             {selected.flags.sdId || "—"} · {tourAt >= 0 ? `${tourAt + 1}/${visible.length}` : `${visible.length}`}
           </p>
@@ -542,6 +540,65 @@ function NotesDisclosure({
   );
 }
 
+function photoKeys(dealer: Dealership): string[] {
+  const keys = [dealer.id];
+  if (dealer.flags.sdId) keys.push(dealer.flags.sdId);
+  const tail = dealer.id.includes("::") ? dealer.id.split("::").pop() : "";
+  if (tail) keys.push(tail);
+  return keys.filter((key): key is string => Boolean(key));
+}
+
+function photosFor(
+  dealer: Dealership,
+  photos: { id: string; dealershipId: string; dataUrl: string }[],
+  dealers: Dealership[],
+) {
+  const keys = new Set(photoKeys(dealer));
+  const sd = dealer.flags.sdId;
+  if (sd) {
+    for (const other of dealers) {
+      if (other.flags.sdId === sd) photoKeys(other).forEach((key) => keys.add(key));
+    }
+  }
+  return photos.filter((photo) => {
+    if (!photo.dataUrl) return false;
+    if (keys.has(photo.dealershipId)) return true;
+    const tail = photo.dealershipId.includes("::") ? photo.dealershipId.split("::").pop() : "";
+    return Boolean(tail && keys.has(tail));
+  });
+}
+
+function usePhotoSrc(dataUrl: string) {
+  const [src, setSrc] = useState("");
+  useEffect(() => {
+    if (!dataUrl) {
+      setSrc("");
+      return;
+    }
+    if (!dataUrl.startsWith("data:")) {
+      setSrc(dataUrl);
+      return;
+    }
+    let dead = false;
+    let blobUrl = "";
+    void fetch(dataUrl)
+      .then((res) => res.blob())
+      .then((blob) => {
+        if (dead) return;
+        blobUrl = URL.createObjectURL(blob);
+        setSrc(blobUrl);
+      })
+      .catch(() => {
+        if (!dead) setSrc(dataUrl);
+      });
+    return () => {
+      dead = true;
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+    };
+  }, [dataUrl]);
+  return src;
+}
+
 function PhotoStrip({
   photos,
   label,
@@ -551,22 +608,27 @@ function PhotoStrip({
   label: string;
   name: string;
 }) {
-  const [active, setActive] = useState(photos[0]?.id ?? "");
-  const shot = photos.find((photo) => photo.id === active) ?? photos[0];
+  const [active, setActive] = useState(0);
+  const shot = photos[active] ?? photos[0];
+  const src = usePhotoSrc(shot?.dataUrl ?? "");
   if (!shot) return null;
   return (
     <div className="mt-3">
       <p className="text-[10px] font-semibold tracking-wide text-muted uppercase">{label}</p>
-      <img src={shot.dataUrl} alt={name} className="mt-1.5 aspect-[16/10] w-full rounded-xl bg-surface-2 object-cover" />
+      {src ? (
+        <img key={`${active}:${shot.id}`} src={src} alt={name} className="mt-1.5 aspect-[16/10] w-full rounded-xl bg-black/40 object-contain" />
+      ) : (
+        <div className="mt-1.5 aspect-[16/10] w-full rounded-xl bg-surface-2" />
+      )}
       {photos.length > 1 ? (
         <div className="mt-1.5 flex gap-1.5 overflow-x-auto">
           {photos.map((photo, index) => {
-            const on = photo.id === shot.id;
+            const on = index === (photos[active] ? active : 0);
             return (
               <button
-                key={photo.id}
+                key={`${photo.id}:${index}`}
                 type="button"
-                onClick={() => setActive(photo.id)}
+                onClick={() => setActive(index)}
                 className={`size-12 shrink-0 overflow-hidden rounded-lg ${on ? "ring-2 ring-status-amber" : "opacity-70"}`}
                 aria-label={`${name} ${index + 1}`}
               >

@@ -76,8 +76,8 @@ function normName(value: string): string {
 }
 
 /** Paint walked doors the server roster has not inserted yet. Never replaces an existing sdId or the same name. */
-export function overlayMissingShifa(dealers: Dealership[]): Dealership[] {
-  const have = new Set<string>();
+export function overlayMissingShifa(dealers: Dealership[], blocked: Set<string> = new Set()): Dealership[] {
+  const have = new Set<string>(blocked);
   for (const d of dealers) {
     if (d.id) have.add(d.id);
     if (d.flags?.sdId) have.add(d.flags.sdId);

@@ -52,7 +52,7 @@ export async function loadSnapshot(workspaceId: string): Promise<Snapshot> {
     photos: (photos as any[]).map((p) => ({
       id: p.id,
       dealershipId: p.dealership_id,
-      dataUrl: p.url ?? p.data_url ?? "",
+      dataUrl: p.data_url ?? p.url ?? "",
       lat: p.lat ?? null,
       lng: p.lng ?? null,
       capturedAt: String(p.created_at ?? p.captured_at ?? ""),
@@ -173,11 +173,17 @@ export const upsertSurvey = createServerFn({ method: "POST" })
 
 export const addPhoto = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .validator((input: { dealershipId: string; url: string; kind?: string }) => input)
+  .validator((input: { id?: string; dealershipId: string; url?: string; dataUrl?: string; lat?: number | null; lng?: number | null; capturedAt?: string }) => input)
   .handler(async ({ context, data }) => {
     const { sql, scope } = await scoped(context.userId);
-    const id = uid();
-    await sql`insert into photos (id, user_id, dealership_id, url, kind) values (${id}, ${scope}, ${data.dealershipId}, ${data.url}, ${data.kind ?? "exterior"})`;
+    const id = data.id || uid();
+    const url = data.dataUrl || data.url || "";
+    if (!url || !data.dealershipId) return { ok: true as const, snapshot: await loadSnapshot(scope) };
+    await sql`
+      insert into photos (id, user_id, dealership_id, data_url, lat, lng, captured_at)
+      values (${id}, ${scope}, ${data.dealershipId}, ${url}, ${data.lat ?? null}, ${data.lng ?? null}, ${data.capturedAt ?? new Date().toISOString()})
+      on conflict (id) do update set data_url = excluded.data_url, dealership_id = excluded.dealership_id
+    `;
     return { ok: true as const, snapshot: await loadSnapshot(scope) };
   });
 

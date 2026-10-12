@@ -68,9 +68,20 @@ export function dealerMarket(d: Pick<Dealership, "lat" | "flags">): MarketId {
 }
 
 export function dealersInMarket(dealers: Dealership[], market: MarketId): Dealership[] {
-  const scoped = dealers.filter((d) => !d.flags?.hidden && dealerMarket(d) === market);
-  if (market !== "shifa") return scoped;
-  return collapseShifaDuplicates(overlayMissingShifa(scoped));
+  const scoped = dealers.filter((d) => dealerMarket(d) === market);
+  const visible = scoped.filter((d) => !d.flags?.hidden);
+  if (market !== "shifa") return visible;
+  const blocked = new Set<string>();
+  for (const d of scoped) {
+    if (!d.flags?.hidden) continue;
+    if (d.id) blocked.add(d.id);
+    if (d.flags.sdId) blocked.add(d.flags.sdId);
+    const en = d.nameEn.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
+    const ar = d.nameAr.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
+    if (en) blocked.add(en);
+    if (ar) blocked.add(ar);
+  }
+  return collapseShifaDuplicates(overlayMissingShifa(visible, blocked));
 }
 
 export function sliceSnapshot(snapshot: Snapshot, market: MarketId): Snapshot {

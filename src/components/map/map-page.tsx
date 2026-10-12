@@ -495,14 +495,20 @@ export function MapPage() {
     setEditId(null);
   }
   async function deleteShowroom(id: string) {
-    const prev = useField.getState().snapshot.dealerships.find((d) => d.id === id);
+    const all = useField.getState().snapshot.dealerships;
+    const prev = all.find((d) => d.id === id);
     if (!prev) return;
-    await upsertDealer({
-      ...prev,
-      flags: { ...prev.flags, hidden: true },
-      updatedAt: new Date().toISOString(),
-    });
-    if (selectedId === id) setSelectedId(null);
+    const sd = prev.flags.sdId;
+    const now = new Date().toISOString();
+    const targets = all.filter((d) => d.id === id || (sd && d.flags.sdId === sd));
+    for (const row of targets) {
+      await upsertDealer({
+        ...row,
+        flags: { ...row.flags, hidden: true },
+        updatedAt: now,
+      });
+    }
+    if (selectedId === id || (sd && all.some((d) => d.id === selectedId && d.flags.sdId === sd))) setSelectedId(null);
     setDeleteId(null);
     setEditId(null);
   }
