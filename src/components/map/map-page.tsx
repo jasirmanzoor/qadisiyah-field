@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/field";
 import { ClientOnly } from "@/components/client-only";
 import { useField, surveyFor } from "@/stores/field";
 import { usePrefs } from "@/stores/prefs";
+import { facadePhotosFor } from "@/lib/facade-photos";
 import { SHIFA_CORRIDOR_ORDER, shifaCorridor } from "@/lib/shifa-seed";
 import { MapPinPlus, LocateFixed, Route as RouteIcon, Satellite, Map as MapIcon, Search, X, List as ListIcon, ChevronRight, FileSpreadsheet } from "lucide-react";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -689,7 +690,7 @@ export function MapPage() {
           distance={haversineM(origin, selected)}
           source={survey?.volumeFiguresAre}
           survey={survey}
-          photos={snapshot.photos.filter((p) => p.dealershipId === selected.id)}
+          photos={[...facadePhotosFor(selected), ...snapshot.photos.filter((p) => p.dealershipId === selected.id)]}
           canPinGps={Boolean(gps && !gpsError)}
           editingCoords={editingCoords}
           gps={gps && !gpsError ? gps : null}

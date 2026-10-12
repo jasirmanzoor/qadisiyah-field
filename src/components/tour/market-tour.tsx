@@ -6,6 +6,7 @@ import { displaySurvey } from "@/components/map/map-notes";
 import { MARKET_CENTERS } from "@/lib/geo";
 import { STATUS_LABEL } from "@/lib/i18n";
 import { dealersInMarket, marketCounts, MARKET_META } from "@/lib/markets";
+import { facadePhotosFor } from "@/lib/facade-photos";
 import { dealerSerials } from "@/lib/serial";
 import { isSurveyedShowroom } from "@/lib/survey-schema";
 import type { Dealership, SurveyPayload } from "@/lib/types";
@@ -107,7 +108,9 @@ export function MarketTour() {
 
   const selected = placed.find((d) => d.id === selectedId) ?? null;
   const selectedSurvey = selected ? surveyOf(selected) : undefined;
-  const selectedPhotos = selected ? photosFor(selected, snapshot.photos, snapshot.dealerships) : [];
+  const selectedPhotos = selected
+    ? [...facadePhotosFor(selected), ...photosFor(selected, snapshot.photos, snapshot.dealerships)]
+    : [];
   const meta = MARKET_META[market];
   const center = MARKET_CENTERS[market];
 
