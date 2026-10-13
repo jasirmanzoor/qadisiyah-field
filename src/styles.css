@@ -100,8 +100,8 @@ html.dark {
   }
   body {
     margin: 0;
-    height: 100dvh;
-    min-height: 100dvh;
+    height: var(--vvh, 100dvh);
+    min-height: var(--vvh, 100dvh);
     max-width: 100%;
     overflow: hidden;
     background: var(--bg);
@@ -583,3 +583,28 @@ html.dark {
 .tour-map .leaflet-bottom.leaflet-right {
   margin-bottom: 4.5rem;
 }
+
+/* iOS zooms the page when a focused control is under 16px, then zooms back
+   on blur. That pan is what made the field screen refuse to sit still. */
+@media (max-width: 1023px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+.qads-edit {
+  animation: none;
+  transform: none;
+  overscroll-behavior: none;
+}
+
+html.kb-open .qads-tabbar {
+  display: none;
+}
+
+html.kb-open main {
+  padding-bottom: 0 !important;
+}
+

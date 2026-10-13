@@ -82,6 +82,39 @@ function notesFromDraft(draft: EditDraft): string {
   notes = writeNoteLine(notes, "ASP", draft.price.trim());
   return notes;
 }
+
+const EDIT_SESSION_KEY = "qads-showroom-edit";
+type EditTab = "notes" | "details" | "place";
+type EditSession = { id: string; tab: EditTab; draft: EditDraft };
+
+function readEditSession(): EditSession | null {
+  try {
+    const raw = sessionStorage.getItem(EDIT_SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as EditSession;
+    if (!parsed?.id || !parsed.draft || typeof parsed.draft.notes !== "string") return null;
+    if (parsed.tab !== "notes" && parsed.tab !== "details" && parsed.tab !== "place") parsed.tab = "notes";
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeEditSession(session: EditSession) {
+  try {
+    sessionStorage.setItem(EDIT_SESSION_KEY, JSON.stringify(session));
+  } catch {
+    /* private mode / quota — the open editor still holds the draft in memory */
+  }
+}
+
+function clearEditSession() {
+  try {
+    sessionStorage.removeItem(EDIT_SESSION_KEY);
+  } catch {
+    /* ignore */
+  }
+}
 const NEAR_LIMIT = 12;
 
 function requestStandingFix(done?: (ok: boolean) => void) {
@@ -159,8 +192,10 @@ export function MapPage() {
   const [editingCoords, setEditingCoords] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [editTab, setEditTab] = useState<"notes" | "details" | "place">("notes");
+  const [editTab, setEditTab] = useState<EditTab>("notes");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState("");
   const [editDraft, setEditDraft] = useState({
     nameEn: "",
     nameAr: "",
@@ -187,6 +222,26 @@ export function MapPage() {
     setSelectedId(null);
     setFocus({ lat: marketCenter.lat, lng: marketCenter.lng, zoom: marketCenter.zoom, nonce: Date.now() });
   }, [market, marketCenter.lat, marketCenter.lng, marketCenter.zoom]);
+
+  const editRestored = useRef(false);
+  useEffect(() => {
+    if (editRestored.current) return;
+    editRestored.current = true;
+    const saved = readEditSession();
+    if (!saved) return;
+    const dealer = useField.getState().snapshot.dealerships.find((d) => d.id === saved.id);
+    if (!dealer || dealer.flags.hidden) {
+      clearEditSession();
+      return;
+    }
+    setEditId(saved.id);
+    setEditTab(saved.tab);
+    setEditDraft(saved.draft);
+  }, []);
+  useEffect(() => {
+    if (!editId) return;
+    writeEditSession({ id: editId, tab: editTab, draft: editDraft });
+  }, [editId, editTab, editDraft]);
 
   const surveyByDealer = useMemo(() => {
     const live = new Map<string, (typeof snapshot.surveys)[number]["payload"]>();
@@ -533,10 +588,24 @@ export function MapPage() {
     const nxt = rest.length ? rest.reduce((best, d) => (haversineM(origin, d) < haversineM(origin, best) ? d : best)) : null;
     if (nxt) pickDealer(nxt.id); else setSelectedId(null);
   }
+  function closeEdit() {
+    clearEditSession();
+    setEditSaving(false);
+    setEditError("");
+    setEditId(null);
+  }
   function openEdit(dealer: Dealership) {
     setDeleteId(null);
+    setEditError("");
+    setEditSaving(false);
     setEditId(dealer.id);
     setEditTab("notes");
+    const kept = readEditSession();
+    if (kept && kept.id === dealer.id) {
+      setEditDraft(kept.draft);
+      setEditTab(kept.tab);
+      return;
+    }
     const survey = displaySurvey(dealer, surveyFor(useField.getState().snapshot, dealer.id)?.payload);
     const notes = standardNoteText(dealer, survey);
     setEditDraft(applyNoteText(notes, {
@@ -554,55 +623,67 @@ export function MapPage() {
     }));
   }
   async function saveEdit() {
-    if (!editId) return;
+    if (!editId || editSaving) return;
     const prev = useField.getState().snapshot.dealerships.find((d) => d.id === editId);
-    if (!prev) return;
-    const notes = notesFromDraft(editDraft);
-    const draft = applyNoteText(notes, { ...editDraft, notes });
-    const parsed = parseStandardNote(draft.notes);
-    const nameEn = draft.nameEn.trim() || prev.nameEn;
-    const coords = parsed.coords ?? parseCoords(draft.lat, draft.lng);
-    const moved = Boolean(coords && (coords.lat !== prev.lat || coords.lng !== prev.lng));
-    await upsertDealer({
-      ...prev,
-      nameEn,
-      nameAr: draft.nameAr.trim(),
-      listedPhone: draft.phone.trim(),
-      status: draft.status,
-      lat: coords?.lat ?? prev.lat,
-      lng: coords?.lng ?? prev.lng,
-      flags: {
-        ...prev.flags,
-        street: draft.street.trim() || prev.flags.street,
-        ...(moved && coords
-          ? {
-              needsGps: false,
-              gpsSource: "manual_pin" as const,
-              gpsStatus: "confirmed" as const,
-              gpsTimestamp: new Date().toISOString(),
-              mapsUrl: `https://www.google.com/maps?q=${coords.lat},${coords.lng}`,
-            }
-          : {}),
-      },
-      updatedAt: new Date().toISOString(),
-    });
-    const inventory = numberOrNull(draft.inventory);
-    const size = numberOrNull(draft.size);
-    const price = numberOrNull(draft.price);
-    await patchSurvey(
-      editId,
-      {
-        ...parsed.patch,
-        notes: draft.notes,
-        visitStatus: draft.status,
-        inventoryUnits: inventory,
-        showroomSizeSqm: size,
-        avgSellingPriceSar: price,
-      },
-      0,
-      draft.status,
-    );
-    setEditId(null);
+    if (!prev) {
+      setEditError(lang === "ar" ? "المعرض غير موجود" : "Showroom is no longer on this list");
+      return;
+    }
+    setEditSaving(true);
+    setEditError("");
+    try {
+      const notes = notesFromDraft(editDraft);
+      const draft = applyNoteText(notes, { ...editDraft, notes });
+      const parsed = parseStandardNote(draft.notes);
+      const nameEn = draft.nameEn.trim() || prev.nameEn;
+      const coords = parsed.coords ?? parseCoords(draft.lat, draft.lng);
+      const moved = Boolean(coords && (coords.lat !== prev.lat || coords.lng !== prev.lng));
+      await upsertDealer({
+        ...prev,
+        nameEn,
+        nameAr: draft.nameAr.trim(),
+        listedPhone: draft.phone.trim(),
+        status: draft.status,
+        lat: coords?.lat ?? prev.lat,
+        lng: coords?.lng ?? prev.lng,
+        flags: {
+          ...prev.flags,
+          street: draft.street.trim() || prev.flags.street,
+          ...(moved && coords
+            ? {
+                needsGps: false,
+                gpsSource: "manual_pin" as const,
+                gpsStatus: "confirmed" as const,
+                gpsTimestamp: new Date().toISOString(),
+                mapsUrl: `https://www.google.com/maps?q=${coords.lat},${coords.lng}`,
+              }
+            : {}),
+        },
+        updatedAt: new Date().toISOString(),
+      });
+      const inventory = numberOrNull(draft.inventory);
+      const size = numberOrNull(draft.size);
+      const price = numberOrNull(draft.price);
+      await patchSurvey(
+        editId,
+        {
+          ...parsed.patch,
+          notes: draft.notes,
+          visitStatus: draft.status,
+          inventoryUnits: inventory,
+          showroomSizeSqm: size,
+          avgSellingPriceSar: price,
+        },
+        0,
+        draft.status,
+      );
+      clearEditSession();
+      setEditId(null);
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : (lang === "ar" ? "تعذر الحفظ" : "Could not save"));
+    } finally {
+      setEditSaving(false);
+    }
   }
   async function deleteShowroom(id: string) {
     const all = useField.getState().snapshot.dealerships;
@@ -620,6 +701,7 @@ export function MapPage() {
     }
     if (selectedId === id || (sd && all.some((d) => d.id === selectedId && d.flags.sdId === sd))) setSelectedId(null);
     setDeleteId(null);
+    clearEditSession();
     setEditId(null);
   }
   const qadisiyahFilters: { id: FilterId; label: string; count: number }[] = [
@@ -718,65 +800,6 @@ export function MapPage() {
                 )) : listRows.map((d) => <DealerRow key={d.id} dealer={d} lang={lang} dual={dualIds.has(d.id)} selected={d.id === selectedId} meta={rowMeta(d)} subtitle={[d.flags.sdId, dualIds.has(d.id) ? t.bothMarkets : null, hasPin(d) ? STATUS_LABEL[lang][d.status] : t.noPin].filter(Boolean).join(" · ")} onClick={() => pickDealer(d.id)} onEdit={() => openEdit(d)} onDelete={() => { setEditId(null); setDeleteId(d.id); }} />)}
               </div>
               <div className="border-t border-border px-3 py-2">
-                {editId ? (
-                  <form
-                    className="mb-2 grid max-h-[46vh] grid-cols-2 gap-1.5 overflow-y-auto"
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      void saveEdit();
-                    }}
-                  >
-                    <p className="col-span-2 text-xs font-semibold">{lang === "ar" ? "تعديل المعرض" : "Edit showroom"}</p>
-                    <div className="col-span-2 flex gap-1">
-                      {([
-                        ["notes", lang === "ar" ? "ملاحظات" : "Notes"],
-                        ["details", lang === "ar" ? "البيانات" : "Details"],
-                        ["place", lang === "ar" ? "الموقع" : "Location"],
-                      ] as const).map(([id, label]) => (
-                        <button
-                          key={id}
-                          type="button"
-                          onClick={() => setEditTab(id)}
-                          className={cn("min-h-8 flex-1 rounded-lg px-2 text-xs font-semibold", editTab === id ? "bg-primary text-primary-fg" : "bg-surface-2 text-muted")}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                    {editTab === "notes" ? (
-                      <textarea
-                        className="col-span-2 min-h-40 rounded-lg bg-surface-2 px-2 py-2 text-sm"
-                        value={editDraft.notes}
-                        onChange={(event) => setEditDraft((draft) => applyNoteText(event.target.value, draft))}
-                        aria-label={lang === "ar" ? "ملاحظات" : "Notes"}
-                      />
-                    ) : null}
-                    {editTab === "details" ? (
-                      <>
-                        <input className="min-h-10 rounded-lg bg-surface-2 px-2 text-sm" value={editDraft.nameEn} onChange={(event) => setEditDraft((draft) => ({ ...draft, nameEn: event.target.value }))} placeholder={t.name} aria-label={t.name} />
-                        <input className="min-h-10 rounded-lg bg-surface-2 px-2 text-sm" dir="rtl" value={editDraft.nameAr} onChange={(event) => setEditDraft((draft) => ({ ...draft, nameAr: event.target.value }))} placeholder={lang === "ar" ? "الاسم العربي" : "Arabic name"} aria-label={lang === "ar" ? "الاسم العربي" : "Arabic name"} />
-                        <input className="min-h-10 rounded-lg bg-surface-2 px-2 text-sm" value={editDraft.phone} onChange={(event) => setEditDraft((draft) => ({ ...draft, phone: event.target.value }))} placeholder={t.phone} aria-label={t.phone} />
-                        <input className="min-h-10 rounded-lg bg-surface-2 px-2 text-sm" value={editDraft.street} onChange={(event) => setEditDraft((draft) => ({ ...draft, street: event.target.value }))} placeholder={lang === "ar" ? "الشارع" : "Street"} aria-label={lang === "ar" ? "الشارع" : "Street"} />
-                        <input className="min-h-10 rounded-lg bg-surface-2 px-2 text-sm" value={editDraft.inventory} onChange={(event) => setEditDraft((draft) => ({ ...draft, inventory: event.target.value }))} placeholder={lang === "ar" ? "المخزون" : "Inventory"} aria-label={lang === "ar" ? "المخزون" : "Inventory"} inputMode="numeric" />
-                        <input className="min-h-10 rounded-lg bg-surface-2 px-2 text-sm" value={editDraft.size} onChange={(event) => setEditDraft((draft) => ({ ...draft, size: event.target.value }))} placeholder={lang === "ar" ? "المساحة م٢" : "Size m²"} aria-label={lang === "ar" ? "المساحة" : "Size"} inputMode="decimal" />
-                        <input className="col-span-2 min-h-10 rounded-lg bg-surface-2 px-2 text-sm" value={editDraft.price} onChange={(event) => setEditDraft((draft) => ({ ...draft, price: event.target.value }))} placeholder={lang === "ar" ? "متوسط السعر" : "Avg price SAR"} aria-label={lang === "ar" ? "متوسط السعر" : "Avg price"} inputMode="numeric" />
-                        <select className="col-span-2 min-h-10 rounded-lg bg-surface-2 px-2 text-sm" value={editDraft.status} onChange={(event) => setEditDraft((draft) => ({ ...draft, status: event.target.value as VisitStatus }))} aria-label={t.status}>
-                          {VISIT_STATUSES.map((status) => (
-                            <option key={status} value={status}>{STATUS_LABEL[lang][status] ?? status}</option>
-                          ))}
-                        </select>
-                      </>
-                    ) : null}
-                    {editTab === "place" ? (
-                      <>
-                        <input className="min-h-10 rounded-lg bg-surface-2 px-2 text-sm" value={editDraft.lat} onChange={(event) => setEditDraft((draft) => ({ ...draft, lat: event.target.value }))} placeholder={lang === "ar" ? "خط العرض" : "Latitude"} aria-label={lang === "ar" ? "خط العرض" : "Latitude"} inputMode="decimal" />
-                        <input className="min-h-10 rounded-lg bg-surface-2 px-2 text-sm" value={editDraft.lng} onChange={(event) => setEditDraft((draft) => ({ ...draft, lng: event.target.value }))} placeholder={lang === "ar" ? "خط الطول" : "Longitude"} aria-label={lang === "ar" ? "خط الطول" : "Longitude"} inputMode="decimal" />
-                      </>
-                    ) : null}
-                    <button type="submit" className="min-h-10 rounded-lg bg-primary text-sm font-semibold text-primary-fg">{t.save}</button>
-                    <button type="button" onClick={() => setEditId(null)} className="min-h-10 rounded-lg bg-surface-2 text-sm font-semibold">{t.cancel}</button>
-                  </form>
-                ) : null}
                 {deleteId ? (
                   <div className="mb-2">
                     <p className="text-xs text-muted">{lang === "ar" ? "حذف هذا المعرض من القائمة؟" : "Delete this showroom from the list?"}</p>
@@ -907,6 +930,75 @@ export function MapPage() {
         </div>
       ) : null}
       </div>
+      ) : null}
+      {editId ? (
+        <form
+          className="qads-edit absolute inset-0 z-50 flex flex-col bg-bg"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void saveEdit();
+          }}
+        >
+          <div className="flex shrink-0 items-center gap-2 border-b border-border px-2 py-1.5">
+            <button type="button" onClick={closeEdit} className="min-h-11 shrink-0 rounded-xl px-2.5 text-sm font-semibold text-muted">{t.cancel}</button>
+            <p className="min-w-0 flex-1 truncate text-center text-sm font-semibold">{lang === "ar" ? "تعديل المعرض" : "Edit showroom"}</p>
+            <button type="submit" disabled={editSaving} className="min-h-11 shrink-0 rounded-xl bg-primary px-3 text-sm font-semibold text-primary-fg disabled:opacity-60">
+              {editSaving ? (lang === "ar" ? "يحفظ…" : "Saving…") : t.save}
+            </button>
+          </div>
+          {editError ? <p className="shrink-0 px-3 pt-2 text-xs font-medium text-danger">{editError}</p> : null}
+          <div className="flex shrink-0 gap-1 px-3 py-2">
+            {([
+              ["notes", lang === "ar" ? "ملاحظات" : "Notes"],
+              ["details", lang === "ar" ? "البيانات" : "Details"],
+              ["place", lang === "ar" ? "الموقع" : "Location"],
+            ] as const).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setEditTab(id)}
+                className={cn("min-h-10 flex-1 rounded-xl px-2 text-sm font-semibold", editTab === id ? "bg-primary text-primary-fg" : "bg-surface-2 text-muted")}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {editTab === "notes" ? (
+            <textarea
+              key={editId}
+              className="min-h-0 w-full flex-1 resize-none bg-surface-2 px-3 py-3 text-base leading-6 outline-none"
+              value={editDraft.notes}
+              onChange={(event) => setEditDraft((draft) => applyNoteText(event.target.value, draft))}
+              aria-label={lang === "ar" ? "ملاحظات" : "Notes"}
+              autoCapitalize="sentences"
+              spellCheck={false}
+            />
+          ) : (
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-4">
+              {editTab === "details" ? (
+                <div className="grid grid-cols-2 gap-2">
+                  <input className="min-h-11 rounded-xl bg-surface-2 px-3 text-base" value={editDraft.nameEn} onChange={(event) => setEditDraft((draft) => ({ ...draft, nameEn: event.target.value }))} placeholder={t.name} aria-label={t.name} />
+                  <input className="min-h-11 rounded-xl bg-surface-2 px-3 text-base" dir="rtl" value={editDraft.nameAr} onChange={(event) => setEditDraft((draft) => ({ ...draft, nameAr: event.target.value }))} placeholder={lang === "ar" ? "الاسم العربي" : "Arabic name"} aria-label={lang === "ar" ? "الاسم العربي" : "Arabic name"} />
+                  <input className="min-h-11 rounded-xl bg-surface-2 px-3 text-base" value={editDraft.phone} onChange={(event) => setEditDraft((draft) => ({ ...draft, phone: event.target.value }))} placeholder={t.phone} aria-label={t.phone} inputMode="tel" />
+                  <input className="min-h-11 rounded-xl bg-surface-2 px-3 text-base" value={editDraft.street} onChange={(event) => setEditDraft((draft) => ({ ...draft, street: event.target.value }))} placeholder={lang === "ar" ? "الشارع" : "Street"} aria-label={lang === "ar" ? "الشارع" : "Street"} />
+                  <input className="min-h-11 rounded-xl bg-surface-2 px-3 text-base" value={editDraft.inventory} onChange={(event) => setEditDraft((draft) => ({ ...draft, inventory: event.target.value }))} placeholder={lang === "ar" ? "المخزون" : "Inventory"} aria-label={lang === "ar" ? "المخزون" : "Inventory"} inputMode="numeric" />
+                  <input className="min-h-11 rounded-xl bg-surface-2 px-3 text-base" value={editDraft.size} onChange={(event) => setEditDraft((draft) => ({ ...draft, size: event.target.value }))} placeholder={lang === "ar" ? "المساحة م٢" : "Size m²"} aria-label={lang === "ar" ? "المساحة" : "Size"} inputMode="decimal" />
+                  <input className="col-span-2 min-h-11 rounded-xl bg-surface-2 px-3 text-base" value={editDraft.price} onChange={(event) => setEditDraft((draft) => ({ ...draft, price: event.target.value }))} placeholder={lang === "ar" ? "متوسط السعر" : "Avg price SAR"} aria-label={lang === "ar" ? "متوسط السعر" : "Avg price"} inputMode="numeric" />
+                  <select className="col-span-2 min-h-11 rounded-xl bg-surface-2 px-3 text-base" value={editDraft.status} onChange={(event) => setEditDraft((draft) => ({ ...draft, status: event.target.value as VisitStatus }))} aria-label={t.status}>
+                    {VISIT_STATUSES.map((status) => (
+                      <option key={status} value={status}>{STATUS_LABEL[lang][status] ?? status}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  <input className="min-h-11 rounded-xl bg-surface-2 px-3 text-base" value={editDraft.lat} onChange={(event) => setEditDraft((draft) => ({ ...draft, lat: event.target.value }))} placeholder={lang === "ar" ? "خط العرض" : "Latitude"} aria-label={lang === "ar" ? "خط العرض" : "Latitude"} inputMode="decimal" />
+                  <input className="min-h-11 rounded-xl bg-surface-2 px-3 text-base" value={editDraft.lng} onChange={(event) => setEditDraft((draft) => ({ ...draft, lng: event.target.value }))} placeholder={lang === "ar" ? "خط الطول" : "Longitude"} aria-label={lang === "ar" ? "خط الطول" : "Longitude"} inputMode="decimal" />
+                </div>
+              )}
+            </div>
+          )}
+        </form>
       ) : null}
       {aiAdding ? <AiSurveySheet mode="new" dealershipId={null} onClose={() => setAiAdding(false)} onSaved={(id) => { setAiAdding(false); void navigate({ to: "/survey/$id", params: { id } }); }} /> : null}
     </div>

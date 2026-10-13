@@ -40,16 +40,49 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const vv = window.visualViewport;
     if (!vv) return;
     const root = document.documentElement;
+    let frame = 0;
     const sync = () => {
-      root.style.setProperty("--vvh", `${vv.height}px`);
-      root.style.setProperty("--vvtop", `${vv.offsetTop}px`);
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        root.style.setProperty("--vvh", `${Math.round(vv.height)}px`);
+        // Do not follow visualViewport.offsetTop. Translating the shell on
+        // every keyboard pan made iOS scroll again, and the screen never settled.
+        if (window.scrollY !== 0) window.scrollTo(0, 0);
+      });
     };
     sync();
     vv.addEventListener("resize", sync);
-    vv.addEventListener("scroll", sync);
+    window.addEventListener("orientationchange", sync);
     return () => {
+      cancelAnimationFrame(frame);
       vv.removeEventListener("resize", sync);
-      vv.removeEventListener("scroll", sync);
+      window.removeEventListener("orientationchange", sync);
+    };
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    let timer = 0;
+    const editing = (el: EventTarget | null) =>
+      el instanceof HTMLElement && el.matches("input, textarea, select");
+    const onFocusIn = (event: FocusEvent) => {
+      if (!editing(event.target)) return;
+      window.clearTimeout(timer);
+      root.classList.add("kb-open");
+    };
+    const onFocusOut = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (!editing(document.activeElement)) root.classList.remove("kb-open");
+      }, 160);
+    };
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    return () => {
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+      window.clearTimeout(timer);
+      root.classList.remove("kb-open");
     };
   }, []);
 
@@ -109,8 +142,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div
-      className="flex w-full max-w-full min-w-0 flex-col overflow-hidden bg-bg text-fg"
-      style={{ height: "var(--vvh, 100dvh)", transform: "translateY(var(--vvtop, 0px))" }}
+      className="fixed inset-x-0 top-0 flex w-full max-w-full min-w-0 flex-col overflow-hidden bg-bg text-fg"
+      style={{ height: "var(--vvh, 100dvh)" }}
     >
       {isSurvey ? null : (
       <>
@@ -190,7 +223,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {isSurvey ? null : (
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border/80 bg-surface/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
+      <nav className="qads-tabbar fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border/80 bg-surface/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
         {nav.map((item) => {
           const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
           const Icon = item.icon;

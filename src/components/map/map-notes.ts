@@ -195,10 +195,16 @@ function noteNum(n: number | null | undefined) {
   return n == null ? "" : String(n);
 }
 
+function hasFieldNotes(text: string): boolean {
+  return NOTE_LINES.some((row) => new RegExp(`^${row.label}\\s*:`, "im").test(text));
+}
+
 /** Locked field order. Blank values stay blank. Existing custom notes are kept under the form. */
 export function standardNoteText(dealer: Dealership, survey?: SurveyPayload): string {
   const existing = (survey?.notes ?? "").trim();
-  if (/^showroom name\s*:/i.test(existing)) return existing;
+  // A note the field already wrote stays byte-for-byte. Prepending a fresh
+  // form on every open was duplicating lines and shoving the caret around.
+  if (existing && !CENSUS_PROSE.test(existing) && hasFieldNotes(existing)) return existing;
   const name = [dealer.nameEn, dealer.nameAr].filter(Boolean).join(" | ");
   const placed = !dealer.flags.unplaced && dealer.lat !== 0 && dealer.lng !== 0;
   const inside = noteNum(survey?.inventoryInside);

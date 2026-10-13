@@ -103,7 +103,14 @@ function DealerSheetBody({
   const maps = dealer.flags.mapsUrl || (placed ? mapsLink(dealer.lat, dealer.lng, dealer.nameEn) : "");
   const statusLabel = trainingCopy(lang, dealer.flags);
 
+  const noteDirty = useRef(false);
+
   useEffect(() => {
+    noteDirty.current = false;
+  }, [dealer.id]);
+
+  useEffect(() => {
+    if (noteDirty.current) return;
     setDraft(standardNoteText(dealer, survey));
     setNoteSaving(false);
   }, [dealer.id, survey?.notes, survey?.inventoryUnits, survey?.avgSellingPriceSar, survey?.inventoryAgePctOver5, survey?.showroomSizeSqm, survey?.vehicleType]);
@@ -111,8 +118,7 @@ function DealerSheetBody({
   function openNotes() {
     onExpand();
     window.setTimeout(() => {
-      noteRef.current?.focus();
-      noteRef.current?.scrollIntoView({ block: "center" });
+      noteRef.current?.focus({ preventScroll: true });
     }, 340);
   }
 
@@ -136,6 +142,7 @@ function DealerSheetBody({
         });
       }
       await patchSurvey(dealer.id, edit.patch);
+      noteDirty.current = false;
       onSaved();
     } finally {
       setNoteSaving(false);
@@ -264,7 +271,7 @@ function DealerSheetBody({
                 <textarea
                   ref={noteRef}
                   value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
+                  onChange={(e) => { noteDirty.current = true; setDraft(e.target.value); }}
                   rows={4}
                   className="mt-1 w-full resize-y rounded-lg bg-surface-2 px-2.5 py-2 text-sm leading-snug text-fg focus-visible:outline-none"
                 />
