@@ -124,7 +124,7 @@
     function mk() { return { p: new Float32Array(N * 3), c: new Float32Array(N * 4), s: new Float32Array(N), a: new Float32Array(N * 2), cam: null, labs: [], hi: -1 }; }
     function put(f, i, x, y, z, c, al, sz, an = 0, par = 0) { f.p[i * 3] = x; f.p[i * 3 + 1] = y; f.p[i * 3 + 2] = z; f.c[i * 4] = c[0]; f.c[i * 4 + 1] = c[1]; f.c[i * 4 + 2] = c[2]; f.c[i * 4 + 3] = al; f.s[i] = sz; f.a[i * 2] = an; f.a[i * 2 + 1] = par; }
     function stars(f, from, to, R1 = 260) { for (let i = from; i < to; i++) { const u = rnd() * 2 - 1, th = rnd() * Math.PI * 2, rr = R1 * (0.8 + rnd() * 0.5), q = Math.sqrt(1 - u * u); put(f, i, Math.cos(th) * q * rr, u * rr * 0.6, Math.sin(th) * q * rr, COL.w, 0.05 + rnd() * 0.12, 0.9 + rnd()); } }
-    const lab = (f, x, y, z, v, t, c, img) => f.labs.push({ x, y, z, v, t, c, img });
+    const lab = (f, x, y, z, v, t, c, img, logo) => f.labs.push({ x, y, z, v, t, c, img, logo });
 
     /* city floor: buildings as dust, the rest as a faint survey grid */
     function cityBase(f, from, to) {
@@ -267,10 +267,10 @@
         list.forEach(([name, c], k) => {
           const rr = k ? 7 + 4.6 * Math.sqrt(k) : 0, th = k * 2.39996, cx = Math.cos(th) * rr, cz = Math.sin(th) * rr, rad = 0.8 * Math.cbrt(c), n = Math.max(30, Math.round(c / tot * budget)), cn = CN.test(name), col = k < 2 ? COL.w : cn ? COL.s : COL.q;
           for (let q = 0; q < n && i < N; q++, i++) { const u = rnd() * 2 - 1, a = rnd() * 6.283, s = Math.sqrt(1 - u * u), rd = rad * Math.cbrt(rnd()); put(f, i, cx + Math.cos(a) * s * rd, (port ? 0 : 0) + u * rd, cz + Math.sin(a) * s * rd, col, k < 2 ? 0.5 : 0.42, 1.2, 3, 0.03); }
-          if (k < 5) lab(f, cx, rad + 1.5, cz, esc(name), `on ${c} floors`, k < 2 ? "#fff" : "var(--flame-lit)");
+          if (k < (port ? 4 : 6)) lab(f, cx, rad + 1.5, cz, esc(name), `on ${c} floors`, k < 2 ? "#fff" : "var(--flame-lit)", null, window.LOGOS && window.LOGOS(name));
         });
         const firstCn = list.findIndex(([n]) => CN.test(n));
-        if (firstCn >= 0) { const k = firstCn, rr = 7 + 4.6 * Math.sqrt(k), th = k * 2.39996; lab(f, Math.cos(th) * rr, 0.8 * Math.cbrt(list[k][1]) + 1.5, Math.sin(th) * rr, "Chinese makes", `${Math.round(F.cn * 100)}% of floors already`, "#4fd1c9"); }
+        if (firstCn >= 0) { const k = firstCn, rr = 7 + 4.6 * Math.sqrt(k), th = k * 2.39996; lab(f, Math.cos(th) * rr, 0.8 * Math.cbrt(list[k][1]) + 1.5, Math.sin(th) * rr, "Chinese makes", `${Math.round(F.cn * 100)}% of floors already · led by ${esc(list[k][0])}`, "#4fd1c9", null, window.LOGOS && window.LOGOS(list[k][0])); }
         stars(f, i, N); f.labsSpin = 0.03;
         f.cam = { look: [0, 0, 0], off: [0, 52, 84], orbit: 0.012 };
       },
@@ -362,7 +362,7 @@
 
     /* ---------- labels ---------- */
     let labEls = [], labs = [];
-    function setLabels(f) { labs = f.labs; labsEl.innerHTML = labs.map((l) => `<div class="ul" style="--c:${l.c}">${l.img ? `<img class="ul__ph" src="photos/${l.img}.jpg" alt="">` : ""}<b>${l.v}</b>${l.t ? `<span>${l.t}</span>` : ""}</div>`).join(""); labEls = [...labsEl.children]; }
+    function setLabels(f) { labs = f.labs; labsEl.innerHTML = labs.map((l) => `<div class="ul" style="--c:${l.c}">${l.img ? `<img class="ul__ph" src="photos/${l.img}.jpg" alt="">` : ""}${l.logo ? `<i class="ul__logo"><img src="${l.logo}" alt=""></i>` : ""}<b>${l.v}</b>${l.t ? `<span>${l.t}</span>` : ""}</div>`).join(""); labEls = [...labsEl.children]; }
 
     /* ---------- loop ---------- */
     let last2 = 0, W = 1, H = 1, dpr = 0, active = false, raf = 0, last = 0, fade = 0, want = null, ema = 16, win = 0;

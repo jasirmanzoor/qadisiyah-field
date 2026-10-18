@@ -1606,16 +1606,28 @@ const DATA = /*__DATA__*/null;
       back.onload = () => { back.classList.add("on"); front.classList.remove("on"); bdFront ^= 1; };
       back.src = src;
     }
-    /* photographs: a Glass Folio opens in front of the flight; on showroom stops the 3D view drops into soft focus behind it */
-    let folio = null;
+    /* photographs: a pinned deck rides above the building it shows, tied to it by a beam of light */
+    let pins = null, pinAt = null;
+    const AT = C.map((c, k) => {
+      const v = [HQ, null, Q, P(safh), P(noj), P(rc), P(bar), null, null, Sh, Sh, P(nfy), null, Q.clone().lerp(Sh, .5)][k];
+      return v ? new T.Vector3(v.x, 0, v.z) : null;
+    });
     function showPhotos(list, bd, name) {
       clearInterval(phTimer); phV.pause(); backdrop(null); photo.classList.remove("in");
-      if (!folio && window.Folio) folio = window.Folio.mount($("flyFolio"), { hold: 2700 });
+      if (!pins && window.PinDeck) { pins = window.PinDeck.mount($("flyFolio")); pins.preload(C.map((c) => c.ph)); }
       const has = !!(list && list.length);
-      sec.classList.toggle("fly--folio", has); sec.classList.toggle("fly--focus", has && !!bd);
-      if (!folio) return;
-      if (!has) { folio.hide(); return; }
-      folio.show(list, { tab: name, color: /shifa|south|used/i.test(name + list[0][1]) ? "#4fd1c9" : "#ff9a4a" });
+      sec.classList.toggle("fly--pin", has);
+      if (!pins) return;
+      if (!has) { pins.hide(); pinAt = null; return; }
+      pinAt = AT[shown] || HQ;
+      pins.show(list, { title: name, hold: 2600, color: /shifa|south|used/i.test(name + list[0][1]) ? "#4fd1c9" : "#ffb066" });
+    }
+    const pinV = new T.Vector3();
+    function pinFrame(dt) {
+      if (!pins || !pinAt) return;
+      pinV.copy(pinAt).project(cam);
+      const vis = pinV.z < 1 && Math.abs(pinV.x) < 1.1 && Math.abs(pinV.y) < 1.1;
+      pins.anchor((pinV.x + 1) / 2 * W, (1 - pinV.y) / 2 * Hh, vis, dt);
     }
     function setChapter(i) {
       if (i === shown) return; shown = i; const c = C[i];
@@ -1717,7 +1729,7 @@ const DATA = /*__DATA__*/null;
       legend.classList.toggle("on", p > 0.6);
       stream(false);
       renderer.render(scene, cam);
-      setChapter(st.ch);
+      setChapter(st.ch); pinFrame(dt);
       if (frameN++ % 3 === 0) hud();
       POI.forEach(([pp, , , maxD, data], i) => {
         const el = labelEls[i], L = lab[i], dist = cam.position.distanceTo(pp);

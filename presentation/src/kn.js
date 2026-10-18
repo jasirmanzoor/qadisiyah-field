@@ -184,16 +184,28 @@
     const TR = RMk ? 0 : 1.25;                      /* chapter transition, seconds */
     const smooth = (x) => x * x * (3 - 2 * x), clamp01 = (x) => x < 0 ? 0 : x > 1 ? 1 : x;
     const flyDur = () => window.__fly && window.__fly.dur ? window.__fly.dur() : 60;
-    let flyLast = -1, flyStall = 0, cues = [], chap = [], TOTAL = 0, T = 0, TT = null, vel = 0, holdUntil = 0, glide = null, speed = 1, leaving = null;
+    let lastT = 0, warp = 0, lastScrub = 0, flyLast = -1, flyStall = 0, cues = [], chap = [], TOTAL = 0, T = 0, TT = null, vel = 0, holdUntil = 0, glide = null, speed = 1, leaving = null;
     /* how long a beat holds: the time to read what it shows (about 3.3 words a second) plus a settle,
        never shorter than its visual needs to play out, never so long the eye starts to wander */
+    /* how long a beat holds, by what it shows: reading time (3.3 words a second) on top of the time its visual needs to land.
+       particle morphs need ~2.8 s to settle, a count-up 1.3 s, a camera move its own flight time, a photo deck one hold per frame */
+    const VIS = {
+      uni: { land: 2.8, min: 5.2, max: 10.5 }, count: { land: 1.6, min: 4.4, max: 9 }, globe: { land: 4.5, min: 9, max: 12 }, city: { land: 4.6, min: 8.2, max: 11.5 },
+      size: { land: 2.2, min: 6, max: 10 }, ground: { land: 1.6, fixed: (s, bb) => 1.6 + 4 * 1.15 + .6 }, exo: { land: 1, min: 9, max: 12 },
+      marques: { land: 0, fixed: (s, bb) => bb === 0 ? 11.5 : 7.4 }, text: { land: .6, min: 3.6, max: 9 },
+    };
+    function kindOf(s) {
+      if (VIS[s.id]) return VIS[s.id];
+      if (s.el.classList.contains("sc--uni")) return VIS.uni;
+      if (s.el.classList.contains("sc--count")) return VIS.count;
+      return VIS.text;
+    }
     function dwell(s, bb, orig) {
+      const K = kindOf(s); if (K.fixed) return K.fixed(s, bb);
       const parts = s.parts.filter((el) => el.hasAttribute("data-only") ? +el.dataset.only === bb : +el.dataset.b === bb);
       const loose = bb === 0 ? [...s.el.querySelectorAll(".say, .sc__sub, .kick, .mega")].filter((el) => !el.closest("[data-b],[data-only]")) : [];
       const words = parts.concat(loose).map((el) => el.textContent).join(" ").split(/\s+/).filter(Boolean).length;
-      const visual = s.el.classList.contains("sc--uni") || /city|size|globe|exo|ground/.test(s.id);
-      const read = 1.9 + words / 3.3, floor = visual ? Math.max(4.6, orig * .82) : 3.4;
-      return Math.min(11.5, Math.max(floor, read));
+      return Math.min(K.max, Math.max(K.min, K.land + 1.2 + words / 3.3));
     }
     function sheet() {
       cues = []; chap = []; let t0 = 0;
@@ -268,12 +280,19 @@
     function tick(now) {
       const dt = last ? Math.min(.5, (now - last) / 1000) : .016; last = now;
       if (glide) {
-        glide.t += dt / glide.d; const g = glide.t >= 1 ? 1 : glide.t < .5 ? 16 * glide.t ** 5 : 1 - Math.pow(-2 * glide.t + 2, 5) / 2;
+        glide.t += dt / glide.d; const x = Math.min(1, glide.t), g = glide.t >= 1 ? 1 : glide.spring ? 1 + 2.2 * Math.pow(x - 1, 3) + 1.2 * Math.pow(x - 1, 2) : x < .5 ? 16 * x ** 5 : 1 - Math.pow(-2 * x + 2, 5) / 2;
         T = glide.a + (glide.z - glide.a) * g; apply(true); if (glide.t >= 1) { glide = null; holdUntil = now + 300; }
       } else if (TT !== null || Math.abs(vel) > .01) {
         if (Math.abs(vel) > .01) { TT = (TT === null ? T : TT) + vel * dt; vel *= Math.exp(-dt / .32); }
         T += (TT - T) * (1 - Math.exp(-dt / .11)); T = Math.max(0, Math.min(TOTAL - .05, T)); TT = Math.max(0, Math.min(TOTAL - .05, TT));
-        apply(true); if (Math.abs(TT - T) < .004 && Math.abs(vel) <= .01) { T = TT; TT = null; }
+        apply(true);
+        if (Math.abs(TT - T) < .004 && Math.abs(vel) <= .01) {
+          T = TT; TT = null;
+          /* magnetic beats: a scrub that comes to rest near a beat's opening is drawn onto it with a soft spring */
+          if (now - lastScrub > 260) { const c = cueAt(T), n = cues[cues.indexOf(c) + 1], dA = T - c.t0, dB = n ? n.t0 - T : 99;
+            const tgt = dA < 1.6 ? c.t0 + .001 : dB < 1.2 ? n.t0 + .001 : null;
+            if (tgt !== null && Math.abs(tgt - T) > .05) glide = { a: T, z: tgt, t: 0, d: .55, spring: true }; }
+        }
       } else if (playing && !document.hidden && now > holdUntil) {
         if (S[i].id === "tour" && window.__fly && window.__fly.prog) {
           /* the flight keeps its own clock; if it stalls (no WebGL), the director carries the time and drags the camera along */
@@ -283,6 +302,9 @@
         if (T >= TOTAL - .05) { T = TOTAL - .05; setPlay(false); }
         apply(false);
       }
+      /* time-warp: the faster the tour is scrubbed, the more the scene streaks and leans along the motion */
+      const v = (T - lastT) / Math.max(.008, dt); lastT = T; warp += (Math.max(-1, Math.min(1, v / 40)) - warp) * (1 - Math.exp(-dt / .09));
+      stage.style.setProperty("--warp", warp.toFixed(3)); stage.classList.toggle("is-warp", Math.abs(warp) > .04);
       stageFx(); paint();
       requestAnimationFrame(tick);
     }
@@ -309,6 +331,7 @@
     };
     $("s-tour").addEventListener("fly:end", () => { if (playing && S[i].id === "tour") T = chap[i].t0 + chap[i].d + .001; });
     hooks.city = { enter: (p) => window.__city && window.__city.enter(p), build: (bb) => window.__city && window.__city.build(bb), play: (p) => window.__city && window.__city.play(p), leave: () => window.__city && window.__city.leave() };
+    hooks.marques = { build: (bb) => window.__marques && window.__marques.build(bb) };
     hooks.size = { build: (bb) => window.__size && window.__size.beat(bb), enter: () => window.__size && window.__size.set(0) };
     /* the photo wall: a concave ring of real photos; each beat turns it two frames, the one in front is lit */
     const ring = $("cwRing"), panels = [...ring.children], NW = panels.length, STEP = 360 / NW, amb = [...document.querySelectorAll(".cw__amb i")];
@@ -366,13 +389,13 @@
     stage.addEventListener("wheel", (e) => {
       if (modal() || !scrubOk(e.target)) return; e.preventDefault(); glide = null;
       const dy = e.deltaMode === 1 ? e.deltaY * 32 : e.deltaY;
-      TT = Math.max(0, Math.min(TOTAL - .05, (TT === null ? T : TT) + dy * .011)); holdUntil = performance.now() + 1600;
+      TT = Math.max(0, Math.min(TOTAL - .05, (TT === null ? T : TT) + dy * .011)); holdUntil = performance.now() + 1600; lastScrub = performance.now();
     }, { passive: false });
     let ty = 0, tt0 = 0, tOk = false, tv = 0;
     stage.addEventListener("touchstart", (e) => { tOk = scrubOk(e.target); ty = e.touches[0].clientY; tt0 = performance.now(); tv = 0; vel = 0; glide = null; }, { passive: true });
     stage.addEventListener("touchmove", (e) => {
       if (!tOk) return; const y = e.touches[0].clientY, dy = ty - y, now = performance.now(); ty = y;
-      const ds = dy * .022; TT = Math.max(0, Math.min(TOTAL - .05, (TT === null ? T : TT) + ds)); tv = ds / Math.max(.008, (now - tt0) / 1000); tt0 = now; holdUntil = now + 1800;
+      const ds = dy * .022; TT = Math.max(0, Math.min(TOTAL - .05, (TT === null ? T : TT) + ds)); tv = ds / Math.max(.008, (now - tt0) / 1000); tt0 = now; holdUntil = now + 1800; lastScrub = now;
     }, { passive: true });
     stage.addEventListener("touchend", () => { if (tOk) vel = Math.max(-14, Math.min(14, tv * .45)); }, { passive: true });
     /* exploring a 3D scene by hand pauses the show */

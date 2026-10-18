@@ -8,7 +8,7 @@
     CLS.EXTERNAL = "Published source";
     let renderer = null;
     try { if (T) renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, alpha: false, powerPreference: "high-performance" }); } catch (e) { renderer = null; }
-    if (!renderer) { sec.classList.add("city--off"); window.__city = { build() {}, enter() {}, leave() {} }; return; }
+    if (!renderer) { sec.classList.add("cmap--off"); window.__city = { build() {}, enter() {}, leave() {} }; return; }
     const RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const big = !window.matchMedia("(pointer: coarse)").matches && renderer.capabilities.maxTextureSize >= 4096;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));

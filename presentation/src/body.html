@@ -68,16 +68,16 @@
   <!-- 02b Riyadh: satellite to data -->
   <section class="sc sc--city city" id="s-city" data-title="Riyadh, mapped" data-dur="10500,10000,10500,8500" aria-label="Riyadh from satellite imagery to building data, then the two surveyed districts">
     <canvas id="cityCanvas" aria-hidden="true"></canvas>
-    <div class="city__veil" aria-hidden="true"></div>
-    <div class="sc__copy sc__copy--left city__copy">
+    <div class="cmap__veil" aria-hidden="true"></div>
+    <div class="sc__copy sc__copy--left cmap__copy">
       <div data-only="0"><p class="kick">Riyadh, mapped</p><h2 class="say say--md">The market was always <em>there</em>.</h2><p class="sc__sub" id="cityRiy"></p></div>
       <div data-only="1"><p class="kick">District one · east Riyadh</p><h2 class="say say--md">Al <em>Qadisiyah</em>.</h2><p class="sc__sub" id="cityQ"></p></div>
       <div data-only="2"><p class="kick">District two · south Riyadh</p><h2 class="say say--md">Al <em>Shifa</em>.</h2><p class="sc__sub" id="cityS"></p></div>
       <div data-only="3"><p class="kick">The fieldwork</p><h2 class="say say--md">The data <em>wasn't</em>. So we walked it.</h2><p class="sc__sub" id="cityBoth"></p></div>
     </div>
-    <div class="city__legend" data-b="1"><span><i class="lv"></i>Lit building: showroom door confirmed by GPS</span><span><i class="lr"></i>Ring: position from the survey sheet or a listing</span></div>
-    <p class="city__foot" id="cityFoot"></p>
-    <p class="city__off">This map needs WebGL, which this browser has turned off.</p>
+    <div class="cmap__legend" data-b="1"><span><i class="lv"></i>Lit building: showroom door confirmed by GPS</span><span><i class="lr"></i>Ring: position from the survey sheet or a listing</span></div>
+    <p class="cmap__foot" id="cityFoot"></p>
+    <p class="cmap__off">This map needs WebGL, which this browser has turned off.</p>
   </section>
 
   <!-- 03 the work -->
@@ -185,6 +185,15 @@
   <section class="sc sc--count sc--uni" id="s-facts" data-title="Things no one knew" data-dur="6400,6800,7200,6400,6600" data-uni="indep,sales,brands,toyhy,bank" aria-label="Findings">
     <p class="kick kick--top">Things no one knew</p>
     <div class="cntwrap" id="factCount"></div>
+  </section>
+
+  <!-- 10b the marques -->
+  <section class="sc sc--marques" id="s-marques" data-title="The marques" data-dur="__MQDUR__" aria-label="Car brands on the floors, and five legends">
+    <div class="mq">
+      <div class="mq__copy"><p class="kick">The marques</p><h2 class="say say--md">Every badge on <em>the floors</em>.</h2><p class="sc__sub" id="mqSub"></p></div>
+      <div class="mq__strata" id="mqStrata"></div>
+    </div>
+    <div class="lg" id="mqLegend"></div>
   </section>
 
   <!-- 11 on the ground -->
