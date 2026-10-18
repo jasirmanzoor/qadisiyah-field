@@ -264,10 +264,11 @@
         s.el.style.clipPath = clipFor(KINDS[i % KINDS.length], k, s.el);
         s.el.style.setProperty("--se-z", (1.05 - .05 * k).toFixed(4));
         if (leaving) { leaving.el.style.opacity = (1 - k * .85).toFixed(3); leaving.el.style.setProperty("--se-z", (1 - .05 * k).toFixed(4)); leaving.el.style.filter = `brightness(${(1 - .5 * k).toFixed(3)}) blur(${(4 * k).toFixed(2)}px)`; }
+        if (!stage.classList.contains("is-transit") && fibRef()) fibRef().set({ paused: false });
         stage.classList.add("is-transit"); txLight.style.opacity = 1;
       } else {
         if (s.el.style.clipPath) s.el.style.clipPath = "";
-        s.el.style.setProperty("--se-z", "1"); finishLeave(); stage.classList.remove("is-transit"); txLight.style.opacity = 0;
+        s.el.style.setProperty("--se-z", "1"); finishLeave(); if (stage.classList.contains("is-transit") && fibRef()) fibRef().set({ paused: S[i].el.dataset.fx !== "fibers" }); stage.classList.remove("is-transit"); txLight.style.opacity = 0;
       }
       if (!RMk) s.el.style.setProperty("--dolly", (1 + .022 * smooth(cp)).toFixed(4));
       /* the open loop: the next chapter is named a moment before it arrives */
@@ -276,6 +277,7 @@
       if (nx && upEl.dataset.k !== String(i + 1)) { upEl.dataset.k = i + 1; upEl.innerHTML = `<span>Next</span><b>${nx.title}</b>`; }
     }
     const upEl = $("kUp");
+    let fibRef = () => null;
     let last = 0;
     function tick(now) {
       const dt = last ? Math.min(.5, (now - last) / 1000) : .016; last = now;
@@ -412,15 +414,18 @@
       const m = window.RB.MaskedHeading(h, {}); if (m) { h.__mh = m; if (h.closest("#room")) { const io = new IntersectionObserver((en) => { if (en.some((x) => x.isIntersecting)) { m.play(); io.disconnect(); } }, { threshold: .25 }); io.observe(h); } }
     });
     /* ambient motion: GhostFibers behind the stage, AeroShards in the finale (WebGPU), fibers as its fallback */
-    const fxEl = $("fxFibers"); let fib = null, aero = null;
+    const fxEl = $("fxFibers"); let fib = null, aero = null, drape = null; fibRef = () => fib;
     function fx(s) {
       const want = s && s.el.dataset.fx;
       if (!fib && window.RB && window.RB.GhostFibers && fxEl) {
         const coarse = matchMedia("(pointer: coarse)").matches;
         fib = window.RB.GhostFibers(fxEl, { glowColor: "#ff7a1a", lineColor: "#ffd9b8", secondaryColor: "#a8461c", speed: .32, rotation: 14, layers: 3, threads: coarse ? 44 : 68, waves: 1.1, twist: 1.1, particles: .45, sparkle: .55, glow: .85, brightness: .95, vignette: .5, grain: .05, depthOfField: .9, fiberStyle: "dots", dpr: coarse ? 1 : 1.5 });
       }
-      if (fib) fib.set({ paused: false });
+      if (fib) fib.set({ paused: want !== "fibers" });
       stage.dataset.fx = want || "";
+      /* Spectral Drape: a folding field of dots behind the brands chapter and the finale */
+      if (want === "drape" && !drape && window.SpectralDrape) drape = window.SpectralDrape($("fxDrape"), { colors: ["#6e2406", "#ff9a4a"], strands: 8, depth: 1.1, colorShift: .35, intensity: .55, dotSize: .8, tilt: -42, turn: -38, roll: 112, flow: .8 });
+      if (drape) want === "drape" ? drape.start() : drape.stop();
       if (want === "aero" && !aero && navigator.gpu && window.RB.AeroShards) {
         aero = "loading";
         window.RB.AeroShards($("fxAero"), { shardColor: "#ff9a4a", accentColor: "#ffd2ad", material: "glass", count: 1100, markers: "plus", glow: .55, vignette: .45, grain: .05, speed: .8, mouseStrength: .5, onError: () => { stage.classList.add("no-aero"); } })
