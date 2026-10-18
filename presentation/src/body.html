@@ -1,0 +1,311 @@
+<div class="kn" id="kn">
+<header class="kbar">
+  <a class="brand" href="#open" aria-label="Riyadh Sub-Dealer Portfolio, back to the start">
+    <svg viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M14 1.6 20.3 8 14 14.4 7.7 8 14 1.6Z" fill="#FF6A00"/><path d="M6.4 9.3 12.7 15.7 6.4 22.1.1 15.7 6.4 9.3Z" fill="#FF3D00"/><path d="M21.6 9.3 27.9 15.7 21.6 22.1 15.3 15.7 21.6 9.3Z" fill="#FF9A2E"/></svg>
+    <span>Sub-Dealer Portfolio<small>Riyadh · KSA field census</small></span>
+  </a>
+  <p class="kbar__ch" id="kCh" aria-live="polite"></p>
+  <div class="kbar__act">
+    <button type="button" class="kbtn" id="kIdxBtn" aria-haspopup="dialog"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 3h6v6H3zM11 3h6v6h-6zM3 11h6v6H3zM11 11h6v6h-6z"/></svg><span>Chapters</span></button>
+    <button type="button" class="kbtn kbtn--light" id="kRoomBtn" aria-haspopup="dialog"><span>Data room</span></button>
+  </div>
+</header>
+
+<main class="stage" id="stage">
+  <div class="tx-light" id="txLight" aria-hidden="true"></div>
+  <p class="kup" id="kUp" aria-hidden="true"></p>
+  <div class="fx" aria-hidden="true"><div class="fx__fibers" id="fxFibers"></div><div class="fx__aero" id="fxAero"></div></div>
+  <canvas class="uni" id="uni" aria-hidden="true"></canvas>
+  <div class="uni__labs" id="uniLabs" aria-hidden="true"></div>
+
+  <!-- 01 prologue -->
+  <section class="sc sc--open sc--uni" id="s-open" data-title="Prologue" data-dur="4200,7400" data-uni="cloud,none" aria-label="Prologue">
+    <div class="open__bg" data-b="1" aria-hidden="true">
+      <img src="photos/n-rc-night.jpg" alt="" style="object-position:50% 62%"><img src="photos/q-safh-dark.jpg" alt="" style="object-position:50% 46%"><img src="photos/n-hexhall.jpg" alt="" style="object-position:50% 40%"><img src="photos/n-nojoom-facade.jpg" alt="" style="object-position:50% 35%"><img src="photos/s-odaini.jpg" alt="" style="object-position:40% 50%">
+    </div>
+    <div class="tele" aria-hidden="true"><p>Field census 001 · Riyadh</p><p>24.7636° N · 46.6402° E</p><p><span class="rec"></span><span id="teleClock">T+ 00:00:00</span></p></div>
+    <p class="say say--center" data-only="0">No one had ever <em>counted</em> them.</p>
+    <div class="open__t" data-b="1">
+      <p class="kick">First door-to-door field census · Riyadh, Kingdom of Saudi Arabia</p>
+      <h1 class="open__h">Riyadh's independent car market. <em>Measured.</em></h1>
+      <p class="open__sub"><b data-k="showrooms"></b> showrooms. Two districts. One field team, walking every door.</p>
+    </div>
+  </section>
+
+  <!-- 01b at a glance -->
+  <section class="sc sc--glance" id="s-glance" data-fx="fibers" data-title="At a glance" data-dur="2600,10500" aria-label="At a glance">
+    <div class="gl2">
+      <div class="gl2__head" data-b="0">
+        <p class="kick">At a glance · what the census found</p>
+        <h2 class="say say--md">Six numbers. <em>Each one sourced.</em></h2>
+      </div>
+      <div class="gl2__grid" id="glanceGrid" data-b="1"></div>
+      <p class="gl2__foot" id="glanceFoot" data-b="1"></p>
+    </div>
+  </section>
+
+  <!-- 02 globe -->
+  <section class="sc sc--globe globe" id="s-globe" data-title="Where it happened" data-dur="11500" aria-label="Riyadh on the globe">
+    <div class="globe__stage">
+      <canvas id="globeCanvas" aria-label="Rotating 3D globe with a marker on Riyadh"></canvas>
+      <div class="gm" id="globeMark" aria-hidden="true">
+        <div class="gm__card">
+          <p class="gm__title">Riyadh</p>
+          <div class="gm__row"><i style="background-image:url(photos/hq-kafd.jpg)"></i><span><b>KAFD</b>Headquarters</span></div>
+          <div class="gm__row"><i style="background-image:url(photos/q-safh-hall.jpg)"></i><span><b>Al Qadisiyah</b><em class="num" data-gm="q"></em> showrooms</span></div>
+          <div class="gm__row"><i style="background-image:url(photos/s16nfy-1.jpg)"></i><span><b>Al Shifa</b><em class="num" data-gm="s"></em> showrooms</span></div>
+        </div>
+      </div>
+      <p class="globe__off">The globe needs WebGL, which this browser has turned off.</p>
+    </div>
+    <div class="sc__copy sc__copy--left" data-b="0">
+      <p class="kick">Where it happened</p>
+      <h2 class="say">It starts in <em>Riyadh</em>.</h2>
+      <p class="sc__sub">From our headquarters in the King Abdullah Financial District to two car districts: Al Qadisiyah, 19.7 km east, and Al Shifa, 24.4 km south.</p>
+    </div>
+  </section>
+
+  <!-- 02b Riyadh: satellite to data -->
+  <section class="sc sc--city city" id="s-city" data-title="Riyadh, mapped" data-dur="10500,10000,10500,8500" aria-label="Riyadh from satellite imagery to building data, then the two surveyed districts">
+    <canvas id="cityCanvas" aria-hidden="true"></canvas>
+    <div class="city__veil" aria-hidden="true"></div>
+    <div class="sc__copy sc__copy--left city__copy">
+      <div data-only="0"><p class="kick">Riyadh, mapped</p><h2 class="say say--md">The market was always <em>there</em>.</h2><p class="sc__sub" id="cityRiy"></p></div>
+      <div data-only="1"><p class="kick">District one · east Riyadh</p><h2 class="say say--md">Al <em>Qadisiyah</em>.</h2><p class="sc__sub" id="cityQ"></p></div>
+      <div data-only="2"><p class="kick">District two · south Riyadh</p><h2 class="say say--md">Al <em>Shifa</em>.</h2><p class="sc__sub" id="cityS"></p></div>
+      <div data-only="3"><p class="kick">The fieldwork</p><h2 class="say say--md">The data <em>wasn't</em>. So we walked it.</h2><p class="sc__sub" id="cityBoth"></p></div>
+    </div>
+    <div class="city__legend" data-b="1"><span><i class="lv"></i>Lit building: showroom door confirmed by GPS</span><span><i class="lr"></i>Ring: position from the survey sheet or a listing</span></div>
+    <p class="city__foot" id="cityFoot"></p>
+    <p class="city__off">This map needs WebGL, which this browser has turned off.</p>
+  </section>
+
+  <!-- 03 the work -->
+  <section class="sc sc--count sc--uni" id="s-work" data-title="The work" data-dur="6200,6800,6400,6600" data-uni="doors,cars,walk,deep" aria-label="The field work">
+    <p class="kick kick--top">The work</p>
+    <div class="hudbox brackets" data-only="2" aria-hidden="true"><p>Route past every door</p><p class="hudbox__v"><b id="routeKm">0.0</b> km</p><p id="routeLeg">Leg 1 / 2 · Al Qadisiyah · August</p></div>
+    <div class="cntwrap" id="workCount"></div>
+  </section>
+
+  <!-- 04 drone flight -->
+  <section class="sc sc--fly fly" id="s-tour" data-title="The flight" data-dur="0" aria-label="Drone flight over the surveyed showrooms">
+    <div class="fly__bd" id="flyBd" aria-hidden="true"><img alt=""><img alt=""></div>
+    <canvas id="flyCanvas" aria-hidden="true"></canvas>
+    <div class="fly__glass" aria-hidden="true"></div>
+    <div class="fly__shade" aria-hidden="true"></div>
+    <div class="fly__labels" id="flyLabels" aria-hidden="true"></div>
+    <div class="fly__cross" aria-hidden="true"></div>
+    <div class="fly__frame" aria-hidden="true"><b></b><b></b><b></b><b></b></div>
+    <div class="fly__hud" id="flyHud" aria-hidden="true"></div>
+    <div class="fly__card" id="flyCard" aria-live="polite">
+      <p class="fly__ch" id="flyCh"></p>
+      <h2 class="fly__title" id="flyTitle"></h2>
+      <p class="fly__ar ar" id="flyAr"></p>
+      <ol class="fly__lines" id="flyLines"></ol>
+      <p class="fly__note" id="flyNote"></p>
+    </div>
+    <div class="fly__folio" id="flyFolio"></div>
+    <figure class="fly__photo" id="flyPhoto"><div class="fp"><img class="fp__a on" alt="Showroom photo from the survey" src="photos/hq-kafd.jpg"><img class="fp__b" alt="Showroom photo from the survey"><video muted loop playsinline preload="none" aria-label="Footage from the showroom floor"></video><span class="fp__live"><i></i>Footage</span><span class="fp__n" aria-hidden="true"></span></div><div class="fp__time" aria-hidden="true"><i></i></div><figcaption></figcaption><ol class="fp__strip" aria-hidden="true"></ol></figure>
+    <div class="fly__bar">
+      <button type="button" class="fly__btn" id="flyPlay" aria-label="Pause flight"><svg viewBox="0 0 20 20" aria-hidden="true"><path class="i-pause" d="M6 4h3v12H6zM11 4h3v12h-3z"/><path class="i-play" d="M6 4l10 6-10 6z"/></svg></button>
+      <div class="fly__track"><i id="flyProg"></i><div class="fly__ticks" id="flyTicks"></div></div>
+      <button type="button" class="fly__btn" id="flyRestart" aria-label="Restart flight"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4a6 6 0 1 1-5.6 3.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3 3v5h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div class="fly__legend" id="flyLegend" aria-hidden="true"></div>
+    <div class="fly__load" aria-hidden="true"><p>Loading satellite imagery of Riyadh</p><span><i id="flyLoadBar"></i></span></div>
+    <p class="fly__attr" id="flyAttr"></p>
+    <p class="fly__off">The drone flight needs WebGL, which this browser has turned off.</p>
+  </section>
+
+  <!-- 05 market size -->
+  <section class="sc sc--size size" id="s-size" data-title="Market size" data-dur="7200,7600,7600,7800,9500" aria-label="Market size, derived from the field data">
+    <div class="size__pin">
+      <div class="size__grain" aria-hidden="true"></div>
+      <canvas class="size__cv" id="szCv" aria-hidden="true"></canvas>
+      <div class="size__ui">
+        <div id="szLabs" aria-hidden="true"></div>
+        <div class="size__ring" id="szRing" aria-hidden="true"><p>Sub-dealer sales a year</p><strong id="szRingV">SAR 0B</strong><p id="szRingS"></p></div>
+        <div class="size__col" id="szSteps"></div>
+        <div class="size__rail" id="szRail" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 finance gap -->
+  <section class="sc sc--gap sc--uni" id="s-gap" data-title="The finance gap" data-dur="9000,9000" data-uni="river,riverLost" aria-label="The finance gap">
+    <div class="uni__copy">
+      <div data-only="0">
+        <p class="kick">The finance gap</p>
+        <h2 class="say say--md">Every month, a river of <em>ready buyers</em> walks onto these floors.</h2>
+        <p class="sc__sub">Each point of light is one buyer. Watch where they go once they reach the showroom.</p>
+      </div>
+      <div data-only="1">
+        <p class="kick">The finance gap</p>
+        <p class="mega" id="gapMega"></p>
+        <h2 class="say say--md">leave without a car. Not for want of a car. <em>For want of a loan.</em></h2>
+        <p class="sc__sub" id="gapSub"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 two markets -->
+  <section class="sc sc--two sc--uni" id="s-two" data-title="Two markets" data-dur="5600,8600" data-uni="terrain,terrain" aria-label="Two markets">
+    <div class="uni__copy uni__copy--right">
+      <p class="kick">Two markets</p>
+      <h2 class="say say--md">One city. <em>Two</em> car markets.</h2>
+      <p class="sc__sub">Each landscape is a district, raised by how many cars stand on every square metre of it.</p>
+      <div class="vs" id="vsTable" data-b="1"></div>
+    </div>
+  </section>
+
+  <!-- 08 price skyline -->
+  <section class="sc sc--sky sc--uni" id="s-sky" data-title="The price skyline" data-dur="9000,9000" data-uni="skyQ,skyS" aria-label="Price skyline">
+    <div class="uni__copy">
+      <p class="kick">The price skyline</p>
+      <h2 class="say say--md" data-only="0">Al Qadisiyah, <em>one light per car</em>.</h2>
+      <h2 class="say say--md" data-only="1">Al Shifa, <em>one light per car</em>.</h2>
+      <p class="sc__sub">Every tower is a showroom at its real door, stacked with the cars on its floor and lit by their average price.</p>
+    </div>
+    <div class="pleg" aria-label="Average price, SAR"><span><i style="background:#9e4d24"></i>&lt; 60k</span><span><i style="background:#f2662a"></i>60–100k</span><span><i style="background:#ff9429"></i>100–150k</span><span><i style="background:#ffc752"></i>150–250k</span><span><i style="background:#fff2cc"></i>250k +</span></div>
+  </section>
+
+  <!-- 09 exotic -->
+  <section class="sc sc--exo" id="s-exo" data-title="The exotic fringe" data-dur="9800" aria-label="The exotic fringe">
+    <video class="exo__vid" id="exoVid" muted loop playsinline preload="none" poster="video/albarimi.jpg" aria-label="Footage of the ALBARIMI showroom floor"></video>
+    <div class="exo__hud" aria-hidden="true"><p><span class="rec"></span>Live from the floor</p><p>ALBARIMI · Wadi Ar Rimah · Al Qadisiyah</p></div>
+    <div class="exo__tiles" id="exoticMosaic" hidden></div><div class="exo__folio" id="exoFolio"></div>
+    <div class="exo__copy">
+      <p class="kick">The exotic fringe</p>
+      <h2 class="say say--md" id="exoSay">The top of the market, <em>next door</em> to the middle.</h2>
+      <div class="exotic__stats" id="exoticStats"></div>
+    </div>
+  </section>
+
+  <!-- 10 things no one knew -->
+  <section class="sc sc--count sc--uni" id="s-facts" data-title="Things no one knew" data-dur="6400,6800,7200,6400,6600" data-uni="indep,sales,brands,toyhy,bank" aria-label="Findings">
+    <p class="kick kick--top">Things no one knew</p>
+    <div class="cntwrap" id="factCount"></div>
+  </section>
+
+  <!-- 11 on the ground -->
+  <section class="sc sc--ground" id="s-ground" data-title="On the ground" data-dur="4700,4700,4700,4700,5000" aria-label="On the ground">
+    <div class="ground__folio" id="groundFolio"></div>
+    <div class="cw" id="kbShots" aria-roledescription="carousel"><div class="cw__amb" aria-hidden="true"><i></i><i></i></div><div class="cw__stage"><ol class="cw__ring" id="cwRing"></ol></div><div class="cw__cap" id="cwCap" aria-live="polite"></div></div>
+    <div class="ground__copy">
+      <p class="kick">On the ground</p>
+      <h2 class="say say--md">Every figure came from a door <em>we stood in front of</em>.</h2>
+    </div>
+  </section>
+
+  <!-- 12 one more thing -->
+  <section class="sc sc--omt sc--uni" id="s-omt" data-title="One more thing" data-dur="3800,11000" data-uni="nebula,text" aria-label="One more thing">
+    <p class="say say--center" data-only="0">One more thing.</p>
+    <div class="omt" data-only="1">
+      <p class="kick">The opportunity</p>
+      <p class="mega mega--xl omt__num" id="omtMega"></p>
+      <h2 class="say say--md" id="omtSay"></h2>
+      <p class="omt__line">The buyer is standing on the floor. <em>The lender is not.</em></p>
+    </div>
+  </section>
+
+  <!-- 12b opportunity -->
+  <section class="sc sc--opp" id="s-opp" data-fx="fibers" data-title="The opportunity" data-dur="12000" aria-label="The opportunity and next steps">
+    <div class="opp">
+      <div class="opp__head">
+        <p class="kick">What it means</p>
+        <h2 class="say say--md">Where the value is, who is ready, <em>what we do next</em>.</h2>
+      </div>
+      <div class="opp__cols" id="oppCols"></div>
+      <ol class="opp__next" id="oppNext"></ol>
+    </div>
+  </section>
+
+  <!-- 13 close -->
+  <section class="sc sc--close" id="s-close" data-fx="aero" data-title="KAFD, Riyadh" data-dur="0" aria-label="Headquarters">
+    <div class="close__bg" aria-hidden="true"><img src="photos/hq-skyline.jpg" alt=""></div>
+    <div class="close__in">
+      <p class="kick">Headquarters · King Abdullah Financial District</p>
+      <h2 class="say">From the showroom floor <em>to KAFD</em>.</h2>
+      <p class="sc__sub">Every record in this census was collected by our field team on the ground and filed back to one roster at our Riyadh headquarters.</p>
+      <div class="close__cta">
+        <button type="button" class="btn btn--flame" id="kReplay">Watch again <span class="btn__dot" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M10 4a6 6 0 1 1-5.6 3.8"/><path d="M3 3v5h5" stroke-linejoin="round"/></svg></span></button>
+        <button type="button" class="btn btn--ghost" id="kRoom2">Open the data room</button>
+      </div>
+      <p class="close__as" id="asOf"></p>
+    </div>
+  </section>
+</main>
+
+<footer class="kctl">
+  <div class="kseg" id="kSeg" role="tablist" aria-label="Chapters"></div>
+  <div class="kctl__row">
+    <button type="button" class="kc" id="kPrev" aria-label="Previous"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4 6.5 10l6 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button type="button" class="kc kc--play" id="kPlay" aria-label="Pause"><svg viewBox="0 0 20 20" aria-hidden="true"><path class="i-pause" d="M6 4h3v12H6zM11 4h3v12h-3z"/><path class="i-play" d="M6 4l10 6-10 6z"/></svg></button>
+    <button type="button" class="kc" id="kNext" aria-label="Next"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <p class="kctl__n" id="kNum"></p>
+    <p class="kctl__tc" aria-label="Tour time"><b id="kTc">00:00.0</b><span> / </span><span id="kTot"></span></p>
+    <button type="button" class="kc kc--speed" id="kSpeed" aria-label="Playback speed">1×</button>
+    <p class="kctl__hint" id="kHint">Plays by itself · Scroll or swipe to scrub · Space to pause</p>
+  </div>
+</footer>
+
+<div class="kidx" id="kIdx" hidden role="dialog" aria-modal="true" aria-label="Chapters">
+  <div class="kidx__in">
+    <div class="kidx__head"><p class="kick">Chapters</p><button type="button" class="kbtn" data-close aria-label="Close chapters">✕</button></div>
+    <ol class="kidx__list" id="kIdxList"></ol>
+  </div>
+</div>
+
+<div class="room" id="room" hidden role="dialog" aria-modal="true" aria-label="Data room">
+  <div class="room__bar"><p class="kick">Data room</p><nav class="room__nav" aria-label="Data room sections"><a href="#r-size">Market size</a><a href="#r-find">Findings</a><a href="#r-mk">Districts</a><a href="#r-fin">Finance</a><a href="#r-work">Method</a><a href="#r-photo">Photos</a></nav><button type="button" class="kbtn" data-close aria-label="Close data room">✕</button></div>
+  <div class="room__scroll" id="roomScroll">
+    <section class="rs" id="r-size"><div class="in">
+      <div class="head"><span class="kicker">Derivations</span><h2 class="h2">How each number <em>is built</em></h2><p class="lede">No registry, dealer association or bank publishes the size of Riyadh's independent car trade. Every value is derived from our own count of cars on the floor and the owners we sat down with. Tap any tag to see its formula, source and sample size.</p></div>
+      <div class="dv" id="dvGrid"></div>
+      <div class="method"><h3>How we derived it</h3><ol id="dvMethod"></ol></div>
+    </div></section>
+    <section class="rs" id="r-find"><div class="in">
+      <div class="head"><span class="kicker">What the data shows</span><h2 class="h2">Findings <em>no one</em> had measured before</h2></div>
+      <div class="bento" id="bento"></div>
+      <div class="grid2" style="margin-top:clamp(40px,5vw,64px)">
+        <figure class="fig"><div class="fig__head"><h3 class="h3">Price ladder</h3><div class="legend"><span><i style="background:var(--qad)"></i>Al Qadisiyah</span><span><i style="background:var(--shf)"></i>Al Shifa</span></div></div><p class="cap" style="margin:-8px 0 16px">Share of each district's priced floors, by average selling price (SAR)</p><div class="chart" id="aspChart"></div></figure>
+        <figure class="fig"><div class="fig__head"><h3 class="h3">Brands on the floor</h3><div class="legend"><span><i style="background:var(--qad)"></i>Al Qadisiyah</span><span><i style="background:var(--shf)"></i>Al Shifa</span></div></div><p class="cap" style="margin:-8px 0 16px">Share of showrooms stocking each brand, top 12</p><div class="bars" id="brandChart"></div></figure>
+      </div>
+      <div class="sub" style="margin-top:clamp(40px,5vw,64px)"><h3 class="h3">Floor size tiers</h3><span class="reel-hint">By cars on the floor</span></div>
+      <div class="tiers" id="tiers"></div>
+    </div></section>
+    <section class="rs" id="r-mk"><div class="in">
+      <div class="head"><span class="kicker">Districts</span><h2 class="h2">Al Qadisiyah and Al Shifa, <em>side by side</em></h2></div>
+      <div class="city"><div id="cityMap"></div><div class="city__legend" id="cityLegend"></div></div>
+      <div class="markets" id="marketCards"></div>
+    </div></section>
+    <section class="rs" id="r-fin"><div class="in">
+      <div class="head"><span class="kicker">The finance gap</span><h2 class="h2">SAR <span data-k="lostSarM"></span>M a month <em>walks out</em> of 24 showrooms</h2></div>
+      <div class="gap"><div><p class="cap" style="margin-bottom:14px">Of every 100 buyers ready to purchase on the deep-dive floors</p><div class="waffle on" id="waffle" role="img"></div></div><div class="gap__legend" id="gapLegend"></div></div>
+      <div class="fin" id="finCards"></div>
+    </div></section>
+    <section class="rs" id="r-work"><div class="in">
+      <div class="head"><span class="kicker">Method</span><h2 class="h2">How the record <em>was built</em></h2></div>
+      <div class="effort" id="effort"></div>
+      <div class="timeline" id="timeline" role="list"></div>
+      <div class="notes" id="notes"></div>
+    </div></section>
+    <section class="rs" id="r-photo"><div class="in">
+      <div class="head"><span class="kicker">On the ground</span><h2 class="h2">The floors, <em>as we found them</em></h2></div>
+      <div class="sub"><h3 class="h3"><i style="background:var(--qad)"></i>Al Qadisiyah</h3></div>
+      <div class="pgrid" id="reel"></div>
+      <div class="sub"><h3 class="h3"><i style="background:var(--shf)"></i>Al Shifa</h3></div>
+      <div class="pgrid" id="galleryGrid"></div>
+      <p class="room__foot">Riyadh Sub-Dealer Portfolio · Al Qadisiyah &amp; Al Shifa field census</p>
+    </div></section>
+  </div>
+</div>
+
+<div class="tip" id="tip" role="tooltip"></div>
+<div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Photo viewer">
+  <button class="lb__x" type="button" aria-label="Close photo">✕</button>
+  <button class="lb__prev" type="button" aria-label="Previous photo">‹</button>
+  <figure class="lb__fig"><img id="lbImg" alt=""><figcaption id="lbCap"></figcaption></figure>
+  <button class="lb__next" type="button" aria-label="Next photo">›</button>
+</div>
+</div>

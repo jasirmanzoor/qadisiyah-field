@@ -1,0 +1,524 @@
+id,district,name_en,name_ar,status,lat,lng,location_quality,showroom_m2,type,brands,inventory,avg_price_sar,pct_over_5y,salespeople,authorised,finance
+D0001,Al Qadisiyah,Abdulsalam Cars Company,شركة عبدالسلام للسيارات,active,24.82516,46.818571,verified,2250.0,new,Toyota; Hyundai; MG,150.0,90000.0,,15.0,no,
+D0002,Al Qadisiyah,Salem Car Showroom,معرض سالم للسيارات,active,24.824868,46.817861,verified,1000.0,new,Lexus; Toyota,70.0,150000.0,,4.0,no,
+D0003,Al Qadisiyah,Auto Speed Cars,شركة اوتو سبيد للسيارات,active,24.819859,46.824065,verified,2470.0,new,Nissan; Ford,95.0,160000.0,,2.0,no,
+D0004,Al Qadisiyah,NOKHBATY CARS,شركة نخبتي للسيارات,active,24.825746,46.819267,verified,1000.0,new,Nissan; MG; Haval,60.0,100000.0,,5.0,no,
+D0005,Al Qadisiyah,Your Best Car Showroom,معرض سيارتك الأفضل للسيارات,active,24.819158,46.8244,verified,1200.0,new,Kia; Ford; MG,60.0,120000.0,,5.0,no,
+D0006,Al Qadisiyah,Alsaber Cars,معرض السبر القادسية,active,24.827925,46.815244,verified,2480.0,mix,Mercedes; Land Rover; Nissan; Kia; Peugeot,67.0,200000.0,,4.0,no,
+D0007,Al Qadisiyah,Naseem Al-Buraimi Sports Car Showroom,معرض نسيم البريمي للسيارات الرياض,active,24.828574,46.814889,verified,2900.0,new,Land Rover; Lexus; Toyota; Dongfeng,82.0,300000.0,,5.0,no,
+D0008,Al Qadisiyah,AdwaTuwiq Automotive Company,شركة أضواء طويق للسيارت,active,24.825416,46.815965,verified,1200.0,new,Mercedes; Land Rover; BMW; Cadillac,30.0,300000.0,,2.0,no,
+D0009,Al Qadisiyah,The Falcon Auto Company,شركة الصقر للسيارات,active,24.82353,46.817497,verified,2000.0,mix,Mercedes; Toyota; Hyundai; Cadillac,80.0,120000.0,,4.0,no,
+D0010,Al Qadisiyah,Qitaf Cars,شركة قطاف للسيارات,active,24.821873,46.816759,verified,1000.0,new,Hyundai; MG; Geely,95.0,80000.0,,4.0,no,
+D0011,Al Qadisiyah,Abraj Al Qimmah Cars,معرض أبراج القمة للسيارات,active,24.821998,46.817028,verified,1000.0,new,Toyota; Lexus,70.0,160000.0,,5.0,no,
+D0012,Al Qadisiyah,Tamween Al Hadith,شركة تموين الحديث,active,24.822175,46.817076,verified,1000.0,new,Hyundai; Kia; Jetour,60.0,90000.0,,4.0,no,
+D0013,Al Qadisiyah,Sevenz Commercial Cars,شركة سفنز التجارية للسيارات,active,24.822181,46.817298,verified,1000.0,new,Jetour; MG; Haval,60.0,100000.0,,3.0,no,
+D0014,Al Qadisiyah,Ibn Fneis Cars,شركة ابن فنيس للسيارات,active,24.822423,46.817739,verified,1000.0,new,Toyota; Ford; Haval,50.0,250000.0,,3.0,no,
+D0015,Al Qadisiyah,Al Masarat Al Raqiyah Trading,شركة المسارات الراقية التجارية,active,24.822342,46.817856,verified,1000.0,new,Toyota; Lexus; Jetour,60.0,150000.0,,3.0,no,
+D0016,Al Qadisiyah,Al Ikhtiyar,الاختيار,active,24.823137,46.819492,verified,2000.0,new,Hyundai; Geely,90.0,90000.0,,8.0,no,
+D0017,Al Qadisiyah,Wilayah Cars,ولاية للسيارات,active,24.823211,46.81979,verified,1000.0,new,Hyundai; Jetour,60.0,90000.0,,3.0,no,
+D0018,Al Qadisiyah,Al Sagheer Cars,شركة معرض الصغير للسيارات,active,24.823326,46.819871,verified,1000.0,mix,Hyundai; Jetour; BMW; MG,50.0,90000.0,,2.0,no,
+D0019,Al Qadisiyah,Rukn Al Mustaqbal Cars,معرض ركن المستقبل للسيارات,active,24.823414,46.820395,verified,1000.0,mix,Toyota; Hyundai; Lexus,60.0,90000.0,,2.0,no,
+D0020,Al Qadisiyah,Asdaa Cars,شركة اصداء للسيارات,active,24.823396,46.820389,verified,1000.0,new,Toyota; Hyundai; Kia,70.0,120000.0,,2.0,no,
+D0021,Al Qadisiyah,Rayat Al Ezz Cars,معرض راية العز,active,24.823552,46.82073,verified,1000.0,new,Toyota; Hyundai; Haval,70.0,80000.0,,4.0,no,
+D0022,Al Qadisiyah,Terhal Cars,ترحال للسيارات,active,24.823837,46.821391,verified,1000.0,new,Kia; BAIC,65.0,80000.0,,5.0,no,
+D0023,Al Qadisiyah,Al Rimal Cars,شركة الرمال للسيارات,active,24.82394,46.821563,verified,1000.0,new,Toyota; MG,80.0,110000.0,,3.0,no,
+D0024,Al Qadisiyah,Fakhamat Najd Cars,معرض فخامة نجد للسيارات,active,24.825299,46.821343,verified,1350.0,mix,Toyota; Ford,70.0,80000.0,,3.0,no,
+D0025,Al Qadisiyah,Al Nayef Cars,شركة معرض نخبة النايف للسيارات,active,24.825117,46.822102,verified,1350.0,new,Toyota; Hyundai; Changan,60.0,90000.0,,2.0,no,
+D0026,Al Qadisiyah,Auto One,اوتو ون,active,24.825033,46.821623,verified,2400.0,new,Hyundai; Kia; Jetour; MG,90.0,90000.0,,9.0,no,
+D0027,Al Qadisiyah,Wisam Al Majd,شركة وسام المجد,active,24.825642,46.822089,verified,1200.0,new,Hyundai; Kia; MG,110.0,90000.0,,8.0,no,
+D0028,Al Qadisiyah,Al Qimah,القيمة,active,24.827677,46.821175,verified,2000.0,new,Hyundai; Nissan; Chevrolet,110.0,120000.0,,8.0,no,
+D0029,Al Qadisiyah,Al Emlaq,العملاق,active,24.827372,46.822202,verified,2300.0,new,Toyota; Lexus; Mitsubishi,70.0,140000.0,,6.0,no,
+D0030,Al Qadisiyah,Nukhbat Bahwan,نخبة بهوان,active,24.829738,46.818514,verified,2400.0,new,Toyota; Nissan; Lexus,60.0,350000.0,,2.0,no,
+D0031,Al Qadisiyah,Bilad Shahran Cars,معرض بلاد شهران للسيارات,active,24.829736,46.81906,verified,1200.0,new,Toyota; Nissan; Hyundai,70.0,250000.0,,3.0,no,
+D0032,Al Qadisiyah,Qimmat Al Fursan Cars,معرض قمة الفرسان للسيارات,active,24.830049,46.819291,verified,1800.0,used,Hyundai; Chevrolet; BMW; Geely,80.0,80000.0,,3.0,no,
+D0033,Al Qadisiyah,Al Buraimi Cars,البريمي,active,24.830069,46.819955,verified,1500.0,new,Mercedes; BMW; Land Rover,70.0,500000.0,,10.0,no,
+D0034,Al Qadisiyah,Al Rumaikh Cars,معرض الرميح للسيارات,active,24.827929,46.819719,verified,2400.0,new,Jetour; Haval; Suzuki,90.0,80000.0,,3.0,no,
+D0035,Al Qadisiyah,Ramz Al Emarat,رمز الإمارات,active,24.827731,46.82004,verified,4000.0,new,Toyota; Hyundai; Nissan,190.0,130000.0,,16.0,unsure,
+D0036,Al Qadisiyah,Adwaa Khamis Mushait Cars,شركة أضواء خميس مشيط للسيارات,active,24.828776,46.820224,verified,5000.0,new,Toyota; Hyundai; Isuzu,125.0,130000.0,,11.0,unsure,
+D0037,Al Qadisiyah,Qimmat Al Wafi Cars,معرض قمة الوافي للسيارات,active,24.828105,46.833433,verified,2400.0,new,Isuzu,65.0,110000.0,,3.0,yes,
+D0038,Al Qadisiyah,Al Falah Cars,شركة الفلاح للسيارات,active,24.819202,46.826335,verified,5000.0,new,Toyota; Hyundai; Nissan,180.0,150000.0,,13.0,unsure,
+D0039,Al Qadisiyah,Adel Cars,شركة عادل للسيارات,active,24.820526,46.824775,verified,2400.0,new,Hyundai; Changan; Land Rover; JAC,80.0,100000.0,,7.0,no,
+D0040,Al Qadisiyah,Burj Al Diwaniyah Cars,شركة برج الديوانية للسيارات,active,24.823445,46.824264,verified,2400.0,new,Toyota; Hyundai; Nissan; Kia,120.0,150000.0,,3.0,unsure,
+D0041,Al Qadisiyah,Al Kaif Cars,الكيف للسيارات,active,24.825376,46.823294,verified,2000.0,new,Toyota; Nissan; Kia,80.0,120000.0,,5.0,no,
+D0042,Al Qadisiyah,Wosta Used Cars,وسطى,active,24.822832,46.818988,verified,3100.0,used,,130.0,70000.0,,2.0,no,
+D0043,Al Qadisiyah,Al Qimah Second Branch,2القيمة,active,24.828503,46.820731,verified,2200.0,new,Hyundai; Nissan; Chevrolet; MG,95.0,120000.0,,7.0,no,
+D0044,Al Qadisiyah,Imad Eddin Car Gallery,معرض عماد الدين للسيارات,active,24.8208496,46.824917,verified,2000.0,new,Hyundai; Toyota; Nissan; Lexus; GAC,100.0,170000.0,,5.0,no,
+D0045,Al Qadisiyah,معرض مقرن للسيارات,معرض مقرن للسيارات,active,24.8206757,46.825241,verified,2000.0,new,Hyundai; Toyota; Nissan; Lexus; Ford; GMC; GAC,90.0,160000.0,,5.0,no,
+D0046,Al Qadisiyah,ONE OF ONE,ون اوف ون للسيارات,active,24.8310876,46.8313925,verified,1200.0,used,Mercedes; BMW; Land Rover; Cadillac,60.0,300000.0,,5.0,no,
+D0047,Al Qadisiyah,Al Sumoud Showroom - Mercedes and New Cars,شركة الصمود للسيارات,active,24.8306884,46.8290212,verified,1200.0,used,Genesis,35.0,200000.0,,1.0,no,
+D0048,Al Qadisiyah,Auto Power Cars,شركة أوتوباور للسيارات,active,24.8284409,46.8302507,verified,1000.0,mix,Hyundai; Nissan; Kia,80.0,80000.0,,3.0,no,
+D0049,Al Qadisiyah,Murakabah roz cars,معرض مركبة روز للسيارات,active,24.8284409,46.8302507,verified,1000.0,used,Mercedes; Hyundai; Toyota; Nissan; Lexus; GMC,35.0,70000.0,,2.0,no,
+D0050,Al Qadisiyah,SNAM cars,معرض سنام المتحدة للسيارات,active,24.8306203,46.8284282,verified,1000.0,used,Mercedes; Hyundai; Toyota; Lexus,35.0,60000.0,,1.0,no,
+D0051,Al Qadisiyah,Usra Waseela Cars,‎معرض أسرع وسيلة للسيارات,active,24.8300213,46.824903,verified,2000.0,mix,Kia; Haval; JAC; Dongfeng,75.0,70000.0,,5.0,no,
+D0052,Al Qadisiyah,shalal Najd Cars,معرض شلال نجد للسيارات,active,24.8290479,46.8225591,verified,2000.0,mix,Kia; Haval; JAC; Dongfeng,75.0,70000.0,,5.0,no,
+D0053,Al Qadisiyah,shalal Najd Cars - extension Outstore,معرض شلال نجد للسيارات-2,active,24.8290479,46.8225591,verified,1000.0,mix,Hyundai; MG,100.0,70000.0,,5.0,unsure,
+D0054,Al Qadisiyah,Alskab Cars Company,شركة السكب الراقي للسيارات,active,24.826282,46.819294,verified,1200.0,new,Land Rover; Toyota; Nissan,45.0,250000.0,,3.0,no,
+D0055,Al Qadisiyah,Nojoon Riyadh Cars Company,شركة نجوم الرياض للسيارات,active,24.827245,46.814034,verified,3600.0,mix,,180.0,80000.0,,10.0,no,
+D0056,Al Qadisiyah,Jihat Cars Company,شركة معرض جهة للسيارات,active,24.8227981,46.8257754,verified,1000.0,mix,Toyota; Hyundai; Nissan; Ford; Isuzu,60.0,90000.0,,4.0,no,
+D0057,Al Qadisiyah,Hawazen Corner Car company ,معرض ركن هوازن,active,24.8259805,46.828372,verified,1200.0,used,Mercedes; Lexus; GMC; BMW; Cadillac; Porsche,35.0,200000.0,,1.0,no,
+D0058,Al Qadisiyah,Grand Tour / Automobile for You,شركة الجولة الكبرى / أوتوموبيل فور يو,active,24.8227506,46.8157836,verified,2000.0,used,Land Rover; GMC; Honda; Rolls-Royce; Lamborghini; Brabus,60.0,500000.0,,3.0,no,
+D0059,Al Qadisiyah,Alwusam / Wisam Al Watan Cars,معرض وسام الوطن للسيارات,active,24.8231375,46.8149407,verified,1000.0,new,Nissan; Toyota; Lexus; Jaecoo,40.0,180000.0,,2.0,no,
+D0060,Al Qadisiyah,Full Speed Cars,شركة فول سبيد للسيارات,active,24.8231486,46.8177495,verified,1000.0,used,Land Rover; Toyota; Nissan; Lexus; Mercedes,25.0,280000.0,,1.0,no,
+D0061,Al Qadisiyah,Al Markab Cars Qadisiyah,شركة المركب للسيارات القادسية,active,24.8234205,46.8177796,verified,2400.0,new,Toyota; Lexus; MG; Infiniti,140.0,280000.0,,6.0,no,
+D0062,Al Qadisiyah,Al Khateeri Cars,الكثيري للسيارات,active,24.8229113,46.813049,verified,1000.0,new,,30.0,90000.0,,1.0,no,
+D0063,Al Qadisiyah,Al Jumeih / Bh Exhibition,معرض ال جميح للسيارات,active,24.8253928,46.8222366,verified,1500.0,mix,Land Rover; Toyota; Lexus; Mercedes; Changan,100.0,220000.0,,5.0,no,
+D0064,Al Qadisiyah,Ramz Al Buraimi Cars,معرض رمز البريمي للسيارات,active,24.825227,46.8134924,verified,1000.0,mix,Toyota; Kia; Suzuki,70.0,50000.0,,2.0,no,
+D0065,Al Qadisiyah,Markabat Al Wadi,شركة مركبة الوادي,active,24.7837363,46.7719699,approximate,1000.0,new,Hyundai; Kia; Changan,70.0,70000.0,,3.0,no,
+D0066,Al Qadisiyah,Khaled Cars Showroom,معرض خالد للسيارات,active,24.8250289,46.817966,verified,2000.0,new,Hyundai; Kia; Jetour; Geely,100.0,70000.0,,5.0,no,
+D0067,Al Qadisiyah,Tawhid Cars,معرض التوحيد للسيارات,active,24.8240913,46.819699,verified,1000.0,new,Toyota,68.0,80000.0,,3.0,no,
+D0068,Al Qadisiyah,Noor Al Rayyan Cars,معرض نور الريان,active,24.824808,46.820044,verified,1000.0,used,Toyota; Hyundai; Nissan; Haval,75.0,60000.0,,2.0,no,
+D0069,Al Qadisiyah,Al Khiyar Al Badil,شركة الخيار البديل,active,24.823886,46.822854,verified,1000.0,new,Hyundai; Kia; GAC,50.0,70000.0,,,no,
+D0070,Al Qadisiyah,Bilad Subai Cars,معرض بلاد سبيع للسيارات,active,24.830147,46.819986,verified,1000.0,used,Toyota; Kia; BMW; Mazda,55.0,80000.0,,2.0,no,
+D0071,Al Qadisiyah,Khaled Al Salim Cars,شركة خالد السليم للسيارات,active,24.824607,46.820756,verified,1000.0,used,Hyundai; Kia; GMC,60.0,65000.0,,2.0,no,
+D0072,Al Qadisiyah,Bin Shamlan Cars,معرض بن شملان,active,24.824982,46.820428,verified,1000.0,new,Hyundai; Nissan; Kia,60.0,100000.0,,3.0,no,
+D0073,Al Qadisiyah,Qimmat Al Ezz Cars,معرض قمة العزّ,active,24.824956,46.820617,verified,1000.0,new,Land Rover; Toyota; Lexus,40.0,400000.0,,2.0,no,
+D0074,Al Qadisiyah,Taj Al Wusta Cars,تاج الوسطى للسيارات,active,24.82499,46.820906,verified,1000.0,mix,Toyota; Hyundai; Kia,60.0,80000.0,,2.0,no,
+D0075,Al Qadisiyah,Al Kawkab Al Raqi Cars,معرض الكوكب الراقي للسيارات,active,24.824686,46.821004,verified,1000.0,new,Toyota; Kia; Ford; GAC,50.0,85000.0,,2.0,no,
+D0076,Al Qadisiyah,Sumuw Al Tamayuz Cars,معرض سمو التميز للسيارات,active,24.82469,46.821019,verified,1000.0,mix,Toyota; Nissan; Peugeot; BAIC,50.0,100000.0,,2.0,no,
+D0077,Al Qadisiyah,Nojoom Al Nakhlah Car,شركة نجوم النخلة كار,active,24.824775,46.821258,verified,1000.0,used,Toyota; Lexus; GMC,50.0,100000.0,,1.0,no,
+D0078,Al Qadisiyah,Al  Amri autos,العمري للسيارات,active,24.82304353438726,46.817164550948036,verified,800.0,used,Toyota; Mazda; Jeep; Porsche,40.0,70000.0,,2.0,no,
+D0079,Al Qadisiyah,Black Edition Cars,بلاك اديشن للسيارات,active,24.823109,46.817018,verified,800.0,mix,Mercedes; Toyota; Kia; Lexus; Changan; Audi,40.0,300000.0,,2.0,no,
+D0080,Al Qadisiyah,Alam Al Ibtikar Cars,شركة عالم الابتكار للسيارات,active,24.823668,46.818216,verified,1800.0,new,Toyota; Nissan; Lexus; GMC,67.0,170000.0,,3.0,no,
+D0081,Al Qadisiyah,Bin Omaira,شركة بن عميره للسيارات,active,24.823898,46.819277,verified,1800.0,new,Toyota; Hyundai; Ford; JAC,65.0,80000.0,,3.0,no,
+D0082,Al Qadisiyah,Hala Al Saudiya Cars,شركة هلا السعودية للسيارات,active,24.823859,46.818855,verified,2100.0,mix,Toyota; Hyundai; Nissan; Ford; Chevrolet,120.0,90000.0,,5.0,no,
+D0083,Al Qadisiyah,Code Car,شركة كود كار للسيارات,active,24.824285,46.818664,verified,1000.0,new,Hyundai; Nissan; Kia,50.0,75000.0,,2.0,no,
+D0084,Al Qadisiyah,Aamal Al Damaat Cars,شركة أعمال الدمعات للسيارات,active,24.824062921243858,46.818528019054995,verified,1000.0,new,Jetour; MG; Renault; BAIC,65.0,65000.0,,2.0,no,
+D0085,Al Qadisiyah,Mamlakat Al Arabiya Cars,معرض مملكة العربية للسيارات,active,24.825419,46.826567,verified,800.0,new,Hyundai; Kia; Jetour; GAC,70.0,80000.0,,2.0,no,
+D0086,Al Qadisiyah,Ramz Al Sadara Cars,معرض رمز الصدارة للسيارات,active,24.8253536,46.8226977,verified,1000.0,new,Toyota; Hyundai,65.0,100000.0,,2.0,no,
+D0087,Al Qadisiyah,Ru’yat Al Asima Cars,معرض رؤية العاصمة,active,24.829269,46.817883,verified,1000.0,mix,Hyundai; Lexus; GAC,50.0,85000.0,,2.0,no,
+D0088,Al Qadisiyah,Masdar Dubai Cars,شركة مصدر دبي للسيارات,active,24.828106,46.816076,verified,1000.0,new,Toyota; Nissan,30.0,180000.0,,2.0,no,
+D0089,Al Qadisiyah,Safwat Al Khaleej,صفوة الخليج,active,24.828247,46.816545,verified,1000.0,new,Hyundai; Kia,40.0,150000.0,,3.0,no,
+D0090,Al Qadisiyah,RBM Cars (Jetour Authorized),معرض اربي أم,active,24.828314,46.816746,verified,2000.0,new,Toyota; Nissan; Kia; Jetour,65.0,80000.0,,4.0,yes,
+D0091,Al Qadisiyah,Al Muharikat Al Jameela Cars,معرض المحركات الجميلة للسيارات,active,24.828457,46.81701,verified,1000.0,used,Mercedes; BMW,45.0,100000.0,,1.0,no,
+D0092,Al Qadisiyah,AZURE Investment Cars,شركة أزور للاستثمار,active,24.828457,46.81701,verified,1000.0,new,Toyota; Nissan; Jetour,50.0,150000.0,,2.0,no,
+D0093,Al Qadisiyah,Al Yakht Car,اليخت كار,active,24.828569,46.817222,verified,1000.0,new,Land Rover; Toyota; Lexus; Infiniti,35.0,380000.0,,1.0,no,
+D0094,Al Qadisiyah,Mr. Sayarah Cars,شركة مستر سيارة للسيارات,active,24.82798,46.818537,verified,1000.0,new,Toyota; Hyundai; GMC,75.0,150000.0,,2.0,no,
+D0095,Al Qadisiyah,Ras Al Saraq Cars,شركة رأس الشرق للسيارات,active,24.827991,46.818218,verified,1000.0,new,Land Rover; Lexus; Jetour,40.0,280000.0,,2.0,no,
+D0096,Al Qadisiyah,Al Qirsh Al Wataniya,شركة القرش الوطنية,active,24.82815,46.818591,verified,1000.0,new,Kia; Isuzu,50.0,120000.0,,2.0,no,
+D0097,Al Qadisiyah,Ula Al Markabat Cars,معرض أولى المركبات للسيارات,active,24.828417,46.818099,verified,1000.0,new,Kia; Honda; Peugeot,60.0,100000.0,,4.0,no,
+D0098,Al Qadisiyah,Kammil Al Mutaqaddima Cars,شركة كمًل المتقدمة للسيارات,active,24.82855,46.818087,approximate,1000.0,new,Nissan; Changan; Foton,80.0,80000.0,,2.0,no,
+D0099,Al Qadisiyah,Al Shamikha Cars,شركة الشامخة للسيارات,active,24.828682927610387,46.81807494456924,verified,1000.0,new,Toyota; Nissan; Kia; Foton,75.0,100000.0,,2.0,no,
+D0100,Al Qadisiyah,Car Volt Cars,شركة كار فولت للسيارات,active,24.829036,46.818016,verified,2000.0,new,Toyota; Hyundai; Nissan,98.0,87000.0,,5.0,no,
+D0101,Al Qadisiyah,Abdullah Mubarak Al Ali Awn Al Sayari Cars,شركة عبد الله مبارك ال علي عون الصيعري للسيارات,active,24.829505,46.817612,verified,1000.0,new,Isuzu,40.0,120000.0,,1.0,no,
+D0102,Al Qadisiyah,Wasm Cars,وسم للسيارات,active,24.829321,46.81691,verified,2000.0,mix,Mercedes; Toyota; Hyundai; Nissan; Suzuki,120.0,94000.0,,5.0,no,
+D0103,Al Qadisiyah,Taar Cars,طار,active,24.8290915,46.816231,approximate,1000.0,new,GAC; Jaecoo; Exeed,76.0,90000.0,,3.0,no,
+D0104,Al Qadisiyah,My Car Showroom,معرض ماي كار,active,24.828862,46.815552,verified,1000.0,used,Toyota; Hyundai; Geely,70.0,60000.0,,1.0,no,
+D0105,Al Qadisiyah,Fahd Sulaiman & Ali Al Umair,شركة فهد سليمان و علي العمير,active,24.829096,46.815953,verified,1000.0,new,Toyota; Nissan; Jeep,60.0,90000.0,,2.0,no,
+D0106,Al Qadisiyah,Al Qiyada Cars (Haval Auth),شركه القياده للسيارات,active,24.828782,46.815993,verified,1000.0,new,Haval,60.0,110000.0,,2.0,yes,
+D0107,Al Qadisiyah,Sahm Car Showroom,معرض سهم كار للسيارات,active,24.829167545821296,46.816663554057854,verified,2000.0,used,Hyundai; Ford; GMC; Chevrolet,70.0,60000.0,,2.0,no,
+D0108,Al Qadisiyah,Oman Al Awwal Cars,معرض عمان الأول للسيارات,active,24.829787,46.818952,verified,1000.0,new,Toyota; Hyundai; Ford; GMC,50.0,120000.0,,2.0,no,
+D0109,Al Qadisiyah,Misfer Al Shahrani Cars,مسفر الشهراني السيارات,active,24.829221035873406,46.819280160043725,verified,1000.0,new,Toyota; Hyundai; Kia; Ford; Changan,65.0,75000.0,,2.0,no,
+D0110,Al Qadisiyah,Abdulmajeed Al Khader,عبد المجيد الخضر,active,24.829613,46.817704,verified,1000.0,new,Changan; GAC; Exeed,70.0,70000.0,,3.0,no,
+D0111,Al Qadisiyah,AutoJet,"شركة أوتوجيت للسيارات
+
+",active,24.833271,46.819977,verified,1000.0,new,Hyundai; Kia; Haval; Exeed,70.0,75000.0,,1.0,no,
+D0112,Al Qadisiyah,Titanium Cars,معرض تيتانيوم كارس للسيارات,active,24.827992,46.819544,verified,1000.0,new,Toyota; Nissan; Changan; GAC,70.0,75000.0,,3.0,no,
+D0113,Al Qadisiyah,Cars Riyadh Showroom,معرض كارز الرياض للسيارات,active,24.828319,46.819577,verified,1000.0,used,Toyota; Nissan; Lexus; Chevrolet,70.0,80000.0,,2.0,no,
+D0114,Al Qadisiyah,Mohammed Abdullah Al Hassan Cars,معرض محمد عبد الله الحسن للسيارات,active,24.828603,46.819314,verified,1000.0,new,Toyota; Jetour; Chevrolet,70.0,150000.0,,3.0,no,
+D0115,Al Qadisiyah,Wisam Al Sharjah Cars,معرض وسام الشارقة للسيارات,active,24.828659,46.81936,verified,1000.0,new,Toyota; Lexus,35.0,270000.0,,1.0,no,
+D0116,Al Qadisiyah,Rashid Cars,راشد كارز,active,24.828758,46.81917,verified,1000.0,new,Toyota; Nissan; Hyundai,75.0,280000.0,,4.0,no,
+D0117,Al Qadisiyah,Nail Al Qimmah,نيل القمة,active,24.8263,46.820334,verified,1300.0,new,Mercedes; BMW,70.0,290000.0,,4.0,no,
+D0118,Al Qadisiyah,Abdullah Zaid Al Jamid Cars,معرض الحامد للسيارات معارض القادسية,active,24.826793,46.820389,verified,700.0,mix,Hyundai; Mitsubishi; Maxus,78.0,68000.0,,1.0,no,
+D0119,Al Qadisiyah,Madinat Al Sayarah Ltd,شركة مدينة السيارة المحدودة,active,24.826612,46.820151,verified,700.0,new,Nissan; Geely,25.0,250000.0,,1.0,no,
+D0120,Al Qadisiyah,Masoud Abdulrahman Al Qahtani Cars,معرض مسعود عبد الرحمن القحطاني للسيارات,active,24.82574,46.820674,verified,700.0,new,Toyota; Hyundai; Jetour,45.0,80000.0,,1.0,no,
+D0121,Al Qadisiyah,Rayat Al Watan Cars,راية الوطن للسيارات,active,24.825698,46.820698,verified,700.0,new,Toyota; Hyundai; Genesis,40.0,130000.0,,2.0,no,
+D0122,Al Qadisiyah,Al Quwa Al Ha’ila,القوة الهائلة,active,24.826078,46.819207,verified,1000.0,new,Hyundai; Geely; Dongfeng,70.0,85000.0,,3.0,no,
+D0123,Al Qadisiyah,Aamal Al Masar Cars,أعمال المسار للسيارات,active,24.826495,46.819292,verified,1000.0,new,Hyundai; Kia; Geely,60.0,100000.0,,4.0,no,
+D0124,Al Qadisiyah,Sayarati Cars,شركة سيارتي كارز للسيارات,active,24.826624,46.818936,verified,1000.0,new,Toyota; Lexus,45.0,250000.0,,3.0,no,
+D0125,Al Qadisiyah,Ramz Al Jazeera Cars,رمز الجزيرة للسيارات,active,24.825124,46.819975,verified,1500.0,used,Mercedes; Toyota; Hyundai; Ford; BMW,100.0,100000.0,,4.0,no,
+D0126,Al Qadisiyah,East Country Cars / Bilad Al Sharq,شركة بلاد الشرق للسيارات,active,24.828691,46.815055,verified,1000.0,new,Land Rover; Toyota; Nissan; Lexus; Jetour; Infiniti,100.0,200000.0,,4.0,no,
+D0127,Al Qadisiyah,Al Riyadah International Cars,شركة الريادة الدولي للسيارات,active,24.829132,46.816255,verified,1000.0,new,Toyota; Nissan; Lexus,55.0,200000.0,,4.0,no,
+D0128,Al Qadisiyah,Khalaf Cars Showroom,معرض خلف للسيارات,active,24.829642,46.81859,verified,1000.0,used,Toyota; Dodge,50.0,120000.0,,3.0,no,
+D0129,Al Qadisiyah,Al Safh Trading,شركة الصفح للتجارة,active,24.827703,46.820062,verified,3000.0,new,Toyota; Hyundai,150.0,100000.0,,10.0,no,
+D0130,Al Qadisiyah,Al Masarra Cars,معرض المسرة للسيارات,active,24.827624,46.81955,verified,800.0,used,Hyundai; Nissan; Kia,35.0,80000.0,,2.0,no,
+D0131,Al Qadisiyah,Al Safir Al Hadith Cars (Foton Auth),معرض السفير الحديث للسيارات,active,24.827651,46.820082,verified,800.0,mix,Chevrolet; Mitsubishi; Foton,50.0,70000.0,,2.0,yes,
+D0132,Al Qadisiyah,Bahjat Al Khaleej Cars,معرض بهجة الخليج للسيارات,active,24.826437,46.821585,verified,1000.0,used,Toyota; Nissan,30.0,100000.0,,1.0,no,
+D0133,Al Qadisiyah,Nukhbat Al Mamlakah Cars,معرض نخبة المملكة لتجارة السيارات,active,24.826544,46.821743,verified,1000.0,used,Hyundai; Kia; Genesis,65.0,100000.0,,3.0,no,
+D0134,Al Qadisiyah,B2B Motors Cars,شركة معرض بي تو بي موتورز للسيارات,active,24.82604603718498,46.81944514157198,verified,750.0,new,Mercedes; Land Rover; Nissan; Genesis,30.0,250000.0,,2.0,no,
+D0135,Al Qadisiyah,Ahmed Falaij Cars,شركة أحمد عبد العزيز الفليج للسيارات,active,24.82593,46.828495,verified,2000.0,new,Toyota; Nissan; Jetour; Isuzu,110.0,100000.0,,7.0,yes,
+D0136,Al Qadisiyah,Al adhqaa sharq cars,معرض اضواء الشرق للسيارات,active,24.829005,46.818857,verified,1200.0,used,Toyota; Lexus; Mercedes; BMW; Bentley,50.0,280000.0,,2.0,no,
+D0137,Al Qadisiyah,Madra Cars,معرض مدرا للسيارات,active,24.830674,46.819897,verified,2000.0,new,Nissan; Toyota; Hyundai,100.0,160000.0,,4.0,no,
+D0138,Al Qadisiyah,Abraj Al Khaleej Cars,شركة أبراج الخليج للسيارات,active,24.829882,46.820141,verified,1000.0,new,Toyota; Nissan; MG,80.0,180000.0,,5.0,no,
+D0139,Al Qadisiyah,Saeed Salem Al Shahrani Cars,شركة سعيزد سالم الشهراني للسيارات,active,24.819949,46.825164,verified,1000.0,new,Hyundai; Kia,70.0,80000.0,,3.0,no,
+D0140,Al Qadisiyah,Wiyadat Al Ma’ali,ويادة المعالي,active,24.827891,46.821085,verified,1000.0,mix,Mercedes; Land Rover; Toyota; Hyundai,50.0,90000.0,,4.0,no,
+D0141,Al Qadisiyah,Al Humaydi Cars,شركة الحميضي للسيارات,active,24.826901,46.821574,verified,1000.0,new,Toyota; Lexus,65.0,200000.0,,4.0,no,
+D0142,Al Qadisiyah,Salman Imad Eddin Cars,سلمان عماد الدين للسيارات,active,24.826727,46.821856,verified,1000.0,new,Nissan; Toyota; Hyundai; Lexus,55.0,180000.0,,3.0,no,
+D0143,Al Qadisiyah,Majed Bin Wazeer & Sons Trading,شركة ماجد بن وزير و أولاده للتجارة,active,24.826332,46.822532,verified,2000.0,new,Nissan; Toyota; Kia; Lexus,150.0,150000.0,,6.0,no,
+D0144,Al Qadisiyah,Rukn Al Mu’tamad Cars,معرض ركن المعتمد للسيارات,active,24.8255891,46.8229554,verified,1000.0,new,Nissan; Toyota; Hyundai; Lexus; Ford,95.0,180000.0,,5.0,no,
+D0145,Al Qadisiyah,Al Shuyukh Cars,شركة الشيوخ للسيارات,active,24.82508,46.823375,verified,1000.0,used,Toyota; Nissan; Kia; Ford,100.0,50000.0,,3.0,no,
+D0146,Al Qadisiyah,Al Sari Cars,شركة ال ساري للسيارات فرع 2 القادسية,active,24.824845,46.823876,verified,1000.0,mix,Toyota; Nissan; Lexus,90.0,80000.0,,4.0,no,
+D0147,Al Qadisiyah,"sada alriyadh 2
+",معرض صدى الرياض للسيارات 2,active,24.823295,46.823603,verified,1000.0,used,Mercedes; Toyota; Hyundai; BMW,70.0,100000.0,,2.0,no,
+D0148,Al Qadisiyah,Ramn Al Dammam,معرض ركن الدمام للسيارات,active,24.824183,46.825367,verified,1000.0,used,Toyota; Nissan; GMC,65.0,65000.0,,2.0,no,
+D0149,Al Qadisiyah,Qimmat Al Sadara Cars,معرض قمة الصدارة للسيارات,active,24.824071,46.82545,verified,1000.0,used,Toyota; Hyundai; Mazda,60.0,60000.0,,1.0,no,
+D0150,Al Qadisiyah,Baddelha,بدلها,closed,24.8238893,46.825562,listing,1000.0,,,,,,,no,
+D0151,Al Qadisiyah,Swapcar,سوابكار,closed,24.8237077,46.825674,approximate,2000.0,,,,,,,no,
+D0152,Al Qadisiyah,Al Talal Al Qassim Cars,معرض الطلال القصيم للسيارات,active,24.823526,46.825786,verified,2000.0,used,Toyota; Hyundai; Nissan; Chevrolet,95.0,62000.0,,3.0,no,
+D0153,Al Qadisiyah,Saad Rajeh Al Badri Cars,معرض سعد راجح البدري للسيارات,active,24.82333,46.8259,verified,1000.0,used,Toyota; Nissan; GMC; Chevrolet,55.0,60000.0,,2.0,no,
+D0154,Al Qadisiyah,Al Qiyada Al Mufaddala Cars,معرض القيادة المفضلة للسيارات,active,24.82127,46.82819,verified,1000.0,new,Hyundai; Kia; MG; BAIC,60.0,75000.0,,2.0,no,
+D0155,Al Qadisiyah,Qimmat Najd 2,قمة نجد -٢,active,24.822755,46.826151,verified,2200.0,new,Hyundai; Toyota; Lexus; Ford,160.0,100000.0,,10.0,no,
+D0156,Al Qadisiyah,Nukhbat Al Afdal Cars,معرض بخبة الأفضل للسيارات,active,24.822094,46.826598,verified,1000.0,new,Mercedes; Land Rover; Mini,40.0,300000.0,,2.0,no,
+D0157,Al Qadisiyah,Al Ikhwa Al Muttahidun Motors,شركة الإخوة المتحدون موتورز,active,24.822008,46.826409,verified,1000.0,new,Toyota; Hyundai; Lexus; MG,40.0,120000.0,,2.0,no,
+D0158,Al Qadisiyah,Shaya Cars,معرض شايع للسيارات,active,24.821843,46.826678,verified,1000.0,mix,Toyota; Hyundai; Kia; Ford,60.0,120000.0,,2.0,no,
+D0159,Al Qadisiyah,Al Namar Car,شركة النمار كار للسيارات,active,24.821759,46.826807,verified,1000.0,new,Land Rover; Hyundai; GAC,35.0,125000.0,,2.0,no,
+D0160,Al Qadisiyah,Qimmat Al Hut Cars,معرض قمة الحوت للسيارات,active,24.8216643,46.8267028,verified,1000.0,new,Toyota; Hyundai; Ford,35.0,100000.0,,1.0,no,
+D0161,Al Qadisiyah,Al Motor Al Khas,الموتر الخاص,active,24.8216643,46.8267028,verified,1000.0,new,Lexus; GMC; BMW; Genesis,65.0,250000.0,,3.0,no,
+D0162,Al Qadisiyah,Rukn Al Uqaili,ركن العقيلي,active,24.821308,46.826881,verified,1000.0,used,Hyundai; Kia; GMC; Geely,50.0,50000.0,,2.0,no,
+D0163,Al Qadisiyah,Al Sayarah Al Dhakiyah,شركة السيارة الذكية,active,24.821068,46.827056,verified,1000.0,mix,Kia; Ford; Suzuki,50.0,60000.0,,2.0,no,
+D0164,Al Qadisiyah,Al Buraimi (High-End Exclusive),البريمي,active,24.830063,46.820126,verified,1500.0,mix,Land Rover; Cadillac; Lamborghini; McLaren,85.0,1000000.0,,88.0,no,
+D0165,Al Qadisiyah,Abdulmajeed Al Khader (Deep Survey),عبد المجيد الخضر,active,24.829938,46.820079,verified,1500.0,new,Jetour; GAC; Jaecoo; Tank,120.0,75000.0,,9.0,no,
+D0166,Al Qadisiyah,Al Qarni Motors,القرني موتورز,active,24.828522,46.820766,verified,1500.0,new,Hyundai; Kia; Jetour; MG; Mitsubishi,90.0,130000.0,,7.0,no,
+D0167,Al Qadisiyah,AR Cars,اركارز للسيارات,active,24.8279518,46.8209735,approximate,1000.0,new,Toyota; Hyundai,25.0,80000.0,,2.0,no,
+D0168,Al Qadisiyah,Makarim Al Tamayuz Cars,مكارم التميز سيارات,active,24.8273815,46.8211811,verified,1000.0,new,Hyundai,65.0,80000.0,,1.0,no,
+D0169,Al Qadisiyah,Furaih Bin Ajij Al Sharari Cars,معرض فريح بن عجيج الشراري لتجارة السيارات,active,24.8268143,46.8223841,verified,2000.0,mix,Infiniti; Toyota; Nissan; Kia; Genesis; Cadillac,120.0,300000.0,,8.0,no,
+D0170,Al Qadisiyah,Al Hall Al Sari for Cars,الحل السريع سيارات,active,24.826007,46.822647,verified,1200.0,new,Toyota; Lexus,50.0,200000.0,,2.0,no,
+D0171,Al Qadisiyah,Al Saadi Cars Qadisiyah,معرض السعدي للسيارات القادسية,active,24.825903,46.822588,verified,1000.0,mix,Hyundai; Kia; MG; Changan; Geely; BAIC,20.0,60000.0,,1.0,no,
+D0172,Al Qadisiyah,Al Tamim Cars (Used Luxury BMW),التميم للسيارات,active,24.823975,46.824825,verified,1000.0,used,Mercedes; BMW; Genesis,50.0,300000.0,,2.0,no,
+D0173,Al Qadisiyah,Dyar Al Shahamah,ديار الشهامة,active,24.823955,46.824727,verified,800.0,new,Toyota; Hyundai; Kia; MG,50.0,70000.0,,3.0,no,
+D0174,Al Qadisiyah,Al Nawal Al Nukhba,النوال النخبة,active,24.8237945,46.825031,approximate,1000.0,mix,Hyundai; Nissan; Kia; Lexus,50.0,150000.0,,2.0,no,
+D0175,Al Qadisiyah,Nukhbat Al Urooba Cars,نخبة العروبة للسيارات,active,24.823634,46.825335,verified,1000.0,used,Toyota; Kia; Seat,71.0,80000.0,,3.0,no,
+D0176,Al Qadisiyah,Nukhbat Al Sadara Cars,معرض نخبة الصدارة للسيارات,active,24.823085,46.825338,verified,1000.0,used,Toyota; Kia; Lexus; Ford; Chevrolet,45.0,100000.0,,2.0,no,
+D0177,Al Qadisiyah,Sama Motor Show / Itlal Sama,معرض إطلال سما للسيارات,active,24.823072,46.825534,verified,1000.0,new,Nissan; Kia; GMC; Tank,60.0,295000.0,,3.0,no,
+D0178,Al Qadisiyah,Star Cars,معرض ستار كارز للسيارات,active,24.822541,46.826018,verified,1000.0,new,Nissan,15.0,75000.0,,1.0,no,
+D0179,Al Qadisiyah,Jihat Cars (Deep Survey),شركة معرض جهة للسيارات,active,24.822803,46.825745,verified,1000.0,new,Toyota; Foton,25.0,65000.0,,1.0,no,
+D0180,Al Qadisiyah,Exit 8 Car Dealer / Latest Cars Qadisiyah,معرض أحدث السيارات فرع القادسية,active,24.8224521,46.8253609,verified,1500.0,new,Hyundai; Nissan; Jetour; Infiniti,130.0,95000.0,,7.0,no,
+D0181,Al Qadisiyah,Al Murqi,المورقي,active,24.82602,46.822195,verified,1000.0,new,Nissan; Ford; Isuzu,30.0,100000.0,,1.0,no,
+D0182,Al Qadisiyah,Sada Riyadh(1),صدى الرياض,active,24.828716,46.81551,verified,2000.0,new,Toyota; Hyundai; Nissan; Kia; Isuzu,95.0,100000.0,,5.0,no,
+D0183,Al Qadisiyah,Al Ghazi Cars,الغازي للسيارات,active,24.822619,46.823621,verified,1000.0,new,Toyota; Nissan; Lexus,85.0,250000.0,,3.0,no,
+D0184,Al Qadisiyah,Al Kaif 2,شركة معرض الكيف للسيارات,active,24.825351,46.823224,verified,1000.0,new,Nissan; Kia; Ford; Jetour,67.0,130000.0,,3.0,no,
+D0185,Al Qadisiyah,Amwaj Al Ayn Cars,معرض أمواج العين للسيارات,active,24.82242,46.82367,verified,1000.0,mix,Toyota; Nissan; Ford,54.0,100000.0,,2.0,no,
+D0186,Al Qadisiyah,Abdullah Sharif Cars,معرض عبد الله شريف للسيارات,active,24.822369,46.824009,verified,2000.0,new,Hyundai; Ford; GMC,112.0,180000.0,,5.0,no,
+D0187,Al Qadisiyah,Dar Al Nukhba Cars,دار النخبة للسيارات,active,24.8288267,46.8228058,verified,14000.0,new,Nissan; Ford; GMC; GAC,94.0,200000.0,,4.0,no,
+D0188,Al Qadisiyah,Jamal Cars,معرض جمال للسيارات,active,24.821667,46.824411,verified,1000.0,used,Toyota; Lexus; Chevrolet,73.0,100000.0,,3.0,no,
+D0189,Al Qadisiyah,Auto Premium,شركة أوتو بريميوم,active,24.821328,46.824467,verified,1000.0,new,Hyundai; Kia; MG; Changan,62.0,90000.0,,3.0,no,
+D0190,Al Qadisiyah,Mohammed Bin Dha’ar Al Ajmi Cars,معرض محمد بن ذعار العجمي للسيارات,active,24.821216,46.824509,verified,1000.0,new,Hyundai,74.0,85000.0,,3.0,no,
+D0191,Al Qadisiyah,Al Salhi Cars,معرض الصالحي للسيارات,active,24.8203747,46.8247276,verified,2000.0,new,Hyundai; Nissan,76.0,85000.0,,4.0,no,
+D0192,Al Qadisiyah,Al Shahrani Cars,شركة الشهراني للسيارات,active,24.828031,46.821046,verified,1000.0,new,Toyota; Hyundai; Kia,73.0,80000.0,,2.0,no,
+D0193,Al Qadisiyah,Al Markabah Al Fakhira Cars,معرض المركبة الفاخرة للسيارات,active,24.819728,46.825304,verified,2000.0,new,Mercedes; Toyota; Lexus; Genesis,81.0,280000.0,,4.0,no,
+D0194,Al Qadisiyah,Al Jood,الجود,active,24.819582,46.825476,verified,1000.0,used,Mercedes; Land Rover; BMW; Mini,53.0,230000.0,,4.0,no,
+D0195,Al Qadisiyah,Amal Al I’timad Cars,معرض أمل الاعتماد,active,24.819807,46.825719,verified,1000.0,used,Toyota; Hyundai; Nissan; Ford,66.0,85000.0,,2.0,no,
+D0196,Al Qadisiyah,Al Imtiyaz Al Hadith,شركة الامتياز الحديث,active,24.820187,46.825528,verified,1000.0,mix,Hyundai; Nissan; Ford; Infiniti,57.0,120000.0,,2.0,no,
+D0197,Al Qadisiyah,Walid Cars,وليد للسيارات,active,24.820426,46.825727,verified,2000.0,new,Toyota; Lexus,73.0,185000.0,,4.0,no,
+D0198,Al Qadisiyah,Rotana Cars,شركة روتانا للسيارات,active,24.821325,46.82544,verified,1000.0,new,Hyundai; Changan; Jaecoo,40.0,75000.0,,2.0,no,
+D0199,Al Qadisiyah,Al Ustul Al Khaliji Cars,شركة الأسطول الخليجي للسيارات,active,24.821388,46.825449,verified,1000.0,new,Hyundai; Jetour; Chevrolet,48.0,130000.0,,2.0,no,
+D0200,Al Qadisiyah,Shadwan International,شركة شدوان الدولية,active,24.821699,46.825221,verified,1000.0,new,Hyundai; Kia; Changan; Suzuki; Infiniti,77.0,90000.0,,5.0,no,
+D0201,Al Qadisiyah,Bila Hudud Cars,بلا حدود للسيارات,active,24.821767,46.824623,verified,1000.0,new,Hyundai; Nissan; Mitsubishi,67.0,90000.0,,4.0,no,
+D0202,Al Qadisiyah,Century Cars,سنشري للسيارات,active,24.822265,46.824936,verified,1000.0,new,Hyundai; Kia,57.0,75000.0,,1.0,no,
+D0203,Al Qadisiyah,Sada Riyadh 2,صدى الرياض -٢,active,24.82328,46.823587,verified,1000.0,new,Toyota; Suzuki; Mini,54.0,65000.0,,1.0,no,
+D0204,Al Qadisiyah,Adwaa Khamis Mushait Cars (Deep Survey),شركة أضواء خميس مشيط للسيارات,active,24.828938,46.820643,verified,1400.0,new,Toyota; Hyundai; Nissan; Lexus,81.0,140000.0,,5.0,no,
+D0205,Al Qadisiyah,Qimmat Al Wafi 2,معرض قمة الوافي للسيارات-٢,active,24.828005,46.833485,verified,1400.0,new,Isuzu,78.0,100000.0,,4.0,yes,
+D0206,Al Qadisiyah,Nayaf Cars,معرض نياف للسيارات,active,24.830129,46.831926,verified,1000.0,used,Hyundai; Nissan; Kia; GMC,86.0,45000.0,,2.0,no,
+D0207,Al Qadisiyah,Silver Edition,الاصدار الفضي,active,24.828295,46.83243,verified,1000.0,mix,Mercedes; Toyota; Jetour; BMW; Audi,73.0,200000.0,,2.0,no,
+D0208,Al Qadisiyah,Khiyaruk Al Mumayyaz Cars,خيارك المميز للسيارات,active,24.831404,46.830683,verified,2000.0,new,Mercedes; Land Rover; Toyota; Ford; BMW,97.0,280000.0,,5.0,no,
+D0209,Al Qadisiyah,Al Markabah Al Dhakiyah Cars,شركة المركبة الذكية للسيارات,active,24.8314288,46.8300342,verified,1000.0,new,Kia; JMC,46.0,95000.0,,3.0,no,
+D0210,Al Qadisiyah,Bahjat Asir,معرض بهجة عسير للسيارات فرع القادسية,active,24.830499,46.828614,verified,1200.0,new,Hyundai; Nissan; Renault; JMC,46.0,100000.0,,2.0,no,
+D0211,Al Qadisiyah,Al Musa’id Cars,معرض المساعد للسيارات,active,24.830223,46.828006,verified,700.0,mix,Hyundai; MG; Changan; JAC,51.0,90000.0,,1.0,no,
+D0212,Al Qadisiyah,Nukhbat Al Markabah,نخبة المركبة,active,24.82997,46.827141,verified,1000.0,used,Toyota; Hyundai; Nissan; Ford,50.0,130000.0,,2.0,no,
+D0213,Al Qadisiyah,Mazaya Al Qarat,شركة مزايا القارات,active,24.829604561667274,46.82609617998518,verified,800.0,new,Mercedes,25.0,180000.0,,1.0,no,
+D0214,Al Qadisiyah,Car Flow,شركة كار فلو,active,24.829196,46.8254,verified,1000.0,new,Mercedes; GMC; BMW,52.0,210000.0,,3.0,no,
+D0215,Al Qadisiyah,Elit Cars,معرض ايليت كارز,active,24.829196,46.8254,verified,1000.0,used,Mercedes; Toyota; Lexus,62.0,180000.0,,3.0,no,
+D0216,Al Qadisiyah,Al Jazeera Cars,معرض عنوان الجزيرة للسيارات,active,24.825446,46.820708,verified,1000.0,used,Toyota; Isuzu,56.0,80000.0,,1.0,no,
+D0217,Al Qadisiyah,Qimmat Al Majd,معرض قمة المجد للسيارات,active,24.829399,46.832308,verified,1200.0,used,Mercedes; Toyota; Lexus,50.0,220000.0,,3.0,no,
+D0218,Al Qadisiyah,Shams Al Qadisiyah,شمس القادسية,active,24.82909,46.832405,verified,1000.0,mix,Porsche,20.0,280000.0,,1.0,no,
+D0219,Al Qadisiyah,Awali Najd Cars,معرض عوالي نجد للسيارات,active,24.831061,46.830782,verified,800.0,used,Lexus; Mercedes; Porsche,45.0,10000.0,,2.0,no,
+D0220,Al Qadisiyah,Abdulrahman Al Mutairi Cars,معرض عبدالرحمن المطيري,active,24.831144,46.83031,verified,800.0,mix,Hyundai; Nissan,45.0,80000.0,,2.0,no,
+D0221,Al Qadisiyah,Al Nimr Al Almasi,معرض النمر الألماسي,active,24.830845,46.82963,verified,700.0,used,,20.0,170000.0,,1.0,no,
+D0222,Al Qadisiyah,Al Fahad Cars,الفهد كارز,active,24.830278,46.831801,verified,700.0,mix,Toyota; Nissan; Lexus; Mercedes; GMC,30.0,250000.0,,1.0,no,
+D0223,Al Qadisiyah,Al Fahad for Cars (different Fahad),الفهد للسيارات - قسم مستعمل,active,24.830223,46.828006,verified,700.0,used,Nissan; GMC,30.0,200000.0,,1.0,no,
+D0224,Al Qadisiyah,Thil Al Jazeera,ظلال الجزيرة,active,24.8300196,46.8255063,verified,1500.0,new,Hyundai; Changan,40.0,70000.0,,2.0,no,
+D0225,Al Qadisiyah,Carly,كارلي,active,24.829132,46.824818,verified,1500.0,used,Toyota; Hyundai,60.0,50000.0,,7.0,no,
+D0226,Al Qadisiyah,Encar Motors,انكار موتورز,active,24.82962,46.824396,verified,800.0,mix,Mercedes; Brabus,35.0,350000.0,,2.0,no,
+D0227,Al Qadisiyah,Sam Motors,سام موتورز,active,24.828896,46.824673,verified,800.0,used,Mercedes; Hyundai; Kia,40.0,150000.0,,2.0,no,
+D0228,Al Qadisiyah,Riyadh Cars,رياض كارز,active,24.828835,46.824491,verified,800.0,mix,Nissan; Kia,45.0,100000.0,,2.0,no,
+D0229,Al Qadisiyah,Saud Abdullah Al Mutairi Cars,معرض سعود عبد الله المطيري,active,24.82453,46.8182,verified,2800.0,used,Mercedes; Toyota; Hyundai; Nissan; Ford,207.0,75000.0,,7.0,no,
+D0230,Al Qadisiyah,Tis’een Investment,شركة تسعين للاستثمار,active,24.82447,46.81838,verified,700.0,new,Nissan; Kia; Lexus; Suzuki,45.0,130000.0,,1.0,no,
+D0231,Al Qadisiyah,Soum (Offline Showroom),سوم,active,24.82453,46.81856,verified,1000.0,used,Toyota; Hyundai; Kia; Ford,50.0,55000.0,,2.0,no,
+D0232,Al Qadisiyah,Sayaratak Al Afdal 2,شركة سيارتك الأفضل للسيارات-٢,active,24.82447,46.81874,verified,700.0,new,Toyota; Ford,48.0,100000.0,,2.0,no,
+D0233,Al Qadisiyah,Sina’at Al Taghyeer Trading,شركة صناعة التغيير التجارية,active,24.82453,46.81892,verified,700.0,new,Jetour; Changan; Haval,37.0,80000.0,,1.0,no,
+D0234,Al Qadisiyah,Rawasi Al Yarmouk,شركة رواسي اليرموك,active,24.82447,46.8191,verified,700.0,used,Toyota; Honda,40.0,50000.0,,1.0,no,
+D0235,Al Qadisiyah,Hala Car,هالا كار,active,24.82453,46.81928,verified,1000.0,new,Toyota; Kia; Ford; Jetour,72.0,80000.0,,7.0,no,
+D0236,Al Qadisiyah,Anwar Abu Dhabi Cars,أنوار أبو ظبي للسيارات,active,24.82447,46.81946,verified,1000.0,new,Toyota; Hyundai; Nissan; Changan,71.0,80000.0,,1.0,no,
+D0237,Al Qadisiyah,RPM Cars (beside Al Sharaf),شركة RPM للسيارات,active,24.82453,46.81964,verified,1000.0,new,Hyundai; Nissan; Kia; Jetour,78.0,120000.0,,7.0,no,
+D0238,Al Qadisiyah,Al Sharaf Cars,شركة الشرف للسيارات,active,24.82447,46.81982,verified,1000.0,new,Toyota; Hyundai; Nissan; Lexus,69.0,100000.0,,2.0,no,
+D0239,Al Qadisiyah,Muqaddam Al Mutairi,مقدم المطيري,active,24.82453,46.82,verified,1000.0,new,Hyundai; Nissan; Ford,53.0,100000.0,,2.0,no,
+D0240,Al Qadisiyah,Ham Al Bayraq Cars,هام البيرق للسيارات,active,24.82447,46.82018,verified,700.0,new,Toyota; Hyundai; BMW; MG,54.0,120000.0,,2.0,no,
+D0241,Al Qadisiyah,Nujum Al Ikhtiyar,نجوم الاختيار,active,24.82453,46.82036,verified,700.0,used,Toyota; Hyundai; BMW,42.0,90000.0,,1.0,no,
+D0242,Al Qadisiyah,Ahsan Sayarah,أحسن سيارة,active,24.82447,46.82054,verified,1000.0,mix,Toyota; Lexus; Ford,71.0,100000.0,,2.0,no,
+D0243,Al Qadisiyah,Nujum Al Falah Cars,شركة نجوم الفلاح للسيارات,active,24.82453,46.82072,verified,2000.0,new,Nissan; Toyota; Hyundai; Kia; MG,93.0,100000.0,,7.0,no,
+D0244,Al Qadisiyah,Aswar Al Madinah Al Hadith,أسوار المدينة الحديث,active,24.824156,46.822142,verified,2000.0,new,Hyundai; Nissan; Kia,35.0,70000.0,,1.0,no,
+D0245,Al Qadisiyah,Hussein Bin Jubran Cars,حسين بن جبران للسيارات,active,24.823913,46.821846,verified,1000.0,new,Toyota; Hyundai; Jetour,40.0,85000.0,,3.0,no,
+D0246,Al Qadisiyah,Sultan Cars,شركة سلطان للسيارات,active,24.82447,46.82126,verified,700.0,new,Toyota; Ford; Jetour,40.0,100000.0,,1.0,no,
+D0247,Al Qadisiyah,AON,عون,active,24.82453,46.82144,verified,700.0,new,Hyundai; Ford; Jeep,52.0,100000.0,,1.0,no,
+D0248,Al Qadisiyah,Saqr Najd,صقر نجد,active,24.82447,46.82162,verified,1200.0,mix,Mercedes; Toyota; Nissan; Lexus,97.0,280000.0,,6.0,no,
+D0249,Al Qadisiyah,Al Tatweej Cars,شركة التتويج للسيارات,active,24.82453,46.8218,verified,1000.0,new,Toyota,57.0,100000.0,,2.0,no,
+D0250,Al Qadisiyah,Wahat Al Aqsa Cars,معرض واحة الأقصى للسيارات,active,24.82447,46.82198,verified,1000.0,new,Toyota,53.0,90000.0,,2.0,no,
+D0251,Al Qadisiyah,Darkar,داركار,active,24.82453,46.82216,verified,2000.0,used,Toyota; Hyundai; Ford; Chevrolet,121.0,80000.0,,4.0,no,
+D0252,Al Qadisiyah,Al Darb Al Abyad Cars,معرض الدرب الأبيض للسيارات,active,24.82447,46.82234,verified,1000.0,new,Toyota; Hyundai; Nissan; JAC,77.0,100000.0,,2.0,no,
+D0253,Al Qadisiyah,Fakhamat Al Amlak Cars,شركة فخامة الأملاك للسيارات,active,24.820014,46.826985,verified,700.0,new,Toyota; Nissan; Kia; JAC,52.0,80000.0,,1.0,no,
+D0254,Al Qadisiyah,Adwaa Al Urooba,أضواء العروبة,active,24.82447,46.8227,verified,2000.0,used,Toyota; Nissan; Kia; Changan; Suzuki,93.0,50000.0,,2.0,no,
+D0255,Al Qadisiyah,Al Qarat,القارات,active,24.82453,46.82288,verified,1000.0,used,Toyota; Hyundai; MG,72.0,60000.0,,1.0,no,
+D0256,Al Qadisiyah,Al Badr Al Mutawwar Cars,معرض البدر المطور للسيارات,active,24.82447,46.82306,verified,700.0,new,Toyota; Kia; Haval,43.0,80000.0,,1.0,no,
+D0257,Al Qadisiyah,Rumuz Al Mashari Cars,رموز المشاري للسيارات,active,24.82453,46.82324,verified,700.0,new,Nissan; Ford; GAC,37.0,80000.0,,1.0,no,
+D0258,Al Qadisiyah,Latest Cars Ltd 2 (Main Road),شركة أحدث السيارات المحدودة -٢,active,24.82447,46.82342,verified,1000.0,new,Hyundai; Nissan; Kia; Changan,96.0,90000.0,,3.0,no,
+D0259,Al Qadisiyah,Usturat Al Qadisiyah,أسطورة القادسية,active,24.82483,46.819,verified,2000.0,used,Toyota; Hyundai; Kia; Geely; Suzuki,139.0,50000.0,,3.0,no,
+D0260,Al Qadisiyah,Ibn Al Jubail Cars,شركة ابن الجبيل للسيارات,active,24.82477,46.81916,verified,1000.0,new,Hyundai; Ford; Isuzu; Suzuki; Jaecoo,96.0,85000.0,,2.0,no,
+D0261,Al Qadisiyah,Fahd Al Dosari Cars,فهد الدوسري للسيارات,active,24.82483,46.81932,verified,1000.0,new,Toyota; Lexus,51.0,280000.0,,2.0,no,
+D0262,Al Qadisiyah,Rukn Al Sabahiyah Car,ركن الصباحية كار,active,24.82477,46.81948,verified,1000.0,new,Toyota; Nissan; Hyundai; Lexus; Haval,67.0,250000.0,,2.0,no,
+D0263,Al Qadisiyah,Al Mashtouk Car,المشتوك كار,active,24.82483,46.81964,verified,1000.0,new,Toyota; Nissan; Jetour,53.0,280000.0,,2.0,no,
+D0264,Al Qadisiyah,Al Nakheesh Cars,معرض النخيش للسيارات,active,24.82477,46.8198,verified,1000.0,used,Toyota; Ford; Isuzu,55.0,55000.0,,2.0,no,
+D0265,Al Qadisiyah,Al Markabah Al Mumayyazah,المركبة المميزة,active,24.82483,46.81996,verified,1000.0,used,Hyundai; Nissan; Ford,57.0,55000.0,,2.0,no,
+D0266,Al Qadisiyah,Ra’d Al Shifa,شركة رعد الشفاء,active,24.82477,46.82012,verified,700.0,used,Toyota; Lexus; GMC,41.0,60000.0,,1.0,no,
+D0267,Al Qadisiyah,Anfawi,شركة أنفاوي,active,24.82483,46.82028,verified,700.0,new,Hyundai; Kia; Suzuki,54.0,75000.0,,2.0,no,
+D0268,Al Qadisiyah,Riyadh Cars (Second Location),رياض كارز,active,24.82477,46.82044,verified,1000.0,mix,Mercedes; Ford; GMC; Jetour; BMW,113.0,100000.0,,3.0,no,
+D0269,Al Qadisiyah,Al Insaf,الأنصاف,active,24.82483,46.8206,verified,1000.0,used,Toyota; Hyundai; Kia; Ford; Changan,113.0,70000.0,,2.0,no,
+D0270,Al Qadisiyah,Saqr Al Qadisiyah,صقر القادسية,active,24.82477,46.82076,verified,2000.0,used,Toyota; Hyundai; Ford; GMC; Jeep,131.0,60000.0,,3.0,no,
+D0271,Al Qadisiyah,Ard Al Markabah,أرض المركبة,active,24.825566,46.830064,verified,1000.0,used,Hyundai; Kia; Ford; Honda,67.0,55000.0,,2.0,no,
+D0272,Al Qadisiyah,Al Mujahid Al Hadith Cars,معرض المجاهد الحديث للسيارات,active,24.825621,46.82974,verified,1000.0,used,Toyota; Ford; GMC,61.0,50000.0,,2.0,no,
+D0273,Al Qadisiyah,Mamdouh Bin Furaih Al Hasrah Al Sharari Cars,شركة ممدوح بن فريح الحسرة الشراري لتجارة السيارات,active,24.824238,46.824248,verified,1000.0,new,Hyundai; Kia; Jetour,71.0,90000.0,,2.0,no,
+D0274,Al Qadisiyah,Raed Al Tamayuz,رائد التميز,active,24.82477,46.8214,verified,1000.0,used,Toyota; Hyundai; Kia,94.0,50000.0,,3.0,no,
+D0275,Al Qadisiyah,Ittihad Al Khaleej Cars,شركة اتحاد الخليج للسيارات,active,24.82483,46.82156,verified,1000.0,new,Nissan; Lexus; BMW,79.0,200000.0,,3.0,no,
+D0276,Al Qadisiyah,Idrees Car,إدريس كار,active,24.82477,46.82172,verified,1000.0,new,Toyota; Kia; Jetour; Haval,61.0,85000.0,,2.0,no,
+D0277,Al Qadisiyah,Ramz Al Asalah Cars,رمز الأصالة للسيارات,active,24.82483,46.82188,verified,1000.0,used,Toyota; Kia; Lexus; Changan,63.0,80000.0,,2.0,no,
+D0278,Al Qadisiyah,Ittihad Al Ra’i,اتحاد الرأي,active,24.82477,46.82204,verified,1400.0,used,Toyota; Hyundai; Nissan; Kia,87.0,78000.0,,3.0,no,
+D0279,Al Qadisiyah,Al Ghaylan Cars,معرض الغيلان للسيارات,active,24.82483,46.8222,verified,700.0,used,Toyota; Kia; Ford,41.0,60000.0,,2.0,no,
+D0280,Al Qadisiyah,Miteb Cars,معرض متعب للسيارات,active,24.82477,46.82236,verified,700.0,used,Toyota; Nissan; Kia,61.0,65000.0,,2.0,no,
+D0281,Al Qadisiyah,Ubaidullah Al Mutairi Cars,معرض عبيد الله المطيري للسيارات,active,24.82483,46.82252,verified,2000.0,used,Toyota; Hyundai; Nissan; Kia,107.0,60000.0,,3.0,no,
+D0282,Al Qadisiyah,Suhul Al Arid,سهول العارض,active,24.82477,46.82268,verified,2000.0,used,Toyota; Hyundai; Ford; Jeep,83.0,55000.0,,2.0,no,
+D0283,Al Qadisiyah,Artal Al Jazeera,ارتال الجزيرة,active,24.82483,46.82284,verified,1400.0,used,Toyota; Hyundai; Kia; Ford; GMC,127.0,55000.0,,4.0,no,
+D0284,Al Qadisiyah,Al Qiyada wal Riyada Cars,معرض القيادة والريادة للسيارات,active,24.82477,46.823,verified,700.0,used,Toyota,61.0,60000.0,,2.0,no,
+D0285,Al Qadisiyah,Al Sayarah Al Raqamiyah,السيارة الرقمية,active,24.82483,46.82316,verified,700.0,mix,Toyota; Kia; Geely,57.0,60000.0,,2.0,no,
+D0286,Al Qadisiyah,Car Al Sultan,شركة معرض كار السلطان,active,24.82477,46.82332,verified,2000.0,used,Toyota; Kia; Ford,157.0,70000.0,,4.0,no,
+D0287,Al Qadisiyah,Al Wakalah Cars,الوكالة للسيارات,active,24.82483,46.82348,verified,800.0,mix,Mercedes; Nissan; Lexus; BMW,73.0,180000.0,,3.0,no,
+D0288,Al Qadisiyah,Kull Al Markabat,شركة كل المركبات,active,24.82477,46.82364,verified,800.0,new,Nissan; Hyundai; Kia; GMC; Haval,61.0,150000.0,,3.0,no,
+D0289,Al Qadisiyah,ND Group Cars,معرض ND GROUP للسيارات,active,24.82483,46.8238,verified,1000.0,used,Mercedes; BMW; Genesis,47.0,150000.0,,2.0,no,
+D0290,Al Qadisiyah,Auto Al Madinah,أوتو المدينة,active,24.82477,46.82396,verified,1000.0,new,Mercedes; Lexus,47.0,200000.0,,2.0,no,
+D0291,Al Qadisiyah,Rukn Hawazin Cars,معرض ركن هوازن للسيارات,active,24.82589830967,46.82958343782514,verified,1000.0,used,Mercedes; Lexus; BMW; Porsche,63.0,200000.0,,2.0,no,
+D0292,Al Qadisiyah,al amaar cars,معرض العمار للسيارات,active,24.827133,46.830504,verified,1000.0,used,Nissan; Ford,60.0,130000.0,,3.0,,
+D0293,Al Qadisiyah,Nahi Cars,معرض ناهي للسيارات,active,24.8270942,46.8315958,verified,1000.0,mix,Mercedes; BMW; Brabus,45.0,290000.0,,2.0,no,
+D0294,Al Qadisiyah,Hamat Najd Cars Co.,شركة هامات نجد للسيارات,active,24.827067,46.830991,verified,1000.0,mix,Lexus; Ford; Jetour; Haval,50.0,150000.0,,2.0,no,
+D0295,Al Qadisiyah,Wahat Al Markaba Cars,معرض واحة المركبة للسيارات,active,24.827271861839463,46.831335746867865,verified,1000.0,mix,Toyota,50.0,150000.0,,3.0,no,
+D0296,Al Qadisiyah,First Class Auto Co.,شركة الدرجة الأولى للسيارات,active,24.827012555578428,46.83170027303413,verified,1000.0,mix,Nissan; Lexus,50.0,190000.0,,2.0,no,
+D0297,Al Qadisiyah,Theeb - Car Sales,ثيب - مبيعات السيارات,active,24.828489,46.834179,verified,3000.0,used,Toyota; Hyundai,100.0,55000.0,,4.0,no,
+D0298,Al Qadisiyah,Lumi - Car Sales,لومي - مبيعات السيارات,active,24.82959233298804,46.834685577292085,verified,3000.0,mix,Toyota,150.0,85000.0,,4.0,no,
+D0299,Al Qadisiyah,Automax,أوتوماكس,active,24.830136254173784,46.83641215406324,verified,2000.0,new,Mercedes; BMW; Jeep,40.0,300000.0,,2.0,unsure,
+D0300,Al Qadisiyah,Triple 8 (T8),معرض تريبل 8 (T8),active,24.830423,46.837306,verified,1500.0,mix,Hyundai; Kia,100.0,105000.0,,3.0,no,
+D0301,Al Qadisiyah,Emad Cars,عماد كارز,active,24.830171,46.836794,verified,1000.0,mix,Mercedes; BMW; Audi,40.0,300000.0,,2.0,no,
+D0302,Al Qadisiyah,Rukn Al Asima Cars (نقليات العاصمة),معرض ركن العاصمة,active,24.830217,46.837009,verified,800.0,used,Toyota; Nissan; Kia; GMC,30.0,70000.0,,2.0,no,
+D0303,Al Qadisiyah,Sevens / Sayaratak Cars,سيفنز / سيارتك للسيارات,active,24.82955,46.837513,verified,1500.0,used,Toyota; Kia; Ford; BMW,60.0,90000.0,,3.0,no,
+D0304,Al Qadisiyah,Rayat Al Khaleej Cars,معرض رايات الخليج للسيارات,active,24.829147892040115,46.83361784914566,verified,800.0,mix,,30.0,65000.0,,1.0,no,
+D0305,Al Qadisiyah,Saqr Al Uruba (Hamat astoorah split) ,صقر العروبة (هامات الأسطورة),active,24.827822,46.83197,verified,800.0,mix,Hyundai; Toyota; Isuzu,45.0,10000.0,,2.0,no,
+D0306,Al Qadisiyah,Al Saeed Cars,معرض السعيد للسيارات,active,24.827847,46.832368,verified,1500.0,mix,Isuzu; Mitsubishi,100.0,90000.0,,3.0,no,
+D0307,Al Qadisiyah,Abdulrahman Imad Al-Din Cars,عبدالرحمن عماد الدين للسيارات,active,24.82915,46.834181,verified,1200.0,mix,Cadillac; Jeep; Toyota; Chevrolet,65.0,10000.0,,3.0,no,
+D0308,Al Qadisiyah,Hamat Al Astoorah ,شركة هامات الأسطورة للسيارات,active,24.827822,46.83197,verified,800.0,mix,Mercedes; Land Rover; Nissan; GMC; Jetour; BMW,45.0,180000.0,,2.0,no,
+D0309,Al Qadisiyah,,,active,24.826239,46.821935,verified,,,,,,,,,
+SD001,Al Shifa,4cars,فور كارز,active,24.5429157,46.6844866,verified,950.0,used,Toyota; Lexus; Mercedes; BMW; Jeep; Audi,40.0,100000.0,0.35,,,cash
+SD002,Al Shifa,Abdullah Al Otaibi Cars,معرض عبدالله العتيبي للسيارات,active,24.5441768,46.6848681,verified,1100.0,used,Toyota; Hyundai; Nissan; Kia; Lexus; Ford; GMC; Chevrolet; Honda,60.0,85000.0,0.25,,,cash
+SD003,Al Shifa,Abdullah Nashban Showroom,معرض عبدالله نشبان,open-floor,24.5522124,46.6809165,verified,,used,,,,0.0,,,cash
+SD004,Al Shifa,Abu Ghazi Cars — Mohammed Musleh Al Safyani,معرض ابوغازى للسيارات (محمد مصلح الصفيانى),active,24.5480608,46.6911787,verified,1000.0,used,Toyota; Lexus; Mercedes; BMW,60.0,100000.0,0.4,,,cash
+SD005,Al Shifa,Adwa Suwaidan Cars — Yousef Mubarak,معرض اضواء سويدان للسيارات لصاحبه يوسف مبارك,active,24.5480608,46.6894011,verified,500.0,used,Toyota; Hyundai; GMC,30.0,60000.0,0.6,,,cash
+SD007,Al Shifa,Ahad Cars Group — Al Shifa,مجموعة أحد — فرع الشفا,active,24.5472973,46.6826856,verified,1000.0,new,Toyota; Hyundai; Nissan; GMC,73.0,101000.0,0.0,,,cash
+SD008,Al Shifa,Ahmad Al Basri Marwah Showroom,معرض أحمد البصري المروة,active,24.5489692,46.6784106,verified,1200.0,used,Toyota; Hyundai; Kia; Isuzu,65.0,95000.0,0.1,,,cash
+SD009,Al Shifa,Al Adini Cars,معرض العديني للسيارات,active,24.5480608,46.6917712,verified,800.0,used,Lexus; Mercedes; Jetour; BMW,50.0,160000.0,0.0,,,cash
+SD010,Al Shifa,Al Aman Cars — Al Shifa,الأمان للسيارات — الشفا,active,24.5516734,46.6784475,verified,600.0,used,Toyota; Hyundai; Nissan; Kia,50.0,83000.0,0.36,,,cash
+SD011,Al Shifa,Al Badr Cars — Al Shifa,معرض البدر للسيارات — الشفا,active,24.5505344,46.6813136,verified,900.0,used,Toyota; Hyundai; Ford; Jetour; Geely; Haval; Tank,60.0,85000.0,0.2,,,cash
+SD012,Al Shifa,Al Duhaim Cars,الدحيم للسيارات,active,24.5506956,46.6799638,verified,1000.0,used,Toyota,90.0,65000.0,0.85,,,cash
+SD013,Al Shifa,Al Ezz Cruise Cars,معرض العزكروز للسيارات,active,24.5496,46.6813,verified,500.0,used,Toyota; Lexus; GMC; Jetour; Land Rover,35.0,150000.0,0.0,,,cash
+SD014,Al Shifa,Al Fadiliyah,معرض الفاضلية,active,24.5514327,46.6837826,verified,600.0,used,Hyundai; GMC; Chevrolet; Changan,45.0,65000.0,0.7,,,cash
+SD015,Al Shifa,Al Faris Cars — Al Shifa,الفارس للسيارات — الشفا,active,24.5523921,46.6808178,verified,1000.0,used,Hyundai; GMC; Chevrolet; Changan; Honda,40.0,80000.0,0.7,,,cash
+SD016,Al Shifa,Al Ghuraybi Cars,معرض الغريبي للسيارات,active,24.5466002,46.6832001,verified,400.0,used,Toyota; GMC,25.0,25000.0,1.0,,,cash
+SD017,Al Shifa,Al Harithi Cars,معرض الحارثي لبيع وشراء السيارات,active,24.5478003,46.6772825,verified,1000.0,used,Toyota; Hyundai; Nissan; Lexus; Ford; Chevrolet; Changan; Land Rover; Peugeot,100.0,95000.0,0.45,,,cash
+SD018,Al Shifa,Al Hawadij Commercial Services,الهوادج الخدمات التجارية,active,24.5484,46.6846,verified,600.0,used,Toyota; Hyundai; Kia,40.0,70000.0,0.2,,,cash
+SD019,Al Shifa,Al Hijaz Cars,معرض الحجاز للسيارات,active,24.5514039,46.680719,verified,1400.0,used,Toyota; Hyundai; Kia; Lexus; Mercedes; Haval,90.0,90000.0,0.5,,,cash
+SD020,Al Shifa,Al Ibdaa Cars,الإبداع للسيارات,active,24.551298,46.6827456,verified,1100.0,used,Toyota; Hyundai; Lexus; Ford; Mercedes; BMW,60.0,95000.0,0.4,,,cash
+SD021,Al Shifa,Al Imtiyaz Cars,معرض الإمتياز للسيارات,active,24.5504446,46.6838813,verified,1000.0,used,Toyota; Hyundai; MG,40.0,60000.0,0.6,,,cash
+SD022,Al Shifa,Al Jaidi Cars,الجعيدي للتجارة,active,24.5480608,46.6837719,verified,450.0,used,Ford; Mercedes; BMW; Land Rover; Genesis; Jeep,19.0,125000.0,0.2,,,cash
+SD023,Al Shifa,Al Janoub Al Hadith,معرض الجنوب الحديث للسيارات,active,24.550759,46.6815111,verified,1500.0,used,Hyundai; Nissan; Jetour; Geely; Renault,60.0,64400.0,0.0,,,all
+SD024,Al Shifa,Al Jubail for Cars,الجبيل للسيارات,active,24.5509561,46.6791876,verified,1000.0,mix,Toyota; Hyundai; Nissan,120.0,100000.0,0.05,,,all
+SD025,Al Shifa,Al Mahdani Cars,معرض المهداني للسيارات,active,24.5496347,46.6821098,verified,450.0,used,Toyota; Hyundai; Nissan; Kia; Ford,35.0,55000.0,0.55,,,cash
+SD026,Al Shifa,Al Mutamayyiz — Al Shifa,المتميز للسيارات — الشفا,active,24.5477464,46.6834756,verified,700.0,used,Toyota; Hyundai; Ford; BMW,35.0,80000.0,0.5,,,cash
+SD027,Al Shifa,Al Najm Al Thaqib Cars,معرض النجم الثاقب للسيارات,active,24.5424262,46.6855638,verified,650.0,used,Kia; Lexus; Mercedes; GMC; Chevrolet; Jeep; Dodge,20.0,118000.0,0.3,,,cash
+SD028,Al Shifa,Al Nisawi Cars,النساوي للسيارات,active,24.5472003,46.6833996,verified,400.0,used,Toyota; Hyundai,20.0,40000.0,0.5,,,cash
+SD029,Al Shifa,Al Nukhba Cruise Cars,معرض النخبة كروز للسيارات,active,24.5429108,46.6856661,verified,500.0,used,Toyota; Hyundai; Kia; Lexus; GMC; Jetour; Mazda,17.0,90000.0,0.35,,,cash
+SD030,Al Shifa,Al Qahtani Group Al Shifa,مجموعة القحطانى للسيارات حي الشفا,active,24.5503812,46.6808734,verified,1000.0,new,Jetour; BAIC,65.0,85000.0,0.05,,,all
+SD031,Al Shifa,Al Sari — Al Shifa branch,معرض الساري فرع الشفا,active,24.5516734,46.6812128,verified,1500.0,mix,Toyota; Hyundai; Nissan; Kia; Lexus; Ford; Mercedes; GMC; Chevrolet; MG; Isuzu; Jeep; Mitsubishi; Infiniti,150.0,130000.0,0.25,,,all
+SD032,Al Shifa,Al Sati Cars,معرض الصاطي للسيارات,active,24.5481956,46.6815005,verified,1200.0,used,Toyota; Hyundai; Lexus; Ford,60.0,90000.0,0.35,,,cash
+SD033,Al Shifa,Al Shabih Al Faddi Cars,معرض الشبح الفضي للسيارات,active,24.5463501,46.6844782,verified,2000.0,used,Toyota; Hyundai; Nissan; Kia; Lexus; Ford; Mercedes; GMC; Chevrolet; BMW; Jeep; Honda; Dodge,100.0,100000.0,0.2,,,cash
+SD034,Al Shifa,Al Shenaifi Cars,معرض الشنيفي للسيارات,active,24.5523022,46.6796327,verified,800.0,mix,Nissan,65.0,60000.0,0.1,,,cash
+SD035,Al Shifa,Al Shenaifi Cars 2,معرض الشنيفي للسيارات 2,active,24.5480608,46.6932526,verified,800.0,mix,Toyota; Lexus; Ford; Mercedes; Chevrolet; BMW; Haval; Cadillac; Audi; Chery; Volkswagen,33.0,100000.0,0.25,,,cash
+SD037,Al Shifa,Al Shifa New Cars Showroom,معرض الشفاء الجديد للسيارات,active,24.5508039,46.6825974,verified,1200.0,mix,Toyota; Hyundai; Changan; Geely; Maxus,50.0,100000.0,0.1,,,cash
+SD039,Al Shifa,Al Tajweed Showroom,معرض التجويد للسيارات,active,24.5511344,46.6795339,verified,800.0,used,Toyota; Hyundai; Nissan; Kia,50.0,80000.0,0.2,,,cash
+SD040,Al Shifa,Al Ustoorah 70 Cars,معرض شركة الأسطورة (70),active,24.5518531,46.6805709,verified,950.0,used,Toyota; Hyundai; Kia; Mercedes,60.0,80000.0,0.5,,,cash
+SD042,Al Shifa,Al Wisham Al Jadeed,الوشام الجديد,active,24.5479315,46.6850014,verified,700.0,used,Toyota; Ford; Mercedes; GMC; Chevrolet; BMW; Cadillac,45.0,150000.0,0.2,,,cash
+SD043,Al Shifa,Al Yamani Cars,شركة اليمني للسيارات,active,24.5514327,46.6816098,verified,700.0,used,Toyota; Hyundai; Kia; Lexus,45.0,105000.0,0.0,,,cash
+SD044,Al Shifa,Al Zabdani Cars,معرض الزبداني للسيارات,active,24.5480608,46.6902899,verified,800.0,used,Toyota; Lexus; Genesis,70.0,95000.0,0.5,,,cash
+SD045,Al Shifa,Al Zahrani Cars,معرض الزهراني للسيارات,active,24.5502649,46.683585,verified,800.0,used,Toyota; Hyundai; Lexus; Mazda; Honda,35.0,47500.0,0.95,,,cash
+SD046,Al Shifa,Al-Yami Showroom,معرض اليامي,active,24.5493285,46.6816696,verified,700.0,used,Toyota; Lexus; Mazda; Jeep; Mitsubishi,45.0,114000.0,0.0,,,cash
+SD047,Al Shifa,Alarabah For Cars,صالة العربة للسيارات,active,24.5509387,46.681758,verified,1400.0,used,Toyota; Hyundai; Nissan; Geely,60.0,85000.0,0.35,,,cash
+SD048,Al Shifa,Alghamdi Showroom,معرض الغامدي,active,24.5520328,46.6789413,verified,1100.0,used,Toyota; Hyundai; Nissan; Kia,80.0,65000.0,0.5,,,cash
+SD049,Al Shifa,Aljanoub Exhibition,معرض الجنوب,active,24.5512081,46.6829925,verified,1150.0,used,Toyota; Hyundai; Lexus; BMW,55.0,75000.0,0.45,,,cash
+SD050,Al Shifa,Aljumah Showroom,معرض الجمعة,active,24.5510446,46.6810153,verified,950.0,used,Toyota; Hyundai; Kia; Lexus,65.0,80000.0,0.45,,,cash
+SD051,Al Shifa,Almultaqa Showroom,معرض الملتقى,active,24.5517022,46.6812148,verified,1400.0,new,Toyota; Hyundai; Ford,100.0,90000.0,0.0,,,all
+SD052,Al Shifa,Alrzeen Auto Show,معرض الرزين للسيارات,active,24.5508937,46.6832888,verified,1150.0,used,Toyota; Hyundai; Lexus; Changan,50.0,70000.0,0.55,,,cash
+SD053,Al Shifa,Asdaa Cars Al Shifa,معرض أصداء السيارات الشفاء,active,24.5494209,46.6791273,verified,800.0,new,Hyundai; Kia,65.0,90000.0,0.0,,,cash
+SD054,Al Shifa,Autostar Al Shifa,أوتو ستار الشفا,active,24.5515226,46.6823505,verified,1200.0,used,Toyota; Hyundai; Lexus; Ford,55.0,90000.0,0.4,,,cash
+SD055,Al Shifa,Ayed Saad Misfer Al Shahrani,شركة عايض سعد مسفر الشهراني,active,24.5490141,46.6812746,verified,1150.0,used,Toyota; Hyundai; Lexus; Ford,70.0,95000.0,0.35,,,cash
+SD056,Al Shifa,Bahjat Al Shifa,معرض بهجة الشفا للسيارات,active,24.5483403,46.6778181,verified,1000.0,used,Toyota; Hyundai; Ford; Isuzu,65.0,80000.0,0.4,,,cash
+SD057,Al Shifa,Barakat Al Markabat Cars,معرض بركة المركبات للسيارات,active,24.5474,46.6842,verified,700.0,used,Mercedes; GMC; Jetour; Mazda; Chrysler,45.0,100000.0,0.1,,,cash
+SD058,Al Shifa,Class Cars Al Shifa,معرض كلاس للسيارات,active,24.5512531,46.6820049,verified,800.0,used,Toyota; Lexus; GMC; BMW,70.0,110000.0,0.5,,,cash
+SD059,Al Shifa,Country of Arabism Motor Show,معرض بلاد العروبة للسيارات,active,24.5481607,46.680287,verified,800.0,used,Toyota; Hyundai; GMC; Jetour,40.0,90000.0,0.05,,,all
+SD060,Al Shifa,Dar Al Nukhba — Al Shifa,دار النخبة للسيارات — الشفا,active,24.5512243,46.6815091,verified,1300.0,mix,Toyota; Hyundai; Nissan; Lexus,58.0,216750.0,0.0,,,cash
+SD061,Al Shifa,Durrat Al Shifa,درة الشفاء للسيارات,active,24.5478912,46.6814721,verified,1200.0,used,Toyota; Hyundai; Lexus; Ford,60.0,85000.0,0.35,,,cash
+SD062,Al Shifa,Fahd Al Fulaij Cars,معرض فهد الفليج للسيارات,active,24.5486447,46.6823893,verified,1000.0,mix,Toyota; Nissan; Lexus; Ford; BMW,60.0,120000.0,0.1,,,cash
+SD063,Al Shifa,Faisal Uqab Al Mutairi Cars,معرض فيصل عقاب المطيري للسيارات,active,24.5480608,46.6852533,verified,1100.0,used,Toyota; Nissan; Chevrolet; Isuzu,55.0,55000.0,0.7,,,cash
+SD064,Al Shifa,Fal Al Khair Cars,معرض فال الخير للسيارات,active,24.5509836,46.6824493,verified,1200.0,used,Toyota; Hyundai; Ford; Geely,80.0,77000.0,0.4,,,cash
+SD065,Al Shifa,Haraj Al Shifa Used Cars,حراج الشفا للسيارات,open-floor,24.54852,46.6805833,verified,,used,Toyota; Lexus; Ford; Chevrolet,55.0,55000.0,0.7,,,cash
+SD066,Al Shifa,Heibat Al Qiyada Cars,معرض هيبة القيادة للسيارات,active,24.5469192,46.6845004,verified,600.0,used,Toyota; Hyundai; Ford; Isuzu,20.0,90000.0,0.3,,,cash
+SD067,Al Shifa,Isnad Al Fiddiyah Ltd,شركة اسناد الفضية المحدوده,active,24.5503893,46.6791451,verified,1200.0,used,Hyundai; Nissan,150.0,50000.0,0.5,,,cash
+SD068,Al Shifa,Karaa Cars,معرض كراء للسيارات,closed,24.550865,46.6792376,verified,,used,,,,0.0,,,cash
+SD069,Al Shifa,Khaled Cars 2 — Al Shifa,خالد للسيارات 2 — فرع الشفا,active,24.5476217,46.6793982,verified,1250.0,used,Toyota; Hyundai; Lexus; Ford,60.0,80000.0,0.35,,,cash
+SD070,Al Shifa,Khalil Anzi Car Showroom,معرض خليل العنزي للسيارات,active,24.5507141,46.6828937,verified,1150.0,used,Toyota; Hyundai; Lexus; BMW,50.0,80000.0,0.45,,,cash
+SD071,Al Shifa,Khulaif Cars,معرض خليف للسيارات,active,24.5460292,46.6866847,verified,1000.0,used,Toyota; Hyundai; Kia; Ford; GMC; Chevrolet; Genesis; Geely; Chery,70.0,120000.0,0.1,,,cash
+SD072,Al Shifa,Lamset Al Mustaqbal Cars,معرض لمسة المستقبل للسيارات,active,24.5482,46.6833,verified,500.0,used,Toyota; Hyundai; Geely,35.0,60000.0,0.35,,,cash
+SD073,Al Shifa,Latest Cars — Al Shifa branch,أحدث السيارات فرع الشفا,active,24.5478014,46.6786081,verified,1200.0,used,Hyundai; Ford,45.0,110000.0,0.0,,,cash
+SD074,Al Shifa,Majd Al Motor Cars,معرض مجد الموتر للسيارات,active,24.547279,46.6859752,verified,500.0,used,Toyota; Nissan; Kia; Mazda; Mitsubishi; Dodge,35.0,85000.0,0.3,,,cash
+SD075,Al Shifa,Malik Al Jaysh Cars,معرض مالك الجيش لبيع وشراء السيارات,active,24.5521226,46.6801265,verified,950.0,used,Toyota; Hyundai; Nissan; Kia,60.0,75000.0,0.5,,,cash
+SD076,Al Shifa,Marqab Al Sharq Cars,معرض مرقاب الشرق لبيع و شراء السيارات,active,24.5462171,46.6854458,verified,1200.0,used,Toyota; Hyundai; Nissan; Kia; Ford; GMC; Chevrolet; Isuzu; Honda; Mitsubishi,80.0,75000.0,0.55,,,cash
+SD077,Al Shifa,Masoud Cars,معرض مسعود للسيارات,active,24.5500853,46.68319,verified,1150.0,used,Toyota; Hyundai; Lexus; Mazda,51.0,128000.0,0.0,,,cash
+SD078,Al Shifa,Mawtin Al Asimah,معرض موطن العاصمة,active,24.5491488,46.6799908,verified,800.0,used,Toyota; Hyundai; Kia; Ford,40.0,35000.0,0.45,,,cash
+SD079,Al Shifa,Misfer Al Shahrani Cars,مسفر الشهراني للسيارات,active,24.5487895,46.6781144,verified,900.0,used,Toyota; Hyundai; Kia; Isuzu,55.0,87400.0,0.0,,,cash
+SD080,Al Shifa,Mubarak Cars Al Shifa,معرض مبارك للسيارات الشفا,active,24.5515939,46.6807351,verified,800.0,mix,Toyota; Hyundai; Kia; Lexus; Ford; Mercedes,70.0,85000.0,0.2,,,cash
+SD081,Al Shifa,Muntaha Al Takamul Cars,معرض منتهى التكامل,active,24.5423137,46.6849329,verified,1000.0,used,Toyota; Lexus; Ford; Mercedes; Genesis; Honda,34.0,120000.0,0.3,,,cash
+SD082,Al Shifa,Mustaqbal Al Sura'a Cars,معرض مستقبل السرعة للسيارات,active,24.5426687,46.6857255,verified,600.0,used,Toyota; Hyundai; Isuzu,14.0,58000.0,0.6,,,cash
+SD083,Al Shifa,Najoom Al Shifa,نجوم الشفا للسيارات,active,24.5510734,46.6822024,verified,1200.0,used,Hyundai; Toyota; Nissan; Ford,35.0,100000.0,0.0,,,cash
+SD084,Al Shifa,Naseem Al Shifa Cars,معرض نسيم الشفاء للسيارات,active,24.5486098,46.6792007,verified,900.0,used,Toyota; Hyundai; Kia; Ford,55.0,60000.0,0.71,,,cash
+SD085,Al Shifa,Nujoom Al Etimad Cars,نجوم الاعتماد للسيارات,active,24.5480608,46.6891048,verified,500.0,mix,Hyundai; Nissan; Kia; Ford,15.0,80000.0,0.1,,,cash
+SD086,Al Shifa,Qimmat Al Wafi Cars,معرض قمة الوافي للسيارات,active,24.548709,46.6777295,verified,1000.0,new,Isuzu,80.0,105000.0,0.0,,,all
+SD087,Al Shifa,Qimmat Kayan 2,معرض قمة كيان 2,active,24.5474769,46.6821918,verified,950.0,used,Toyota; Hyundai; Nissan; Ford,50.0,43000.0,0.7,,,cash
+SD088,Al Shifa,Ramz Al Afdaal,رمز الأفضل,active,24.5486997,46.6823609,verified,950.0,used,Toyota; Nissan; Lexus; Ford,60.0,90000.0,0.4,,,cash
+SD089,Al Shifa,Ramz Al Ikhtiyar — Al Shifa,رمز الاختيار — فرع الشفا,active,24.5480708,46.6820647,verified,800.0,used,Toyota; Hyundai; Nissan; Kia; Ford; Jetour,45.0,110000.0,0.0,,,cash
+SD090,Al Shifa,Ramz Al Qiyada Cars,معرض رمز القياده للسيارات,active,24.5475687,46.6858626,verified,700.0,used,Lexus; Mercedes; Jetour; BMW; Genesis; Mini,44.0,180000.0,0.05,,,cash
+SD091,Al Shifa,Ramz Al Riyadh,رمز الرياض,active,24.5480608,46.6920675,verified,1400.0,used,Toyota; Lexus; Mercedes; BMW,75.0,60000.0,0.15,,,cash
+SD092,Al Shifa,Ramz Al Riyadh 2,شركة رمز الرياض 2,active,24.5491487,46.6786454,verified,800.0,used,Toyota; Hyundai; Kia; Ford; Changan,65.0,55000.0,0.6,,,cash
+SD093,Al Shifa,Rashid Al Damaan Cars,معرض راشد ال دمعان للسيارات,active,24.5488793,46.6789044,verified,1200.0,mix,Hyundai; Kia; Honda; Renault,35.0,85000.0,0.05,,,cash
+SD094,Al Shifa,Rawabi Nisah Cars,معرض روابي نساح للسيارات,active,24.5516124,46.6834863,verified,1200.0,used,Toyota; Hyundai; Kia,50.0,70000.0,0.65,,,cash
+SD095,Al Shifa,Rawat Al Muharrikat,معرض روعة المحركات للسيارات,active,24.5475668,46.6810067,verified,1000.0,used,Hyundai; Nissan; Kia; Ford; Mercedes; Chevrolet; Changan; Genesis; Mazda; Mini,45.0,32000.0,0.35,,,cash
+SD096,Al Shifa,Rawat Al Saha Cars,معرض روعة الساحة للسيارات,active,24.5480608,46.6888085,verified,1000.0,used,Toyota; Hyundai; Honda,76.0,70000.0,0.25,,,cash
+SD097,Al Shifa,Rawdat Al Khair Cars,معرض روضة الخير للسيارات,active,24.5486295,46.6785377,verified,1000.0,used,Toyota; Hyundai; Lexus; Mercedes; Porsche,65.0,70000.0,0.6,,,cash
+SD098,Al Shifa,Riyada Cars,رياضة كارز,active,24.5488002,46.6843002,verified,700.0,mix,Hyundai; Kia; Mercedes; Jetour; Dodge,50.0,110000.0,0.0,,,new-only
+SD099,Al Shifa,Road Lights Modern for Cars,معرض رود لايتس مودرن للسيارات,active,24.5486,46.6838,verified,500.0,used,Nissan; Kia; Lexus; GMC; Honda,35.0,100000.0,0.1,,,cash
+SD100,Al Shifa,Rukn Al Qimma Car,معرض ركن القمه كار,active,24.5472083,46.6855273,verified,500.0,used,Toyota; Hyundai; Kia,20.0,100000.0,0.0,,,cash
+SD101,Al Shifa,Rukn Al Safa Al Mumayaz,ركن الصفا المميز للسيارات,active,24.5509548,46.6787438,verified,850.0,used,Toyota; Hyundai; Nissan; Kia,75.0,70000.0,0.45,,,cash
+SD102,Al Shifa,Rukn Al Shifa,ركن الشفاء للسيارات,active,24.547981,46.6796945,verified,1200.0,used,Toyota; Hyundai; Kia; Ford,60.0,80000.0,0.35,,,cash
+SD103,Al Shifa,Saad Mohammed Al Qahtani Cars,معرض سعد محمد القحطاني للسيارات,active,24.5465,46.6844,verified,800.0,used,Toyota; Hyundai; Nissan; Kia; Suzuki,50.0,40000.0,0.15,,,cash
+SD104,Al Shifa,Saad Muhaysin Al Otaibi Cars,معرض سعد محيسن العتيبي,active,24.5505501,46.6806028,verified,600.0,used,Toyota; Hyundai; Nissan; Kia; Lexus; Ford; GMC; Chevrolet; Jeep,45.0,75000.0,0.45,,,cash
+SD105,Al Shifa,Saed Al Malki Cars,معرض ساعد المالكي للسيارات,active,24.5504054,46.6812319,verified,500.0,used,Hyundai; Toyota; Ford; Genesis; Dodge,90.0,95000.0,0.4,,,cash
+SD106,Al Shifa,Saeed Salem Al Shahrani Cars,شركة سعيد سالم الشهراني للسيارات,active,24.5480608,46.6879197,verified,800.0,new,Hyundai; Ford,45.0,100000.0,0.0,,,all
+SD107,Al Shifa,Saleh Group — Al Shifa,مجموعة صالح للسيارات — الشفا,active,24.5515836,46.6800277,verified,800.0,mix,Toyota; Hyundai; Nissan; Kia,58.0,92000.0,0.0,,,cash
+SD108,Al Shifa,Salim Cars,معرض سليم للسيارات,active,24.5481147,46.6856927,verified,600.0,mix,Toyota; Hyundai; Kia; Ford; Mazda,50.0,90000.0,0.15,,,cash
+SD109,Al Shifa,Sama Al Shifa Al Hadith,معرض سماء الشفاء الحديث,active,24.5479,46.6845,verified,800.0,used,Toyota; Hyundai; Nissan; Kia; Mazda,30.0,74000.0,0.25,,,cash
+SD110,Al Shifa,Sama Dirab Cars,معرض سماء ديراب للسيارات,active,24.5471,46.6836,verified,450.0,used,Toyota; Hyundai; Nissan; Lexus; Mazda; Honda,35.0,38000.0,0.6,,,cash
+SD111,Al Shifa,Sama Najd Showroom,معرض سما نجد,active,24.5482854,46.6830806,verified,1200.0,used,Toyota; Nissan; Kia; Lexus; Ford; GMC; BMW; Land Rover,60.0,90000.0,0.6,,,cash
+SD112,Al Shifa,Sama Riyadh Showroom,معرض سما الرياض,active,24.5487346,46.681303,verified,1000.0,used,Toyota; Lexus,45.0,200000.0,0.0,,,cash
+SD113,Al Shifa,Sanaya Shifa,سنايا الشفا,active,24.5512243,46.6804227,verified,850.0,used,Toyota; Hyundai; Kia; Lexus,65.0,85000.0,0.45,,,cash
+SD114,Al Shifa,Shaibani Cars,معرض الشيباني للسيارات,active,24.5482954,46.6809783,verified,2500.0,used,Hyundai; Toyota; Lexus; Ford; Chevrolet; Isuzu; Maxus,100.0,85000.0,0.0,,,cash
+SD115,Al Shifa,Shalal Najd Cars,معرض شلال نجد للسيارات,active,24.5507751,46.6802252,verified,1250.0,used,Toyota; Hyundai; Kia; Ford,80.0,90570.0,0.4,,,cash
+SD116,Al Shifa,Shawafir Cars,معرض شوافر للسيارات,closing,24.5462442,46.6872634,verified,1000.0,,,,,,,,cash
+SD117,Al Shifa,Shifa Yard for Used Cars,ساحة الشفا للسيارات المستعملة,open-floor,24.5488603,46.6804937,verified,,used,Toyota; Hyundai; Lexus; GMC,55.0,55000.0,0.7,,,cash
+SD118,Al Shifa,Sultan Al Rudayyan Cars,معرض سلطان الرضيان للسيارات,active,24.5477464,46.6827843,verified,700.0,used,Toyota; Nissan; Ford; BMW,40.0,75325.0,0.5,,,cash
+SD119,Al Shifa,Talal Cars,معرض طلال للسيارات,active,24.5462156,46.6861781,verified,2400.0,used,Toyota; Hyundai; Nissan; Kia; Ford; Chevrolet; Changan; Honda; Peugeot; Renault,100.0,60000.0,0.45,,,cash
+SD120,Al Shifa,Turo 1 Cars,معرض تورو 1 للسيارات,active,24.5480608,46.6876234,verified,800.0,used,Kia; Jetour; Mazda,45.0,75000.0,0.15,,,cash
+SD121,Al Shifa,Walid Cars — Al Shifa,وليد السيارات,active,24.5468,46.6841,verified,800.0,used,Toyota; Ford; GMC; Land Rover,30.0,70000.0,0.8,,,cash
+SD122,Al Shifa,Wisam Al Majd Cars Al Shifa 2,شركة وسام المجد للسيارات الشفا 2,active,24.5514852,46.6800201,verified,1400.0,new,Toyota; Hyundai; Nissan; Kia; Ford; MG; Suzuki; Foton,80.0,120000.0,0.0,,,cash
+SD123,Al Shifa,Warid Al Tamayuz,معرض وارد التميز,active,24.5455418,46.6844734,verified,1000.0,mix,Nissan; Hyundai; Jetour; Changan; Honda,40.0,130000.0,0.4,,,cash
+SD124,Al Shifa,Tamayuz Al Shifa,معرض تميز الشفاء,active,24.5455794,46.6845573,verified,800.0,used,Hyundai; Ford; Mercedes; Chevrolet,35.0,50000.0,0.9,,,cash
+SD125,Al Shifa,Al Tawra Cars,معرض التوره,active,24.5453416,46.6850374,verified,1000.0,used,Toyota; Hyundai; Ford; Chevrolet,45.0,35000.0,0.9,,,cash
+SD126,Al Shifa,Shumukh Al Sharq Cars,معرض شموخ الشرق للسيارات,active,24.5454282,46.6841462,verified,1200.0,mix,Land Rover; Cadillac; Toyota; Lexus; Ford; Mercedes; BMW; Jeep; Audi,80.0,170000.0,0.3,,,cash
+SD127,Al Shifa,Al Masari Cars,معرض المسعري للسيارات,active,24.5451093,46.6853671,verified,900.0,used,Toyota; Isuzu,40.0,55000.0,0.9,,,cash
+SD128,Al Shifa,Auto Park Cars,معرض اوتو بارك للسيارات,active,24.5447568,46.6860129,verified,1400.0,used,Land Rover; Kia; Mercedes; GMC; BMW; Audi,55.0,150000.0,0.4,,,cash
+SD129,Al Shifa,Mawtin Al Asimah Exhibition,معرض موطن العاصمة للسيارات,active,24.5445675,46.6862542,verified,800.0,used,Toyota; Hyundai; Kia; Chevrolet; MG; Peugeot,40.0,40000.0,0.7,,,cash
+SD131,Al Shifa,Faisal Nasser Al Mutairi,معرض فيصل ناصر المطيري,active,24.5451144,46.6842697,verified,800.0,used,Toyota; Hyundai; Ford; Geely; Honda,35.0,40000.0,0.9,,,cash
+SD132,Al Shifa,Al Sunaid Cars,السنيد للسيارات,active,24.5446703,46.6841637,verified,2500.0,used,Cadillac; Hyundai; Ford; Mercedes; GMC; Chevrolet; BMW; Genesis; Jeep; Porsche,80.0,200000.0,0.49,,,cash
+SD133,Al Shifa,Shihana Cars,معرض شيهانة للسيارات,active,24.5451783,46.6843454,verified,800.0,used,Toyota; Hyundai; GMC; Chevrolet,25.0,50000.0,0.8,,,cash
+SD134,Al Shifa,Mada Car,معرض مدى كار للسيارات,active,24.545765,46.6836374,verified,1400.0,used,Land Rover; Toyota; Lexus; Mercedes; GMC; Mazda,40.0,100000.0,0.6,,,cash
+SD135,Al Shifa,Ajyal Cars,معرض أجيال السيارات,active,24.5460633,46.6837652,verified,1400.0,used,Hyundai; Toyota; Kia; Changan; Genesis; Mazda; Haval; Honda,60.0,55000.0,0.7,,,cash
+SD136,Al Shifa,Zawiyat Al Tamlik,زاوية التمليك للسيارات,active,24.5463584,46.6831529,verified,1000.0,used,Toyota; Lexus; GMC; Jetour; Chevrolet; Jeep; Dodge,40.0,80000.0,0.55,,,cash
+SD137,Al Shifa,Al Araba Al Sagheera,معرض العربة الصغيرة للسيارات,active,24.5458728,46.6832226,verified,1000.0,mix,Toyota; Hyundai; Kia; Changan; Jaecoo,65.0,105000.0,0.05,,,all
+SD138,Al Shifa,Mawj Al Shifa Cars,معرض موج الشفا للسيارات,active,24.5458686,46.6826608,verified,1200.0,used,Toyota; Hyundai; Kia,80.0,60000.0,0.4,,,cash
+SD139,Al Shifa,Ali Othman Ahmed Al Amudi,معرض علي عثمان أحمد العمودي للسيارات,active,24.5453476,46.6826932,verified,700.0,used,Toyota,30.0,80000.0,0.65,,,cash
+SD140,Al Shifa,Al Saber Cars Al Shifa,شركة السبر للسيارات الشفا,active,24.5448365,46.6832997,verified,2500.0,mix,BMW; Audi; Citroen; Ashok Leyland; Tata,90.0,90000.0,0.05,,,all
+SD141,Al Shifa,Al Hadyan,معرض الهديان,active,24.5447342,46.6826904,verified,900.0,used,Toyota; Hyundai; GMC; BMW,35.0,85000.0,0.55,,,cash
+SD143,Al Shifa,Adwaa Shubra Cars,معرض أضواء شبرا للسيارات,active,24.5477875,46.6841406,verified,800.0,used,Mercedes; Toyota; Ford; BMW; Mazda; Jeep; GAC; Cadillac; Great Wall,40.0,47500.0,0.8,,,cash
+SD144,Al Shifa,Nibras Used Cars 2,معرض نبراس الهدف 2,active,24.5496468,46.6830597,verified,800.0,used,Toyota; Nissan; Kia; Lexus; BMW; Mazda; Honda,35.0,90000.0,0.7,,,cash
+SD145,Al Shifa,Wisam Al Shifa Cars,معرض وسام الشفا للسيارات,active,24.5489625,46.6824844,verified,2000.0,mix,Toyota; Hyundai; Nissan; Lexus; GMC; Mazda; Honda; Mitsubishi,140.0,150000.0,0.4,,,all
+SD146,Al Shifa,Ramz Al Emarat Cars Co.,شركة رمز الإمارات للسيارات,active,,,missing,1400.0,used,Mercedes; Toyota; Hyundai; Kia,28.0,110000.0,0.2,,,all
+SD147,Al Shifa,Mohammed bin Dhaar Al Ajmi — Al Shifa,معرض محمد بن ذعار العجمي للسيارات - فرع الشفا,active,24.5451515,46.6813797,listing,500.0,new,Hyundai; MG; Changan,40.0,110000.0,0.0,,,all
+SD148,Al Shifa,Durar Al Tanfeedh Cars Co.,شركة درر التنفيذ للسيارات,active,,,missing,800.0,used,Toyota; Hyundai; Nissan,45.0,80000.0,0.6,,,cash
+SD149,Al Shifa,Al Ajmi Cars,العجمي للسيارات,active,,,missing,1000.0,used,Toyota; Hyundai,30.0,80000.0,0.7,,,cash
+SD150,Al Shifa,Al Ezz Park Cars,معرض العز بارك للسيارات,active,,,missing,1000.0,used,Toyota; Hyundai; MG; Isuzu; Suzuki,75.0,70000.0,0.65,,,cash
+SD151,Al Shifa,Al Najrani Cars,معرض النجراني للسيارات,active,,,missing,1200.0,used,Toyota; Hyundai; GMC; Peugeot,85.0,70000.0,0.85,,,cash
+SD152,Al Shifa,Al Sarran Cars,معرض السران للسيارات,active,,,missing,700.0,used,Toyota; Kia; GMC; Chevrolet; Genesis; Mazda; Jeep; Audi,50.0,75000.0,0.7,,,cash
+SD153,Al Shifa,Adwaa Al Tawheed Cars & Export,معرض أضواء التوحيد لسيارات والتصدير,active,,,missing,1200.0,used,Toyota; Hyundai; Kia; Ford; Isuzu; Peugeot; Renault,60.0,65000.0,0.5,,,cash
+SD154,Al Shifa,Sahab Al Khair Cars,سحاب الخير للسيارات,active,,,missing,1200.0,used,Hyundai; Lexus; GMC; Chevrolet; Genesis,90.0,100000.0,0.65,,,cash
+SD155,Al Shifa,Premium motors,Premium motors,active,,,missing,1500.0,used,Lexus; Mercedes; BMW; Mazda,60.0,110000.0,0.4,,,cash
+SD156,Al Shifa,Al Katheri Motors,الكثيري موتورز,active,24.5455286,46.6798017,listing,2000.0,used,Toyota; Hyundai; Nissan; Kia; Ford; Chevrolet,90.0,70000.0,0.2,,,cash
+SD157,Al Shifa,Carvind,Carvind,active,,,missing,1500.0,used,Toyota; Hyundai; Nissan; Lexus; MG; Geely; Renault,55.0,50000.0,0.6,,,cash
+SD158,Al Shifa,Fares Al Shahrani Cars,معرض فارس الشهراني للسيارات,active,,,missing,800.0,used,Toyota; Hyundai; Nissan; Ford; GMC; Honda,35.0,90000.0,0.5,,,cash
+SD159,Al Shifa,Nibras Used Cars,معرض نبراس الهدف,active,,,missing,800.0,used,Toyota; Nissan; Kia; Mazda; Honda,38.0,60000.0,0.7,,,cash
+SD160,Al Shifa,Ramz Al Tahaddi / Sahm Al Saha Cars,معرض رمز التحدي للسيارات / معرض سهم الساحه,active,,,missing,1200.0,used,Toyota; Hyundai; Kia,60.0,70000.0,0.35,,,cash
+SD161,Al Shifa,Dream Auto Company,شركه دريم اوتو,active,,,missing,1000.0,used,Toyota; Nissan; Kia; Ford,35.0,40000.0,0.85,,,cash
+SD162,Al Shifa,Ruyat Al Mustaqbal Cars,معرض رؤية المستقبل للسيارات,active,,,missing,800.0,used,Toyota; Changan; Geely; Suzuki,60.0,90000.0,0.3,,,cash
+SD163,Al Shifa,Najm Al Jazeera Cars,معرض نجم الجزيرة للسيارات,active,,,missing,1000.0,used,Nissan; Toyota; Hyundai; Kia,30.0,35000.0,0.8,,,cash
+SD164,Al Shifa,Al Maliki Cars,معرض المالكي للسيارات,active,,,missing,1200.0,used,Toyota; MG; Geely,95.0,95000.0,0.35,,,cash
+SD165,Al Shifa,Ahmed Al Fulaij Cars Co. ,شركة احمد الفليج للسيارات (الصالة),active,,,missing,800.0,new,Toyota; Kia; Jetour; Geely; Suzuki,25.0,90000.0,0.05,,,cash
+SD166,Al Shifa,Al falah motors company,Al falah motors company,active,,,missing,5000.0,new,Toyota; Lexus; Geely,55.0,110000.0,0.0,,,all
+SD167,Al Shifa,Al Masoudi Cars — ownership transfer,نقل ملكية السيارات فوري بأقل الأسعار معرض المسعودي للسيارات,active,24.542762,46.6858099,listing,800.0,used,Toyota; Hyundai; Ford; Mazda,45.0,45000.0,0.8,,,cash
+SD168,Al Shifa,Mutab Cars,معرض متعب للسيارات,active,24.544817,46.683764,listing,600.0,used,GMC; Chevrolet; BMW,25.0,100000.0,0.5,,,cash
+SD169,Al Shifa,Al Qannas Cars,معرض القناص للسيارات,active,24.5446157,46.6839596,listing,1000.0,used,Mercedes; Nissan; GMC; BMW,50.0,80000.0,0.6,,,cash
+SD170,Al Shifa,Al Asdiqa Cars,معرض الأصدقاء,empty,24.5440899,46.6837743,listing,,,,,,0.0,,,cash
+SD171,Al Shifa,Sultan For Cars,سلطان للسيارات,active,24.5443702,46.6835921,listing,1000.0,used,Hyundai; Nissan; Mercedes; GMC; Chevrolet,20.0,90000.0,0.3,,,cash
+SD172,Al Shifa,Al Rakbah Al Fawriya / Insta Car,شركة الركبة الفورية للسيارات / انستا كار,active,24.5442619,46.6834784,verified,750.0,used,Hyundai; Toyota; Nissan; Kia; GMC; Chevrolet,40.0,55000.0,0.6,,,cash
+SD173,Al Shifa,Al Hassan Ayesh Al Adini — new site,معرض الحسن عائش العديني للسيارات (الموقع الجديد),active,24.5444107,46.6832149,listing,800.0,used,Toyota; Hyundai; Kia; Lexus; Jetour; Mazda,70.0,95000.0,0.35,,,cash
+SD174,Al Shifa,Sayf Al Khaleej Cars,معرض سيف الخليج للسيارات,active,,,missing,800.0,used,Land Rover; Hyundai; Nissan; Kia; GMC; BMW; Renault,50.0,50000.0,0.7,,,cash
+SD175,Al Shifa,Al Markaba Al Khamisa / Sumou 2,معرض المركبة الخامسة للسيارات / سمو المركبات ٢,empty,24.5441396,46.683003,listing,,,,,,0.0,,,cash
+SD176,Al Shifa,Saheel Al Fikr Al Jadeed,شركة معرض صهيل الفكر الجديد,active,24.5439731,46.6827857,listing,800.0,used,Toyota; Suzuki; Peugeot,50.0,50000.0,0.85,,,cash
+SD177,Al Shifa,Mohammed Al Jariwi Cars,معرض محمد الجريوي للسيارات,active,24.5438039,46.6842179,listing,1200.0,used,Isuzu,65.0,55000.0,0.75,,,cash
+SD178,Al Shifa,Imtiyaz Al Shifa Cars,معرض امتياز الشفا للسيارات,active,24.5440954,46.6844923,listing,1000.0,used,Toyota,55.0,100000.0,0.5,,,cash
+SD179,Al Shifa,Aqd Al Bidaa Cars,معرض عقد البداع للسيارات,active,24.5438636,46.6844259,verified,1000.0,used,Land Rover; Kia; Ford; GMC; Jetour; Chevrolet; BMW,35.0,80000.0,0.7,,,cash
+SD180,Al Shifa,Sharyan Al Asimah Cars,معرض شريان العاصمة للسيارات,active,24.5438053,46.6845071,verified,1000.0,used,Land Rover; Toyota; Hyundai; Nissan; Mercedes; Chevrolet; BMW; Jeep; Porsche,25.0,100000.0,0.45,,,cash
+SD181,Al Shifa,Jood Cars,معرض جود كارز للسيارات,active,24.5439633,46.6847263,listing,600.0,used,Toyota; Lexus; Mercedes,30.0,100000.0,0.5,,,cash
+SD182,Al Shifa,Ustul Al Arabiya Cars,معرض أسطول العربية للسيارات,active,24.5437361,46.6845215,verified,800.0,used,Toyota; Hyundai; GMC,45.0,80000.0,0.65,,,cash
+SD183,Al Shifa,Nasaem Al Shurooq Cars,معرض نسائم الشروق,active,24.5436135,46.6847357,listing,900.0,used,Toyota,60.0,100000.0,0.7,,,cash
+SD184,Al Shifa,Al Mowah Cars,معرض الموح للسيارات,active,24.5437757,46.6849456,verified,800.0,used,Toyota; Nissan; Kia; Chevrolet; Mitsubishi,35.0,60000.0,0.8,,,cash
+SD185,Al Shifa,Atef bin Sumaida Cars,معرض عاطف بن سميدع للسيارات,active,24.5438247,46.6854896,listing,1000.0,used,Toyota; Hyundai; Lexus; Ford; GMC,60.0,90000.0,0.65,,,cash
+SD186,Al Shifa,Bayraq Al Ibdaa Cars,معرض بيرق الابداع للسيارات,active,24.5437093,46.6850184,verified,800.0,used,Hyundai; Nissan; Kia; Chevrolet; Genesis,40.0,95000.0,0.5,,,cash
+SD187,Al Shifa,Head of the showrooms — Al Maliki,شيخ المعارض رئيس معارض السيارات المالكي,active,24.54359,46.6855796,verified,1400.0,used,Toyota; Nissan; Kia; Chevrolet,65.0,75000.0,,,,cash
+SD188,Al Shifa,Azm Vehicles,معرض عزم Azm للمركبات,active,,,missing,1000.0,used,Toyota; Hyundai; Nissan; Mercedes,50.0,50000.0,0.85,,,cash
+SD189,Al Shifa,Al Jawad,معرض الجواد,active,,,missing,900.0,used,Toyota; Lexus; Ford; Changan; Mitsubishi,45.0,90000.0,0.5,,,cash
+SD190,Al Shifa,Al Saadi Cars – Al Shifa branch,معرض السعدي للسيارات فرع الشفا,active,,,missing,900.0,used,Toyota; Hyundai; Kia; Ford,50.0,110000.0,0.0,,,cash
+SD191,Al Shifa,Asimat Al Alam,معرض عاصمة العلم,active,,,missing,1400.0,used,Toyota; Hyundai; Kia; Lexus,70.0,95000.0,0.5,,,cash
+SD192,Al Shifa,Aidah Al Nahdi,معرض عيضه النهدي,active,24.5458103,46.680764,listing,1200.0,used,Toyota; Hyundai; Kia; GMC,60.0,65000.0,0.5,,,cash
+SD193,Al Shifa,Utarid Cars,عطارد للسيارات تمويلك الأول,active,24.5456111,46.6802335,listing,600.0,mix,Toyota; Hyundai; Kia; Lexus; Mercedes,35.0,100000.0,0.25,,,cash
+SD194,Al Shifa,Al Jammah Cars ,فرع معرض الجماح للسيارات,active,,,missing,1200.0,mix,Hyundai; Nissan; Mercedes; BMW; Genesis,10.0,100000.0,0.1,,,cash
+SD195,Al Shifa,Al Sadhan Cars,معرض ال سدحان للسيارات بالشفا,active,,,missing,800.0,used,Toyota; Hyundai; Nissan; GMC,40.0,80000.0,0.7,,,cash
+SD196,Al Shifa,Shari Cars,معرض شري للسيارات,active,,,missing,1600.0,used,Toyota; Hyundai; Kia; GMC,80.0,75000.0,0.55,,,cash
+SD197,Al Shifa,Qimmat Al Mustawrad Cars,معرض قمة المستورد للسيارات,active,,,missing,400.0,used,Toyota; Kia; Lexus; Ford,20.0,120000.0,0.3,,,cash
+SD198,Al Shifa,Al Qaisar Cars,معرض القيصر للسيارات,active,,,missing,1000.0,used,Toyota; Hyundai; Lexus; Mercedes,50.0,100000.0,0.35,,,cash
+SD199,Al Shifa,Al Kariwain Cars,الكريوين لبيع وشراء جميع أنواع السيارات,active,,,missing,700.0,used,Toyota; Hyundai; Nissan; Mercedes,35.0,50000.0,0.95,,,cash
+SD200,Al Shifa,Al Qasim,معرض القاسم,active,,,missing,400.0,used,Toyota; Hyundai; Kia; Lexus,20.0,90000.0,0.3,,,cash
+SD201,Al Shifa,Bin Muhanna Cars,بن مهنا لبيع وشراء جميع السيارات,active,,,missing,800.0,used,Toyota; Hyundai; Kia; Ford,40.0,40000.0,0.7,,,cash
+SD202,Al Shifa,Eid Cars,معرض عيد للسيارات,active,,,missing,1200.0,used,Toyota; Hyundai; Nissan; Kia,60.0,55000.0,0.7,,,cash
+SD203,Al Shifa,Ramz Al Asimah,معرض رمز العاصمة,active,,,missing,1000.0,used,Toyota; Hyundai; Nissan; GMC,50.0,80000.0,0.6,,,cash
+SD204,Al Shifa,Adwaa Al Haramain,معرض أضواء الحرمين,active,,,missing,800.0,used,Toyota; Hyundai; Nissan; Kia,40.0,60000.0,0.6,,,cash
+SD205,Al Shifa,Al Osaimi Cars (auction hall),معرض العصيمي للسيارات,active,,,missing,1400.0,used,Toyota; Hyundai; Kia; Ford,70.0,85000.0,0.25,,,cash
+SD206,Al Shifa,Rukn Al Hudaybiya Cars,معرض ركن الحديبية للسيارات,active,,,missing,700.0,used,Toyota; Hyundai; Kia; Ford,20.0,35000.0,0.95,,,cash
+SD207,Al Shifa,Sada Al Riyadh,معرض صدى الرياض,active,,,missing,1000.0,mix,Lexus,50.0,120000.0,0.3,,,cash
+SD208,Al Shifa,Class – Lexus showroom,معرض المركبه كلاس — لكزس,active,,,missing,800.0,used,Lexus,70.0,110000.0,0.5,,,cash
+SD209,Al Shifa,Mawj Al Shifa – 2nd showroom,معرض موج الشفا للسيارات (2),active,,,missing,1000.0,used,Toyota; Hyundai; GMC,45.0,85000.0,0.6,,,cash
+SD210,Al Shifa,Nasser Cars,معرض ناصر للسيارات,active,,,missing,1500.0,used,Toyota; Hyundai; Kia; Ford,50.0,40000.0,0.85,,,cash
+SD211,Al Shifa,Al Malfi Abu Thnain Cars,ال ملفي ابوثنين للسيارات,active,,,missing,1500.0,used,Toyota; Hyundai; Kia; Ford,75.0,70000.0,0.65,,,cash
+SD212,Al Shifa,Al Bijad Showroom,معرض ال بجاد,active,,,missing,400.0,used,Toyota; Hyundai; Kia; Lexus,20.0,90000.0,0.3,,,cash
+SD213,Al Shifa,Eshq Al Janoub Cars Co.,شركة عشق الجنوب للسيارات,active,24.5459766,46.6791991,listing,1400.0,mix,Hyundai; Kia; Ford; Changan; Geely,60.0,100000.0,0.05,,,cash
+SD214,Al Shifa,Raed Al Shifa Cars Co. (branch 2),شركة رعد الشفاء للسيارات (2),active,,,missing,900.0,used,Hyundai; Cadillac; Toyota; Ford; Chevrolet,50.0,65000.0,0.65,,,cash
+SD215,Al Shifa,Al Subaie Cars,معرض السبيعي للسيارات,active,,,missing,1200.0,used,Toyota; Ford; GMC; Chevrolet,45.0,55000.0,0.75,,,cash
+SD216,Al Shifa,New Zamzam Showroom for Cars,معرض زمزم الجديد للسيارات,active,,,missing,1400.0,used,Toyota; Isuzu,25.0,60000.0,0.5,,,cash
+SD217,Al Shifa,New shifa cars,معرض الشفا الجديد للسيارات,active,24.549306,46.682474,verified,1400.0,mix,Toyota; Kia; Ford; Jetour; Geely,120.0,100000.0,0.1,,,new-only
