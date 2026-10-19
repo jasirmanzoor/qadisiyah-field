@@ -1463,6 +1463,10 @@ body { background: #000; }
 /* marques: a soft dark backing so the copy reads over the drape */
 .mq__copy { position: relative; isolation: isolate; }
 .mq__copy::before { content: ""; position: absolute; inset: -28px -36px; z-index: -1; pointer-events: none; background: radial-gradient(closest-side, rgba(10,3,0,.82), rgba(10,3,0,.55) 60%, transparent); }
+
+/* Riyadh, mapped: a soft dark backing so the district copy reads over satellite imagery */
+.cmap__copy { isolation: isolate; }
+.cmap__copy::before { content: ""; position: absolute; inset: -40px -60px; z-index: -1; pointer-events: none; background: radial-gradient(closest-side, rgba(8,3,1,.86), rgba(8,3,1,.6) 55%, transparent); }
 .ghost-fibers-container {
   position: relative;
   width: 100%;
