@@ -7981,7 +7981,7 @@ window.RB = window.RB || {};
       const prev = i;
       if (k !== prev) {
         if (leaving) finishLeave();
-        if (prev >= 0) { S[prev].el.classList.remove("is-on"); if (!RMk && Math.abs(k - prev) === 1 && T > 0) { leaving = S[prev]; leaving.el.classList.add("is-leaving"); } heads(S[prev].el).forEach((h) => h.__mh.rest()); hooks[S[prev].id] && hooks[S[prev].id].leave && hooks[S[prev].id].leave(); }
+        if (prev >= 0) { S[prev].el.classList.remove("is-on"); if (!RMk && Math.abs(k - prev) === 1 && T > 0) { leaving = S[prev]; leaving.el.classList.add("is-leaving"); } heads(S[prev].el).forEach((h) => h.__mh.rest()); S[prev].parts.forEach((el) => el.classList.remove("is-b"));   /* so its builds replay on the way back in */ hooks[S[prev].id] && hooks[S[prev].id].leave && hooks[S[prev].id].leave(); }
         i = k; S[i].el.classList.add("is-on");
         GL.activate(S[i].el);
         [1, 2].forEach((d) => S[i + d] && S[i + d].el.dispatchEvent(new Event("scene:near")));
