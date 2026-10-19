@@ -1261,7 +1261,7 @@ const DATA = /*__DATA__*/null;
     const hermite = (t, p0, m0, p1) => { const t2 = t * t, t3 = t2 * t; return (2 * t3 - 3 * t2 + 1) * p0 + (t3 - 2 * t2 + t) * m0 + (-2 * t3 + 3 * t2) * p1; };
     let W = 1, H = 1, halfMin = 0.3;
     const fitDist = (r) => r / Math.sin(halfMin); /* camera distance that fits a sphere of radius r, keeps it round and uncropped */
-    let yaw = FOCUS_YAW + 2.5, yawVel = 0, tilt = 0.22, tiltVel = 0, zoom = 0; /* zoom 0 = whole Earth, 1 = Riyadh close-up */
+    let yaw = FOCUS_YAW + 1.6, yawVel = 0, tilt = 0.22, tiltVel = 0, zoom = 0; /* zoom 0 = whole Earth, 1 = Riyadh close-up */
     let mode = RMq ? "held" : "spin", modeT = 0, tw = null, idle = 0, introDone = RMq;
     if (RMq) { yaw = FOCUS_YAW; tilt = FOCUS_TILT; zoom = 1; }
     function startFocus() {
@@ -1291,7 +1291,7 @@ const DATA = /*__DATA__*/null;
       if (mode === "spin") {
         yawVel += (SPIN - yawVel) * damp(1.6, dt); yaw += yawVel * dt;
         tilt += (0.22 - tilt) * damp(1.2, dt); zoom += (0 - zoom) * damp(1.2, dt);
-        if (!introDone && modeT > 2.2) startFocus();
+        if (!introDone && modeT > 0.9) startFocus();
       } else if (mode === "tween") {
         tw.t += dt; const u = Math.min(1, tw.t / tw.D);
         yaw = hermite(u, tw.y0, tw.m0, tw.y1);
@@ -1843,7 +1843,7 @@ const DATA = /*__DATA__*/null;
     const P = (x) => Math.round(x * 100) + "%";
     function rangeBar(lo, hi, mid, cons, min, max, fmtV, loLbl, hiLbl) {
       const at = (v) => (Math.max(0, Math.min(1, (v - min) / (max - min))) * 100).toFixed(2) + "%";
-      return `<div class="rng"><span class="rng__band" style="left:${at(lo)};width:calc(${at(hi)} - ${at(lo)})"></span>${cons != null ? `<span class="rng__lo" style="left:${at(cons)}"></span>` : ""}<span class="rng__mid" style="left:${at(mid)}"></span></div><div class="rng__lbl"><i class="b">${loLbl || fmtV(lo)} to ${hiLbl || fmtV(hi)}</i>${cons != null ? `<i>Conservative ${fmtV(cons)}</i><i class="m">Full pace ${fmtV(mid)}</i>` : ""}</div>`;
+      return `<div class="rng"><span class="rng__band" style="left:${at(lo)};width:calc(${at(hi)} - ${at(lo)})"></span>${cons != null ? `<span class="rng__lo" style="left:${at(cons)}"></span>` : ""}<span class="rng__mid" style="left:${at(mid)}"></span></div><div class="rng__lbl"><i class="b">${cons != null ? "Plausible range " : ""}${loLbl || fmtV(lo)} to ${hiLbl || fmtV(hi)}</i>${cons != null ? `<i>Conservative ${fmtV(cons)}</i><i class="m">Full pace ${fmtV(mid)}</i>` : ""}</div>`;
     }
 
     /* the five beats */

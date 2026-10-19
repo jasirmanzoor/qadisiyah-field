@@ -1,6 +1,12 @@
 """Emit the page data (legacy row shape + metric registry) and the public research files from census.json."""
 import sys, json, os, csv, collections
 S = sys.argv[1]; c = json.load(open(S + "/census/census.json")); rows = json.load(open(S + "/rows.json"))
+# public names: drop owner names and field notes the survey appended after the trading name
+CLEAN = {"SD004": ("Abu Ghazi Cars", "معرض ابوغازى للسيارات"), "SD005": ("Adwa Suwaidan Cars", "معرض اضواء سويدان للسيارات"),
+         "SD167": ("Al Masoudi Cars", "معرض المسعودي للسيارات"), "SD173": ("Al Hassan Ayesh Al Adini Cars", "معرض الحسن عائش العديني للسيارات"),
+         "SD187": ("Al Maliki Car Showrooms", "معارض السيارات المالكي")}
+for x in c["showrooms"]:
+    if x["id"] in CLEAN: x["en"], x["ar"] = CLEAN[x["id"]]
 M = {m["id"]: m for m in c["metrics"]}; V = lambda k: M[k]["value"]
 T = {"new": "n", "used": "u", "mix": "m"}
 d = []

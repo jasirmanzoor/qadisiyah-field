@@ -5,7 +5,7 @@
      frame loop, so it costs nothing when the flight is off screen. */
   window.CurveFlow = function mount(host, items, opts) {
     const T = window.THREE; if (!T || !items.length) return null;
-    const o = Object.assign({ cells: 16, cellW: 512, cellH: 320, auto: .16, curve: .55, flat: .22, fringe: .012, gap: 18, onFocus: null }, opts);
+    const o = Object.assign({ cells: 16, cellW: 512, cellH: 320, auto: .16, curve: .55, flat: .22, fringe: .0045, gap: 18, onFocus: null }, opts);
     let renderer;
     try { renderer = new T.WebGLRenderer({ alpha: true, antialias: false, premultipliedAlpha: true }); } catch (e) { return null; }
     const RMc = matchMedia("(prefers-reduced-motion: reduce)").matches, pr = Math.min(devicePixelRatio || 1, 1.5);
@@ -62,7 +62,7 @@
           float a = 1. - smoothstep(-1., .5, d);
           float cell = mod(i, uN);
           /* speed-responsive fringes: the faster the strip runs, the further red and blue pull apart, most at the edges */
-          float sp = uFringe * clamp(abs(uSpeed), 0., 3.) * (.35 + k);
+          float sp = uFringe * clamp(abs(uSpeed), 0., 1.6) * (.35 + k);
           vec3 col = vec3(tap(cell, f + sp, v).r, tap(cell, f, v).g, tap(cell, f - sp, v).b);
           col *= 1. - .38 * k;
           /* dissolve entrance, in small blocks */
@@ -79,10 +79,10 @@
     /* hy: the horizon's height on screen (px, from the top), yaw: the drone's heading (rad) */
     function frame(hy, yaw) {
       if (!on) return;
-      const now = performance.now(), dt = last ? Math.min(.05, (now - last) / 1000) : .016; last = now;
+      const now = performance.now(), dt = last ? Math.min(.05, Math.max(.004, (now - last) / 1000)) : .016; last = now;
       let dYaw = 0; if (lastYaw !== null) { dYaw = yaw - lastYaw; if (dYaw > Math.PI) dYaw -= 2 * Math.PI; if (dYaw < -Math.PI) dYaw += 2 * Math.PI; } lastYaw = yaw;
       const push = RMc ? 0 : (o.auto + dYaw / dt * .9);
-      vel += (push - vel) * (1 - Math.exp(-dt / .35)); scroll += vel * dt;
+      vel += ((isFinite(push) ? push : o.auto) - vel) * (1 - Math.exp(-dt / .35)); if (!isFinite(vel)) vel = o.auto; scroll += vel * dt; if (!isFinite(scroll)) scroll = 0;
       U.uScroll.value = scroll; U.uSpeed.value = (vel - o.auto) * 4 + vel;
       U.uIn.value = Math.min(1, (now - t0) / 1400);
       /* the strip sits in the band of sky just above the horizon; it hides when the horizon leaves the screen */
@@ -90,7 +90,7 @@
       U.uCH.value = ch * pr; U.uCW.value = cw * pr; U.uGap.value = o.gap * pr; U.uR.value = 12 * pr; U.uCY.value = (sky * .5) * pr;
       cv.style.opacity = sky < 70 ? 0 : 1;
       const c0 = .5 * cw / (cw + o.gap), fi = (((Math.round(scroll - c0) % N) + N) % N);
-      if (fi !== focus) { focus = fi; o.onFocus && o.onFocus(pick[fi][1], pick[fi][0]); }
+      if (fi !== focus && pick[fi]) { focus = fi; o.onFocus && o.onFocus(pick[fi][1], pick[fi][0]); }
       renderer.render(scene, cam);
     }
     return { start() { if (on) return; on = true; last = 0; lastYaw = null; U.uIn.value = 0; t0 = performance.now(); host.classList.add("is-curve"); }, stop() { on = false; }, frame };

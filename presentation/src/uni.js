@@ -275,7 +275,7 @@
         f.cam = { look: [0, 0, 0], off: [0, 52, 84], orbit: 0.012 };
       },
       toyhy(f, port) {
-        const fl = open.filter((r) => r.brands.length), lit = fl.filter((r) => r.brands.some((b) => /^(toyota|hyundai)/i.test(b)));
+        const fl = R.filter((r) => r.brands.length), lit = fl.filter((r) => r.brands.some((b) => /^(toyota|hyundai)/i.test(b)));   /* same 507 floors as the metric */
         const order = lit.concat(fl.filter((r) => !lit.includes(r))), per = Math.floor(30000 / order.length); let i = 0;
         order.forEach((r, k) => { const rr = 2.15 * Math.sqrt(k + 0.5), th = k * 2.39996, cx = Math.cos(th) * rr, cy = Math.sin(th) * rr, on = k < lit.length;
           for (let q = 0; q < per; q++, i++) { const a = rnd() * 6.283, d = Math.sqrt(rnd()) * 0.85; put(f, i, cx + Math.cos(a) * d, cy + Math.sin(a) * d, (rnd() - 0.5) * 0.4, on ? (q % 3 ? COL.q : COL.w) : COL.ice, on ? 0.6 : 0.3, 1.5); } });

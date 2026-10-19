@@ -209,7 +209,7 @@
     $("cityFoot").innerHTML = `${mchip("ext_bld")} <span>Imagery © Esri, Maxar · Buildings © Microsoft, ODbL</span>`;
     $("cityQ").innerHTML = `<b class="num">${fmt(R.filter((r) => r.mk === 0).length)}</b> showrooms on <b class="num">${MET.area_Q.value.toFixed(2)}</b> km². <b class="num">${fmt(MET.loc_Q.value.verified)}</b> doors confirmed by GPS on the walk. ${mchip("loc_Q")}`;
     const ls = MET.loc_S.value;
-    $("cityS").innerHTML = `<b class="num">${fmt(R.filter((r) => r.mk === 1).length)}</b> showrooms. <b class="num">${fmt(ls.verified)}</b> doors confirmed by GPS, <b class="num">${fmt(ls.sheet + ls.listing)}</b> placed from the survey sheet or a listing, <b class="num">${fmt(ls.missing)}</b> without a pin. ${mchip("loc_S")}`;
+    $("cityS").innerHTML = `<b class="num">${fmt(R.filter((r) => r.mk === 1).length)}</b> showrooms. <b class="num">${fmt(ls.verified)}</b> doors confirmed by GPS, <b class="num">${fmt((ls.sheet || 0) + (ls.listing || 0))}</b> placed from the survey sheet or a listing, <b class="num">${fmt(ls.missing)}</b> without a pin. ${mchip("loc_S")}`;
     $("cityBoth").innerHTML = `${kmQS.toFixed(0)} km apart across the city. <b class="num">${fmt(R.length)}</b> showrooms and <b class="num">${fmt(TOT)}</b> cars, recorded on foot. ${mchip("showrooms_total")}`;
     $("cityRiy").innerHTML = `A region of <b class="num">8.6 million</b> people. Every building in the city, mapped from the sky, before we walk the streets. ${mchip("ext_pop")}`;
   })();
