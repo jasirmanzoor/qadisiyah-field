@@ -13,7 +13,7 @@ STARTS = [0, 4.05, 11.5, 17.95, 24.608, 30.642, 35.675, 45.125, 58.575, 65.025, 
           106.583, 111.242, 118.275, 127.725, 135.758, 141.0]
 XF = .55
 CUTS = [s + XF / 2 for s in STARTS[1:]]                 # transition midpoints
-HITS = [12.0, 65.3, 90.35, 122.25, 141.25]            # number reveals and the end card
+HITS = [12.3, 66.1, 90.6, 123.5, 141.25]   # where each reveal actually lands in the cut            # number reveals and the end card
 def lp(x, f): return sosfilt(butter(2, f / (SR / 2), "low", output="sos"), x)
 def hp(x, f): return sosfilt(butter(2, f / (SR / 2), "high", output="sos"), x)
 def bp(x, lo, hi): return sosfilt(butter(2, [lo / (SR / 2), hi / (SR / 2)], "band", output="sos"), x)
@@ -61,10 +61,10 @@ for k, tb in enumerate(np.arange(0, TOTAL, BEAT)):
     if i2 < N: hat[i2:j2] += (rng.standard_normal(L2) * np.exp(-np.arange(L2) / SR * 70))[: j2 - i2]
 kick *= .16; hat = hp(hat, 7000) * .025
 # arrangement: levels per layer over time (s, gain)
-g_pad = curve([(0, 0), (2.5, .9), (11, 1), (118.0, 1), (118.6, .25), (122.0, .25), (122.3, 1.15), (140, 1.1), (145.6, 0), (TOTAL, 0)])
-g_sub = curve([(0, 0), (4, .7), (35, .8), (36, 1), (118.0, 1), (118.5, 0), (122.25, 0), (122.3, 1), (144, .8), (TOTAL, 0)])
-g_arp = curve([(0, 0), (11, 0), (12.5, .7), (35, .8), (36.5, 1.1), (58, 1.1), (60, .8), (117.6, .8), (118.2, 0), (122.3, 0), (123.5, 1), (140, .9), (144.5, 0), (TOTAL, 0)])
-g_kick = curve([(0, 0), (35.4, 0), (36, .8), (57.8, 1), (58.6, .45), (117.4, .45), (118.0, 0), (122.25, 0), (122.3, .8), (134, .6), (138, 0), (TOTAL, 0)])
+g_pad = curve([(0, 0), (2.5, .9), (11, 1), (118.0, 1), (118.6, .25), (123.2, .25), (123.5, 1.15), (140, 1.1), (145.6, 0), (TOTAL, 0)])
+g_sub = curve([(0, 0), (4, .7), (35, .8), (36, 1), (118.0, 1), (118.5, 0), (123.45, 0), (123.5, 1), (144, .8), (TOTAL, 0)])
+g_arp = curve([(0, 0), (11, 0), (12.5, .7), (35, .8), (36.5, 1.1), (58, 1.1), (60, .8), (117.6, .8), (118.2, 0), (123.5, 0), (124.7, 1), (140, .9), (144.5, 0), (TOTAL, 0)])
+g_kick = curve([(0, 0), (35.4, 0), (36, .8), (57.8, 1), (58.6, .45), (117.4, .45), (118.0, 0), (123.45, 0), (123.5, .8), (134, .6), (138, 0), (TOTAL, 0)])
 g_hat = curve([(0, 0), (40, 0), (42, .8), (57, 1), (58.6, 0), (TOTAL, 0)])
 dry = pad * g_pad + arp * g_arp + kick * g_kick + hat * g_hat
 # small hall: exponentially decaying noise impulse response, on pad and arp only
