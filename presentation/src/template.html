@@ -1628,8 +1628,13 @@ const DATA = /*__DATA__*/null;
       if (back.getAttribute("src") === src && back.complete) go(); else { back.onload = go; back.src = src; }
     }
     function skyNext() { if (!skyList.length) return; if (skyK >= skyList.length) { skyK = 0; shuffle(skyList); } const [n, cap] = skyList[skyK++]; skyShow(`photos/${n}.jpg`, cap, n); }
+    /* the curved strip (curveflow.js) when WebGL allows; the crossfading reel below is the fallback */
+    let curve = null, curveTried = false;
+    const skyCap = (cap) => { skyTag.innerHTML = `<i></i><b>${esc(cap || "On the survey walk")}</b>`; skyTag.classList.remove("in"); void skyTag.offsetWidth; skyTag.classList.add("in"); };
     function showPhotos() {
       clearInterval(phTimer); phV.pause(); photo.classList.remove("in");
+      if (!curveTried) { curveTried = true; if (window.CurveFlow) curve = window.CurveFlow(sky.querySelector(".fly__sky"), shuffle(POOL.map((n) => [n, CAP.get(n)])), { onFocus: (cap) => skyCap(cap) }); }
+      if (curve) { curve.start(); return; }
       if (skyTimer) return;                      /* the reel runs continuously through the flight, independent of the stops */
       skyList = shuffle(POOL.map((n) => [n, CAP.get(n)])); skyK = 0; skyNext(); skyTimer = setInterval(skyNext, 3000);
     }
@@ -1652,6 +1657,7 @@ const DATA = /*__DATA__*/null;
       sky.style.setProperty("--fog", `rgb(${Math.round(bg.r * 255)},${Math.round(bg.g * 255)},${Math.round(bg.b * 255)})`);
       sky.style.setProperty("--sky-o", (1 - night).toFixed(3));
       sky.style.setProperty("--haze", Math.max(36, Math.min(150, yc * .4)).toFixed(0) + "px");
+      if (curve) curve.frame(Math.max(-40, Math.min(Hh * 1.2, yc)), yaw);
     }
     function setChapter(i) {
       if (i === shown) return; shown = i; const c = C[i];
