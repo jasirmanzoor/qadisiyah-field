@@ -66,7 +66,7 @@
     const exoFolio = window.Folio ? window.Folio.mount($("exoFolio"), { hold: 2300 }) : null;
     const EXO = [["n-rolls", "Rolls-Royce Spectre · Aston Martin DBX · Bentley"], ["q-barimi-rolls", "Rolls-Royce Cullinan"], ["q-barimi-urus", "Lamborghini Urus"], ["q-barimi-mclaren", "McLaren"]];
     /* on the ground: five glass folders, four photographs each, alternating districts */
-    const gFolio = window.Folio ? window.Folio.mount($("groundFolio"), { hold: 1150 }) : null;
+    const gFolio = window.Folio ? window.Folio.mount($("groundFolio"), { hold: 950 }) : null;
     const wq = WALL.filter((w) => w.dist === MK[0]), ws = WALL.filter((w) => w.dist === MK[1]);
     const GROUPS = [[wq, 0, 0], [ws, 0, 1], [wq, 4, 0], [ws, 4, 1], [wq, 8, 0]].map(([L, a, mk]) => ({ mk, items: L.slice(a, a + 4).map((w) => [w.p, w.units ? `${w.name} · ${fmt(w.units)} cars` : w.name]) })).filter((g) => g.items.length);
     window.__FOL = { exoFolio, EXO, gFolio, GROUPS };
@@ -181,7 +181,7 @@
     }
 
     /* ==================== the director: one clock, a cue sheet, scrub and glide ==================== */
-    const TR = RMk ? 0 : 1.25;                      /* chapter transition, seconds */
+    let TR = RMk ? 0 : 1;                           /* chapter transition, seconds (set per cut) */
     const smooth = (x) => x * x * (3 - 2 * x), clamp01 = (x) => x < 0 ? 0 : x > 1 ? 1 : x;
     const flyDur = () => window.__fly && window.__fly.dur ? window.__fly.dur() : 60;
     let lastT = 0, warp = 0, lastScrub = 0, flyLast = -1, flyStall = 0, cues = [], chap = [], TOTAL = 0, T = 0, TT = null, vel = 0, holdUntil = 0, glide = null, speed = 1, leaving = null;
@@ -189,10 +189,11 @@
        never shorter than its visual needs to play out, never so long the eye starts to wander */
     /* how long a beat holds, by what it shows: reading time (3.3 words a second) on top of the time its visual needs to land.
        particle morphs need ~2.8 s to settle, a count-up 1.3 s, a camera move its own flight time, a photo deck one hold per frame */
+    /* attention pacing: the eye gets a new thing every 3-7 s. A beat holds for its visual to land, plus reading at 4 words a second, and no longer */
     const VIS = {
-      uni: { land: 2.8, min: 5.2, max: 10.5 }, count: { land: 1.6, min: 4.4, max: 9 }, globe: { land: 4.5, min: 9, max: 12 }, city: { land: 4.6, min: 8.2, max: 11.5 },
-      size: { land: 2.2, min: 6, max: 10 }, ground: { land: 1.6, fixed: (s, bb) => 1.6 + 4 * 1.15 + .6 }, exo: { land: 1, min: 9, max: 12 },
-      marques: { land: 0, fixed: (s, bb) => bb === 0 ? 11.5 : 7.4 }, text: { land: .6, min: 3.6, max: 9 },
+      uni: { land: 2.2, min: 4.2, max: 6.2 }, opp: { fixed: () => 9.5 }, glance: { fixed: (s, bb) => bb === 0 ? 3.2 : 8.2 }, count: { land: 1.2, min: 3.4, max: 6 }, globe: { land: 3.4, min: 6.4, max: 8 }, city: { land: 3, min: 5.8, max: 7.4 },
+      size: { land: 1.8, min: 4.5, max: 7.5 }, ground: { land: 1.4, fixed: () => 1.4 + 4 * .95 + .4 }, exo: { land: 1, min: 6, max: 7.5 },
+      marques: { land: 0, fixed: (s, bb) => bb === 0 ? 8.5 : 5.4 }, text: { land: .5, min: 3, max: 6.5 },
     };
     function kindOf(s) {
       if (VIS[s.id]) return VIS[s.id];
@@ -205,7 +206,7 @@
       const parts = s.parts.filter((el) => el.hasAttribute("data-only") ? +el.dataset.only === bb : +el.dataset.b === bb);
       const loose = bb === 0 ? [...s.el.querySelectorAll(".say, .sc__sub, .kick, .mega")].filter((el) => !el.closest("[data-b],[data-only]")) : [];
       const words = parts.concat(loose).map((el) => el.textContent).join(" ").split(/\s+/).filter(Boolean).length;
-      return Math.min(K.max, Math.max(K.min, K.land + 1.2 + words / 3.3));
+      return Math.min(K.max, Math.max(K.min, K.land + .8 + words / 4));
     }
     function sheet() {
       cues = []; chap = []; let t0 = 0;
@@ -234,7 +235,7 @@
       if (c.i !== i) show(c.i, c.b); else if (c.b !== b) { b = c.b; builds(); }
       if (scrubbed && S[i].id === "tour" && window.__fly && window.__fly.seek) window.__fly.seek(Math.max(0, T - chap[i].t0));
     }
-    function finishLeave() { if (!leaving) return; const el = leaving.el; el.classList.remove("is-leaving"); el.style.opacity = ""; el.style.filter = ""; el.style.removeProperty("--se-z"); leaving = null; }
+    function finishLeave() { if (!leaving) return; const el = leaving.el; el.classList.remove("is-leaving"); el.style.opacity = ""; el.style.filter = ""; el.style.transform = ""; el.style.borderRadius = ""; el.style.zIndex = ""; el.style.removeProperty("--se-z"); leaving = null; }
     /* ScrollExpand's frame, driven by the clock: the next chapter opens from a rounded card to full bleed */
     /* chapter transitions: three cuts in rotation (light blade, iris, shutter) so no two arrivals feel the same */
     const txLight = $("txLight"), KINDS = ["blade", "iris", "shutter", "blade", "shutter", "iris"];
@@ -257,23 +258,47 @@
       txLight.style.background = `linear-gradient(112deg, transparent calc(${f.toFixed(2)}% - 2px), rgba(255,214,170,${(.95 * Math.sin(Math.PI * k)).toFixed(3)}) ${f.toFixed(2)}%, rgba(255,140,60,${(.35 * Math.sin(Math.PI * k)).toFixed(3)}) calc(${f.toFixed(2)}% + 10px), transparent calc(${f.toFixed(2)}% + 60px))`;
       return `polygon(0% 0%, ${(f + 20).toFixed(2)}% 0%, ${(f - 20).toFixed(2)}% 100%, 0% 100%)`;
     }
+    /* cuts, Reels-style: every chapter arrives with a different move, never the same twice in a row */
+    const CUTS = ["swipe", "pan", "pop", "blade", "shrink", "zoom", "iris", "swipe", "shutter", "pan", "pop", "shrink", "zoom", "blade", "swipe", "iris", "pan", "pop", "shrink"];
+    const CUT_D = { swipe: .78, pan: .82, pop: .68, shrink: .92, zoom: .78, blade: .95, iris: 1, shutter: .95 };
+    const easeExpo = (x) => x >= 1 ? 1 : 1 - Math.pow(2, -10 * x), easeBack = (x) => { const c = 1.6; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+    function motion(kind, k, el, out) {
+      /* returns [incoming transform, outgoing transform, outgoing opacity, radius] */
+      const W = innerWidth, H = innerHeight;
+      if (kind === "swipe") { const e = easeExpo(k); return [`translate3d(0, ${((1 - e) * H).toFixed(1)}px, 0)`, `translate3d(0, ${(-e * H * .28).toFixed(1)}px, 0) scale(${(1 - .06 * e).toFixed(4)})`, 1 - .55 * e, 18 * (1 - e)]; }
+      if (kind === "pan") { const e = easeExpo(k); return [`translate3d(${((1 - e) * W).toFixed(1)}px, 0, 0)`, `translate3d(${(-e * W * .32).toFixed(1)}px, 0, 0) scale(${(1 - .05 * e).toFixed(4)})`, 1 - .55 * e, 18 * (1 - e)]; }
+      if (kind === "pop") { const e = easeBack(Math.min(1, k)); return [`scale(${(.78 + .22 * e).toFixed(4)})`, `scale(${(1 + .08 * k).toFixed(4)})`, 1 - k, 26 * (1 - Math.min(1, k * 1.2))]; }
+      if (kind === "shrink") { const e = 1 - Math.pow(1 - k, 3); return [`scale(${(1.08 - .08 * e).toFixed(4)})`, `translate3d(0, ${(-e * H * .06).toFixed(1)}px, 0) scale(${(1 - .42 * e).toFixed(4)})`, 1 - e * e, 0, 32 * e]; }
+      if (kind === "zoom") { const e = easeExpo(k); return [`scale(${(1.22 - .22 * e).toFixed(4)})`, `scale(${(1 + .35 * e).toFixed(4)})`, 1 - e, 0]; }
+      return null;
+    }
     function stageFx() {
       const s = S[i]; if (!s) return;
+      const kind = CUTS[i % CUTS.length]; TR = RMk ? 0 : CUT_D[kind];
       const e = TR ? clamp01((T - chap[i].t0) / TR) : 1, k = ease3(e), cp = clamp01((T - chap[i].t0) / Math.max(1, chap[i].d));
       if (e < 1 && i > 0) {
-        s.el.style.clipPath = clipFor(KINDS[i % KINDS.length], k, s.el);
-        s.el.style.setProperty("--se-z", (1.05 - .05 * k).toFixed(4));
-        if (leaving) { leaving.el.style.opacity = (1 - k * .85).toFixed(3); leaving.el.style.setProperty("--se-z", (1 - .05 * k).toFixed(4)); leaving.el.style.filter = `brightness(${(1 - .5 * k).toFixed(3)}) blur(${(4 * k).toFixed(2)}px)`; }
+        const m = motion(kind, e, s.el);
+        if (m) {
+          s.el.style.transform = m[0]; s.el.style.borderRadius = m[3] ? m[3].toFixed(1) + "px" : ""; s.el.style.overflow = "hidden"; s.el.style.clipPath = "";
+          if (leaving) { leaving.el.style.transform = m[1]; leaving.el.style.opacity = Math.max(0, m[2]).toFixed(3); leaving.el.style.borderRadius = m[4] ? m[4].toFixed(1) + "px" : ""; leaving.el.style.filter = `brightness(${(1 - .45 * e).toFixed(3)})`; leaving.el.style.zIndex = kind === "shrink" ? 3 : ""; }
+          txLight.style.opacity = 0;
+        } else {
+          s.el.style.clipPath = clipFor(kind, k, s.el); s.el.style.transform = "";
+          s.el.style.setProperty("--se-z", (1.05 - .05 * k).toFixed(4));
+          if (leaving) { leaving.el.style.opacity = (1 - k * .85).toFixed(3); leaving.el.style.setProperty("--se-z", (1 - .05 * k).toFixed(4)); leaving.el.style.filter = `brightness(${(1 - .5 * k).toFixed(3)}) blur(${(4 * k).toFixed(2)}px)`; }
+          txLight.style.opacity = 1;
+        }
         if (!stage.classList.contains("is-transit") && fibRef()) fibRef().set({ paused: false });
-        stage.classList.add("is-transit"); txLight.style.opacity = 1;
+        stage.classList.add("is-transit");
       } else {
         if (s.el.style.clipPath) s.el.style.clipPath = "";
+        if (s.el.style.transform) { s.el.style.transform = ""; s.el.style.borderRadius = ""; s.el.style.overflow = ""; }
         s.el.style.setProperty("--se-z", "1"); finishLeave(); if (stage.classList.contains("is-transit") && fibRef()) fibRef().set({ paused: S[i].el.dataset.fx !== "fibers" }); stage.classList.remove("is-transit"); txLight.style.opacity = 0;
       }
       if (!RMk) s.el.style.setProperty("--dolly", (1 + .022 * smooth(cp)).toFixed(4));
       /* the open loop: the next chapter is named a moment before it arrives */
       const left = chap[i].t0 + chap[i].d - T, nx = S[i + 1];
-      upEl.classList.toggle("on", !!nx && left < 2.2 && left > .15 && !glide);
+      upEl.classList.toggle("on", !!nx && left < 1.8 && left > .15 && !glide);
       if (nx && upEl.dataset.k !== String(i + 1)) { upEl.dataset.k = i + 1; upEl.innerHTML = `<span>Next</span><b>${nx.title}</b>`; }
     }
     const upEl = $("kUp");

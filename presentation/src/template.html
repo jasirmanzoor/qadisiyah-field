@@ -1367,7 +1367,8 @@ const DATA = /*__DATA__*/null;
     const sec = document.getElementById("tour"), cv = document.getElementById("flyCanvas"), T = window.THREE;
     if (!sec || !cv) return;
     let renderer = null;
-    try { if (T) renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, alpha: false, stencil: false, powerPreference: "high-performance" }); } catch (e) { renderer = null; }
+    try { if (T) renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, alpha: true, premultipliedAlpha: true, stencil: false, powerPreference: "high-performance" }); } catch (e) { renderer = null; }
+    if (renderer) renderer.setClearColor(0x000000, 0);
     if (!renderer) { sec.classList.add("fly--off"); return; }
     const $ = (id) => document.getElementById(id);
     const RMq = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1384,9 +1385,10 @@ const DATA = /*__DATA__*/null;
     const loc = (lat, lng, y = 0) => { const m = merc(lat, lng); return new T.Vector3((m[0] - MX0) * KK, y, -(m[1] - MY0) * KK); };
     const unloc = (x, z) => ({ lng: (x / KK + MX0) / RE / RAD, lat: (2 * Math.atan(Math.exp((-z / KK + MY0) / RE)) - Math.PI / 2) / RAD });
 
+    const FLY_RATE = 1.45;   /* the drone flies 45% faster than its keyframes were authored: same route, tighter tour */
     const scene = new T.Scene();
     const DAY = new T.Color(0xd8ccb6), NIGHT = new T.Color(0x0e0300), bg = new T.Color().copy(DAY);
-    scene.background = bg; scene.fog = new T.FogExp2(bg.getHex(), 0.0002);
+    scene.background = null; scene.fog = new T.FogExp2(bg.getHex(), 0.0002);   /* the sky is left clear: showroom photographs fill it from behind */
     const cam = new T.PerspectiveCamera(52, 1, 1, 200000);
     scene.add(new T.HemisphereLight(0xfff4e2, 0x6b5a48, 0.75));
     const sun = new T.DirectionalLight(0xfff1dc, 0.9); sun.position.set(-0.55, 1, 0.45); scene.add(sun);
@@ -1612,22 +1614,44 @@ const DATA = /*__DATA__*/null;
       const v = [HQ, null, Q, P(safh), P(noj), P(rc), P(bar), null, null, Sh, Sh, P(nfy), null, Q.clone().lerp(Sh, .5)][k];
       return v ? new T.Vector3(v.x, 0, v.z) : null;
     });
-    function showPhotos(list, bd, name) {
-      clearInterval(phTimer); phV.pause(); backdrop(null); photo.classList.remove("in");
-      if (!pins && window.PinDeck) { pins = window.PinDeck.mount($("flyFolio")); pins.preload(C.map((c) => c.ph)); }
-      const has = !!(list && list.length);
-      sec.classList.toggle("fly--pin", has);
-      if (!pins) return;
-      if (!has) { pins.hide(); pinAt = null; return; }
-      pinAt = AT[shown] || HQ;
-      pins.show(list, { title: name, hold: 2600, color: /shifa|south|used/i.test(name + list[0][1]) ? "#4fd1c9" : "#ffb066" });
+    /* the sky: beyond the horizon the satellite world ends, so the clear sky becomes a window onto the showroom we are passing */
+    const sky = $("flyBd"), skyImgs = [...sky.querySelectorAll("img")], skyTag = $("flySkyTag");
+    /* one shuffled reel of every captioned showroom photo; each is auto-cropped to its own detail band (measured at build time) */
+    const CAP = new Map(); C.forEach((c) => (c.ph || []).forEach(([n, cap]) => { if (n[0] !== "@" && !CAP.has(n)) CAP.set(n, cap); }));
+    const POOL = [...CAP.keys()];
+    const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+    let skyList = [], skyK = 0, skyTimer = 0, skyFront = 0, skyName = "";
+    function skyShow(src, cap, name) {
+      const back = skyImgs[skyFront ^ 1], front = skyImgs[skyFront], fc = (window.PHOTO_FOCUS || {})[name] || [50, 55];
+      back.style.objectPosition = `${fc[0]}% ${fc[1]}%`;
+      const go = () => { back.classList.add("on"); front.classList.remove("on"); skyFront ^= 1; skyTag.innerHTML = `<i></i><b>${esc(cap || "On the survey walk")}</b>`; skyTag.classList.remove("in"); void skyTag.offsetWidth; skyTag.classList.add("in"); };
+      if (back.getAttribute("src") === src && back.complete) go(); else { back.onload = go; back.src = src; }
     }
-    const pinV = new T.Vector3();
-    function pinFrame(dt) {
-      if (!pins || !pinAt) return;
-      pinV.copy(pinAt).project(cam);
-      const vis = pinV.z < 1 && Math.abs(pinV.x) < 1.1 && Math.abs(pinV.y) < 1.1;
-      pins.anchor((pinV.x + 1) / 2 * W, (1 - pinV.y) / 2 * Hh, vis, dt);
+    function skyNext() { if (!skyList.length) return; if (skyK >= skyList.length) { skyK = 0; shuffle(skyList); } const [n, cap] = skyList[skyK++]; skyShow(`photos/${n}.jpg`, cap, n); }
+    function showPhotos() {
+      clearInterval(phTimer); phV.pause(); photo.classList.remove("in");
+      if (skyTimer) return;                      /* the reel runs continuously through the flight, independent of the stops */
+      skyList = shuffle(POOL.map((n) => [n, CAP.get(n)])); skyK = 0; skyNext(); skyTimer = setInterval(skyNext, 3000);
+    }
+    /* horizon: project a point on the ground far ahead, and one beside it, to find where and at what tilt the sky begins */
+    const hz = new T.Vector3(), hz2 = new T.Vector3(), fwd = new T.Vector3(), side = new T.Vector3();
+    function pinFrame() {
+      fwd.set(look.x - pos.x, 0, look.z - pos.z).normalize(); side.set(-fwd.z, 0, fwd.x);
+      /* the visible horizon is where the satellite ground ends, not the true one: cast along the heading to the edge of the base layer */
+      const bx0 = -3600, bx1 = 22900, bz0 = -11400, bz1 = 28400;
+      const tx = fwd.x > 1e-6 ? (bx1 - pos.x) / fwd.x : fwd.x < -1e-6 ? (bx0 - pos.x) / fwd.x : 1e9, tz = fwd.z > 1e-6 ? (bz1 - pos.z) / fwd.z : fwd.z < -1e-6 ? (bz0 - pos.z) / fwd.z : 1e9;
+      const FAR = Math.max(1500, Math.min(cam.far * .6, tx, tz) * .97);
+      hz.copy(pos).addScaledVector(fwd, FAR).setY(0).project(cam);
+      hz2.copy(pos).addScaledVector(fwd, FAR).addScaledVector(side, FAR * .4).setY(0).project(cam);
+      const x1 = (hz.x + 1) / 2 * W, y1 = (1 - hz.y) / 2 * Hh, x2 = (hz2.x + 1) / 2 * W, y2 = (1 - hz2.y) / 2 * Hh;
+      const ang = Math.atan2(y2 - y1, x2 - x1), yc = y1 + (W / 2 - x1) * Math.tan(ang);
+      const yaw = Math.atan2(fwd.x, fwd.z), night = plNow;
+      sky.style.setProperty("--hy", Math.max(-40, Math.min(Hh * 1.2, yc)).toFixed(1) + "px");
+      sky.style.setProperty("--roll", (ang / RAD).toFixed(2) + "deg");
+      sky.style.setProperty("--pan", (Math.sin(yaw) * W * .1).toFixed(1) + "px");
+      sky.style.setProperty("--fog", `rgb(${Math.round(bg.r * 255)},${Math.round(bg.g * 255)},${Math.round(bg.b * 255)})`);
+      sky.style.setProperty("--sky-o", (1 - night).toFixed(3));
+      sky.style.setProperty("--haze", Math.max(36, Math.min(150, yc * .4)).toFixed(0) + "px");
     }
     function setChapter(i) {
       if (i === shown) return; shown = i; const c = C[i];
@@ -1754,7 +1778,7 @@ const DATA = /*__DATA__*/null;
     function loop(now) {
       raf = 0; if (!playing) return;
       const ms = last ? Math.min(100, now - last) : 16.7, dt = Math.min(0.05, ms / 1000); last = now;
-      t += dt; if (t >= total) { t = 0; prevYaw = null; }
+      t += dt * FLY_RATE; if (t >= total) { t = 0; prevYaw = null; }
       render(dt); adapt(ms);
       raf = requestAnimationFrame(loop);
     }
@@ -1773,7 +1797,7 @@ const DATA = /*__DATA__*/null;
     if (RMq) t = kt[chKey[7]] + 2;
     size();
     GL.register(sec, (on) => { visible = on; if (on) loadWorld(); sync(); });
-    window.__fly = { seek: (s) => { t = s; prevYaw = null; render(0); stream(true); }, streaming: () => loadingN, detailLive: () => detail.filter((d) => d.s === 2).length, keyTime: (i) => kt[chKey[i]], isReady: () => ready, pause: () => { userPaused = true; sync(); } };
+    window.__fly = { seek: (s) => { t = s * FLY_RATE; prevYaw = null; render(0); stream(true); }, streaming: () => loadingN, detailLive: () => detail.filter((d) => d.s === 2).length, keyTime: (i) => kt[chKey[i]] / FLY_RATE, isReady: () => ready, pause: () => { userPaused = true; sync(); } };
   })();
 
   /* ---------- market size: first-ever derivations (scroll-pinned particle field) ---------- */

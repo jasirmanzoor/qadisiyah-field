@@ -64,6 +64,16 @@ window.RB = window.RB || {};
       media.appendChild(img); clip.appendChild(media); reveal.appendChild(clip); return media;
     });
     root.appendChild(reveal);
+    /* Text Hover Effect (Aceternity), multi-line: an outline of every glyph draws itself on, and a warm gradient stroke
+       is revealed through a radial mask that follows the pointer, or wanders through the letters when nobody is pointing */
+    const hov = document.createElementNS(NS, "svg"); hov.setAttribute("class", "masked-heading__hover"); hov.setAttribute("aria-hidden", "true");
+    hov.innerHTML = `<defs><linearGradient id="${id}-g" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="600" y2="0"><stop offset="0" stop-color="#ffd27a"/><stop offset=".3" stop-color="#ff7a1a"/><stop offset=".55" stop-color="#ffe2c2"/><stop offset=".8" stop-color="#ff9a4a"/><stop offset="1" stop-color="#4fd1c9"/></linearGradient>
+      <radialGradient id="${id}-r" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="160"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient>
+      <mask id="${id}-m" maskUnits="userSpaceOnUse" x="-50%" y="-50%" width="200%" height="200%"><rect x="-2000" y="-2000" width="6000" height="6000" fill="url(#${id}-r)"/></mask></defs>
+      <g class="mh-draw"></g><g class="mh-glow" mask="url(#${id}-m)" stroke="url(#${id}-g)"></g>`;
+    const gDraw = hov.querySelector(".mh-draw"), gGlow = hov.querySelector(".mh-glow"), rgEl = hov.querySelector("radialGradient"), lgEl = hov.querySelector("linearGradient");
+    const hovT = glyphs.map((g) => [gDraw, gGlow].map((grp) => { const t = document.createElementNS(NS, "text"); t.textContent = g.el.textContent; grp.appendChild(t); return t; }));
+    root.appendChild(hov);
     root.setAttribute("aria-label", label);
 
     /* geometry: per-glyph boxes, exactly as the component measures them */
@@ -72,9 +82,9 @@ window.RB = window.RB || {};
     function renderGlyphs() {
       for (let i = 0; i < glyphs.length; i++) {
         const g = glyphs[i].el, box = boxes[i], st = states[i];
-        if (!box || (st.x === 0 && st.y === 0 && st.s === 1)) { if (g.hasAttribute("transform")) g.removeAttribute("transform"); continue; }
+        if (!box || (st.x === 0 && st.y === 0 && st.s === 1)) { if (g.hasAttribute("transform")) { g.removeAttribute("transform"); hovT[i].forEach((h) => h.removeAttribute("transform")); } continue; }
         const s = Math.max(st.s, .0001), tx = box.cx * (1 - s) + st.x * (box.cx - box.lc), ty = box.cy * (1 - s) + st.y;
-        g.setAttribute("transform", `translate(${tx.toFixed(2)} ${ty.toFixed(2)}) scale(${s.toFixed(4)})`);
+        const tr = `translate(${tx.toFixed(2)} ${ty.toFixed(2)}) scale(${s.toFixed(4)})`; g.setAttribute("transform", tr); hovT[i].forEach((h) => h.setAttribute("transform", tr));
       }
     }
     function sync() {
@@ -91,6 +101,7 @@ window.RB = window.RB || {};
           boxes[index] = { x, y: Math.round(y * 100) / 100, w: width, cx: x + width / 2, cy: y - fontPx * .36, lc: 0 };
           const t = glyphs[index].el; t.setAttribute("x", x.toFixed(2)); t.setAttribute("y", `${y}`);
           t.style.fontFamily = cs.fontFamily; t.style.fontSize = cs.fontSize; t.style.fontWeight = cs.fontWeight; t.style.fontStyle = cs.fontStyle; t.style.letterSpacing = cs.letterSpacing;
+          hovT[index].forEach((h) => { h.setAttribute("x", x.toFixed(2)); h.setAttribute("y", `${y}`); h.style.cssText = t.style.cssText; h.style.strokeWidth = Math.max(.8, fontPx * .018).toFixed(2) + "px"; });
           index++;
         });
       });
@@ -114,11 +125,17 @@ window.RB = window.RB || {};
       const e = 1 - Math.exp(-dt / .18);
       off.x += (off.tx + Math.sin(clock * .21) * o.drift - off.x) * e; off.y += (off.ty + Math.cos(clock * .17) * o.drift * .6 - off.y) * e;
       if (tween && tween.isActive()) renderGlyphs();
+      const W = root.clientWidth || 1, H = root.clientHeight || 1;
+      const gx = hover ? hp.x : W * (.5 + .48 * Math.sin(clock * .5)), gy = hover ? hp.y : H * (.5 + .35 * Math.sin(clock * .83 + .7));
+      const k2 = 1 - Math.exp(-dt / (hover ? .08 : .4)); mp.x += (gx - mp.x) * k2; mp.y += (gy - mp.y) * k2;
+      rgEl.setAttribute("cx", mp.x.toFixed(1)); rgEl.setAttribute("cy", mp.y.toFixed(1)); rgEl.setAttribute("r", Math.max(90, Math.min(W, H * 2.2) * .38).toFixed(0)); lgEl.setAttribute("x2", W.toFixed(0));
       place(); if (shown && !RM) raf = requestAnimationFrame(frame);
     }
     const wake = () => { if (!raf && alive && !RM) { last = 0; raf = requestAnimationFrame(frame); } };
     root.addEventListener("pointermove", (e) => { const r = root.getBoundingClientRect(); off.tx = clamp(((e.clientX - r.left) / (r.width || 1)) * 2 - 1, -1, 1) * -o.parallax; off.ty = clamp(((e.clientY - r.top) / (r.height || 1)) * 2 - 1, -1, 1) * -o.parallax; });
-    root.addEventListener("pointerleave", () => { off.tx = off.ty = 0; });
+    const hp = { x: 0, y: 0 }, mp = { x: 0, y: 0 }; let hover = false;
+    root.addEventListener("pointermove", (e) => { const r = root.getBoundingClientRect(); hp.x = e.clientX - r.left; hp.y = e.clientY - r.top; hover = e.pointerType !== "touch"; });
+    root.addEventListener("pointerleave", () => { off.tx = off.ty = 0; hover = false; });
     new ResizeObserver(() => sync()).observe(root);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => alive && sync());
 
@@ -129,6 +146,7 @@ window.RB = window.RB || {};
     function settle() { tween && tween.kill(); states.forEach((st) => { st.x = 0; st.y = 0; st.s = 1; }); renderGlyphs(); }
     function play(delay = 0, dur = o.duration) {
       shown = true; wake();
+      hov.classList.remove("draw"); void hov.getBoundingClientRect(); hov.style.setProperty("--mh-delay", (delay + .2).toFixed(2) + "s"); hov.classList.add("draw");
       if (RM || !gsap) { settle(); return; }
       sync(); const s = em();
       tween && tween.kill();

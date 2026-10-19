@@ -36,10 +36,10 @@ js = rep(js, 'document.getElementById("globe"), cv = document.getElementById("gl
 js = rep(js, '    document.getElementById("globeFocus").addEventListener("click", () => { startFocus(); wake(); });\n', "")
 js = rep(js, 'GL.register(sec, (on) => { active = on; if (on) wake(); else', 'function replay() { if (RMq) return; mode = "spin"; modeT = 0; introDone = false; yaw = FOCUS_YAW + 2.5; yawVel = 0; tilt = 0.22; zoom = 0; }\n    GL.register(sec, (on) => { active = on; if (on) { replay(); wake(); } else')
 # fly
-js = rep(js, "window.__fly = { seek:", "window.__fly = { dur: () => total, seek:")
+js = rep(js, "window.__fly = { seek:", "window.__fly = { dur: () => total / FLY_RATE, seek:")
 js = rep(js, 'document.getElementById("tour"), cv = document.getElementById("flyCanvas")', 'document.getElementById("s-tour"), cv = document.getElementById("flyCanvas")')
 js = rep(js, 'if ("IntersectionObserver" in window) new IntersectionObserver((e) => { if (e[0].isIntersecting) loadWorld(); }, { rootMargin: "60% 0px" }).observe(sec); else loadWorld();', 'sec.addEventListener("scene:near", loadWorld);')
-js = rep(js, "t += dt; if (t >= total) { t = 0; prevYaw = null; }", 't += dt; if (t >= total) { t = 0; prevYaw = null; sec.dispatchEvent(new Event("fly:end")); }')
+js = rep(js, "t += dt * FLY_RATE; if (t >= total) { t = 0; prevYaw = null; }", 't += dt * FLY_RATE; if (t >= total) { t = 0; prevYaw = null; sec.dispatchEvent(new Event("fly:end")); }')
 js = rep(js, "pause: () => { userPaused = true; sync(); } };", "pause: () => { userPaused = true; sync(); }, setPlay: (p) => { userPaused = !p; sync(); }, restart: () => { t = RMq ? kt[chKey[7]] + 2 : 0; prevYaw = null; if (ready && visible) render(0); }, prog: () => t / total };")
 # size
 js = rep(js, 'const sec = document.getElementById("size"); if (!sec) return;', 'const sec = document.getElementById("s-size"); if (!sec) return;')
@@ -64,7 +64,7 @@ import os as _os, json as _js
 LH = sorted(f[:-4] for f in _os.listdir(S + "/portfolio/logos") if f.endswith(".svg"))
 LG = sorted(f[:-4] for f in _os.listdir(S + "/portfolio/legends") if f.endswith(".jpg"))
 NL = sum(1 for x in ("legend-911", "legend-g", "legend-ghost", "legend-countach", "legend-f1") if x in LG)
-js = js[:k] + "  window.PHOTO_AR = " + kn("photo_ar.json") + ";\n  window.LOGO_HAVE = " + _js.dumps(LH) + ";\n  window.LEGEND_OK = " + _js.dumps(LG) + ";\n" + kn("marques.js") + kn("rb/ghostfibers.js") + kn("rb/aeroshards.js") + kn("rb/maskedheading.js") + kn("folio.js") + kn("pins.js") + kn("drape.js") + kn("uni.js") + kn("city.js") + kn("kn.js") + js[k:]
+js = js[:k] + "  window.PHOTO_AR = " + kn("photo_ar.json") + ";\n  window.PHOTO_FOCUS = " + kn("photo_focus.json") + ";\n  window.LOGO_HAVE = " + _js.dumps(LH) + ";\n  window.LEGEND_OK = " + _js.dumps(LG) + ";\n" + kn("marques.js") + kn("rb/ghostfibers.js") + kn("rb/aeroshards.js") + kn("rb/maskedheading.js") + kn("folio.js") + kn("pins.js") + kn("drape.js") + kn("uni.js") + kn("city.js") + kn("kn.js") + js[k:]
 out = head + "<style>" + css + "</style>\n" + kn("body.html").replace("__MQDUR__", ",".join(["11500"] + ["7400"] * NL)) + '\n<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>\n<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>\n' + js + "</script>\n"
 out = out.replace("<title>Riyadh Sub-Dealer Portfolio</title>", "<title>Riyadh Sub-Dealer Keynote</title>")
 open(S + "/portfolio/keynote.html", "w", encoding="utf-8").write(out)

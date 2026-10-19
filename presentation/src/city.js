@@ -129,8 +129,8 @@
     const cur = { t: K[0].t.clone(), d: 105, p: 86, a: -12 };
     let from = null, to = K[0], tt = 1, dur = 1, lift = 0, beat = -1, active = false, playing = true, raf = 0, last = 0, clock = 0, mixFrom = 0, mixT = 0, mixDelay = 0;
     const ease = (x) => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
-    function moveTo(k, d, lf) { from = { t: cur.t.clone(), d: cur.d, p: cur.p, a: cur.a }; to = Object.assign({}, K[k], { d: K[k].d * (cam.aspect < 1 && (k === 0 || k === 3) ? 1.3 : 1) }); tt = 0; dur = d; lift = lf || 0; }
-    function morph(focus, delay) { U.uFocus.value.copy(focus); mixFrom = U.uMix.value; mixT = 0; mixDelay = delay; }
+    function moveTo(k, d, lf) { d *= .66; from = { t: cur.t.clone(), d: cur.d, p: cur.p, a: cur.a }; to = Object.assign({}, K[k], { d: K[k].d * (cam.aspect < 1 && (k === 0 || k === 3) ? 1.3 : 1) }); tt = 0; dur = d; lift = lf || 0; }
+    function morph(focus, delay) { U.uFocus.value.copy(focus); mixFrom = U.uMix.value; mixT = 0; mixDelay = delay * .62; }
     function build(b) {
       if (b === beat) return; const prev = beat; beat = b;
       if (b === 0) { if (prev < 0 || prev > 0) { Object.assign(cur, { t: K[0].t.clone(), d: prev < 0 ? 105 : cur.d, p: prev < 0 ? 86 : cur.p, a: prev < 0 ? -12 : cur.a }); } moveTo(0, prev < 0 ? 5.2 : 3.2); U.uMix.value = 0; morph(K[0].t, 3.4); }
@@ -160,7 +160,7 @@
       if (mixT >= 0) {
         mixT += dt;
         if (mixT < mixDelay) U.uMix.value = Math.max(0, mixFrom * (1 - Math.min(1, mixT / Math.min(1.2, mixDelay * .5))));
-        else U.uMix.value = Math.min(1, (mixT - mixDelay) / 3.6);
+        else U.uMix.value = Math.min(1, (mixT - mixDelay) / 2.5);
         if (U.uMix.value >= 1 && mixT > mixDelay) mixT = -1;
       }
       const shown = mixT < 0 ? 1 : Math.max(0, (mixT - mixDelay) / 1.4);

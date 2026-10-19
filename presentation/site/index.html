@@ -1382,6 +1382,34 @@ body { background: #000; }
 .sc--marques .mq__band { background: linear-gradient(90deg, color-mix(in srgb, var(--c) 18%, rgba(8,3,1,.82)), rgba(8,3,1,.7) 70%); }
 .sc--close .close__copy, .sc--close [class*="copy"] { text-shadow: 0 2px 24px rgba(0,0,0,.9); }
 @media (max-width: 760px) { .fx__drape { -webkit-mask-image: radial-gradient(120% 60% at 50% 18%, #000 25%, rgba(0,0,0,.3) 60%, transparent 90%); mask-image: radial-gradient(120% 60% at 50% 18%, #000 25%, rgba(0,0,0,.3) 60%, transparent 90%); } }
+/* ---------- flight sky: the photo fills the sky above the horizon and moves with the drone ---------- */
+.sc--fly .fly__folio, .fly--pin .fly__labels { display: none; }
+.sc--fly .fly__bd { --hy: 40%; --roll: 0deg; --pan: 0px; --fog: #d8ccb6; --sky-o: 1; --haze: 120px; background: var(--fog); }
+.fly__sky { position: absolute; left: -30%; right: -30%; top: auto; bottom: calc(100% - var(--hy) - 10px); height: calc(var(--hy) + 50vw * 0.35 + 60px);
+  transform-origin: 50% 100%; transform: rotate(var(--roll)); opacity: var(--sky-o); overflow: hidden; transition: opacity .8s; }
+.fly__sky img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: translateX(var(--pan)) scale(1.06);
+  transition: opacity 1.1s cubic-bezier(.22,1,.36,1); filter: saturate(1.1) contrast(1.04); animation: skyKen 9s linear infinite alternate; }
+.fly__sky img.on { opacity: 1; }
+@keyframes skyKen { from { scale: 1; } to { scale: 1.07; } }
+.fly__haze { position: absolute; left: -30%; right: -30%; height: calc(var(--haze) + 30px); top: calc(var(--hy) - var(--haze)); transform-origin: 50% var(--haze); transform: rotate(var(--roll)); pointer-events: none;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--fog) 45%, transparent) 60%, var(--fog) 88%, var(--fog)); opacity: var(--sky-o); }
+.sc--fly .fly__bd img.on { opacity: 1; }
+.fly--glass canvas, .sc--fly canvas { opacity: 1; }
+.fly__skytag { position: absolute; z-index: 3; right: max(28px, env(safe-area-inset-right, 0px)); top: calc(118px + env(safe-area-inset-top, 0px)); display: flex; align-items: center; gap: 8px; margin: 0; padding: 7px 12px 7px 10px; border-radius: 99px;
+  background: rgba(10,4,1,.5); border: 1px solid rgba(255,255,255,.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); font-size: 12px; color: var(--ink-soft); opacity: 0; max-width: min(420px, 60vw); }
+.fly__skytag.in { animation: folioCapIn .6s var(--ease-out) both; opacity: 1; }
+.fly__skytag i { width: 7px; height: 7px; border-radius: 9px; background: var(--flame-lit); box-shadow: 0 0 8px var(--flame-lit); flex: none; }
+.fly__skytag b { color: #fff; font-weight: 600; white-space: nowrap; }
+.fly__skytag span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 760px) { .fly__skytag { top: calc(96px + env(safe-area-inset-top, 0px)); right: 14px; left: 14px; max-width: none; font-size: 11px; } }
+/* Text Hover Effect layer on every headline */
+.masked-heading__hover { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.masked-heading__hover text { fill: none; stroke-linejoin: round; }
+.mh-draw text { stroke: rgba(255, 236, 220, .5); stroke-dasharray: 1000; stroke-dashoffset: 1000; }
+.masked-heading__hover.draw .mh-draw text { animation: mhDraw 4s ease-in-out var(--mh-delay, .2s) both; }
+@keyframes mhDraw { 0% { stroke-dashoffset: 1000; opacity: 1; } 70% { opacity: .9; } 100% { stroke-dashoffset: 0; opacity: .28; } }
+.mh-glow text { stroke-width: inherit; filter: drop-shadow(0 0 6px rgba(255,140,60,.55)); }
+@media (prefers-reduced-motion: reduce) { .mh-draw text { stroke-dashoffset: 0; opacity: .28; animation: none !important; } }
 .ghost-fibers-container {
   position: relative;
   width: 100%;
@@ -1602,7 +1630,8 @@ body { background: #000; }
 
   <!-- 04 drone flight -->
   <section class="sc sc--fly fly" id="s-tour" data-title="The flight" data-dur="0" aria-label="Drone flight over the surveyed showrooms">
-    <div class="fly__bd" id="flyBd" aria-hidden="true"><img alt=""><img alt=""></div>
+    <div class="fly__bd" id="flyBd" aria-hidden="true"><div class="fly__sky"><img alt=""><img alt=""></div><div class="fly__haze"></div></div>
+    <p class="fly__skytag" id="flySkyTag" aria-live="polite"></p>
     <canvas id="flyCanvas" aria-hidden="true"></canvas>
     <div class="fly__glass" aria-hidden="true"></div>
     <div class="fly__shade" aria-hidden="true"></div>
@@ -2160,7 +2189,8 @@ const DATA = {"d":[["D0001","Abdulsalam Cars Company","شركة عبدالسلا
     const sec = document.getElementById("s-tour"), cv = document.getElementById("flyCanvas"), T = window.THREE;
     if (!sec || !cv) return;
     let renderer = null;
-    try { if (T) renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, alpha: false, stencil: false, powerPreference: "high-performance" }); } catch (e) { renderer = null; }
+    try { if (T) renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, alpha: true, premultipliedAlpha: true, stencil: false, powerPreference: "high-performance" }); } catch (e) { renderer = null; }
+    if (renderer) renderer.setClearColor(0x000000, 0);
     if (!renderer) { sec.classList.add("fly--off"); return; }
     const $ = (id) => document.getElementById(id);
     const RMq = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -2177,9 +2207,10 @@ const DATA = {"d":[["D0001","Abdulsalam Cars Company","شركة عبدالسلا
     const loc = (lat, lng, y = 0) => { const m = merc(lat, lng); return new T.Vector3((m[0] - MX0) * KK, y, -(m[1] - MY0) * KK); };
     const unloc = (x, z) => ({ lng: (x / KK + MX0) / RE / RAD, lat: (2 * Math.atan(Math.exp((-z / KK + MY0) / RE)) - Math.PI / 2) / RAD });
 
+    const FLY_RATE = 1.45;   /* the drone flies 45% faster than its keyframes were authored: same route, tighter tour */
     const scene = new T.Scene();
     const DAY = new T.Color(0xd8ccb6), NIGHT = new T.Color(0x0e0300), bg = new T.Color().copy(DAY);
-    scene.background = bg; scene.fog = new T.FogExp2(bg.getHex(), 0.0002);
+    scene.background = null; scene.fog = new T.FogExp2(bg.getHex(), 0.0002);   /* the sky is left clear: showroom photographs fill it from behind */
     const cam = new T.PerspectiveCamera(52, 1, 1, 200000);
     scene.add(new T.HemisphereLight(0xfff4e2, 0x6b5a48, 0.75));
     const sun = new T.DirectionalLight(0xfff1dc, 0.9); sun.position.set(-0.55, 1, 0.45); scene.add(sun);
@@ -2405,22 +2436,44 @@ const DATA = {"d":[["D0001","Abdulsalam Cars Company","شركة عبدالسلا
       const v = [HQ, null, Q, P(safh), P(noj), P(rc), P(bar), null, null, Sh, Sh, P(nfy), null, Q.clone().lerp(Sh, .5)][k];
       return v ? new T.Vector3(v.x, 0, v.z) : null;
     });
-    function showPhotos(list, bd, name) {
-      clearInterval(phTimer); phV.pause(); backdrop(null); photo.classList.remove("in");
-      if (!pins && window.PinDeck) { pins = window.PinDeck.mount($("flyFolio")); pins.preload(C.map((c) => c.ph)); }
-      const has = !!(list && list.length);
-      sec.classList.toggle("fly--pin", has);
-      if (!pins) return;
-      if (!has) { pins.hide(); pinAt = null; return; }
-      pinAt = AT[shown] || HQ;
-      pins.show(list, { title: name, hold: 2600, color: /shifa|south|used/i.test(name + list[0][1]) ? "#4fd1c9" : "#ffb066" });
+    /* the sky: beyond the horizon the satellite world ends, so the clear sky becomes a window onto the showroom we are passing */
+    const sky = $("flyBd"), skyImgs = [...sky.querySelectorAll("img")], skyTag = $("flySkyTag");
+    /* one shuffled reel of every captioned showroom photo; each is auto-cropped to its own detail band (measured at build time) */
+    const CAP = new Map(); C.forEach((c) => (c.ph || []).forEach(([n, cap]) => { if (n[0] !== "@" && !CAP.has(n)) CAP.set(n, cap); }));
+    const POOL = [...CAP.keys()];
+    const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+    let skyList = [], skyK = 0, skyTimer = 0, skyFront = 0, skyName = "";
+    function skyShow(src, cap, name) {
+      const back = skyImgs[skyFront ^ 1], front = skyImgs[skyFront], fc = (window.PHOTO_FOCUS || {})[name] || [50, 55];
+      back.style.objectPosition = `${fc[0]}% ${fc[1]}%`;
+      const go = () => { back.classList.add("on"); front.classList.remove("on"); skyFront ^= 1; skyTag.innerHTML = `<i></i><b>${esc(cap || "On the survey walk")}</b>`; skyTag.classList.remove("in"); void skyTag.offsetWidth; skyTag.classList.add("in"); };
+      if (back.getAttribute("src") === src && back.complete) go(); else { back.onload = go; back.src = src; }
     }
-    const pinV = new T.Vector3();
-    function pinFrame(dt) {
-      if (!pins || !pinAt) return;
-      pinV.copy(pinAt).project(cam);
-      const vis = pinV.z < 1 && Math.abs(pinV.x) < 1.1 && Math.abs(pinV.y) < 1.1;
-      pins.anchor((pinV.x + 1) / 2 * W, (1 - pinV.y) / 2 * Hh, vis, dt);
+    function skyNext() { if (!skyList.length) return; if (skyK >= skyList.length) { skyK = 0; shuffle(skyList); } const [n, cap] = skyList[skyK++]; skyShow(`photos/${n}.jpg`, cap, n); }
+    function showPhotos() {
+      clearInterval(phTimer); phV.pause(); photo.classList.remove("in");
+      if (skyTimer) return;                      /* the reel runs continuously through the flight, independent of the stops */
+      skyList = shuffle(POOL.map((n) => [n, CAP.get(n)])); skyK = 0; skyNext(); skyTimer = setInterval(skyNext, 3000);
+    }
+    /* horizon: project a point on the ground far ahead, and one beside it, to find where and at what tilt the sky begins */
+    const hz = new T.Vector3(), hz2 = new T.Vector3(), fwd = new T.Vector3(), side = new T.Vector3();
+    function pinFrame() {
+      fwd.set(look.x - pos.x, 0, look.z - pos.z).normalize(); side.set(-fwd.z, 0, fwd.x);
+      /* the visible horizon is where the satellite ground ends, not the true one: cast along the heading to the edge of the base layer */
+      const bx0 = -3600, bx1 = 22900, bz0 = -11400, bz1 = 28400;
+      const tx = fwd.x > 1e-6 ? (bx1 - pos.x) / fwd.x : fwd.x < -1e-6 ? (bx0 - pos.x) / fwd.x : 1e9, tz = fwd.z > 1e-6 ? (bz1 - pos.z) / fwd.z : fwd.z < -1e-6 ? (bz0 - pos.z) / fwd.z : 1e9;
+      const FAR = Math.max(1500, Math.min(cam.far * .6, tx, tz) * .97);
+      hz.copy(pos).addScaledVector(fwd, FAR).setY(0).project(cam);
+      hz2.copy(pos).addScaledVector(fwd, FAR).addScaledVector(side, FAR * .4).setY(0).project(cam);
+      const x1 = (hz.x + 1) / 2 * W, y1 = (1 - hz.y) / 2 * Hh, x2 = (hz2.x + 1) / 2 * W, y2 = (1 - hz2.y) / 2 * Hh;
+      const ang = Math.atan2(y2 - y1, x2 - x1), yc = y1 + (W / 2 - x1) * Math.tan(ang);
+      const yaw = Math.atan2(fwd.x, fwd.z), night = plNow;
+      sky.style.setProperty("--hy", Math.max(-40, Math.min(Hh * 1.2, yc)).toFixed(1) + "px");
+      sky.style.setProperty("--roll", (ang / RAD).toFixed(2) + "deg");
+      sky.style.setProperty("--pan", (Math.sin(yaw) * W * .1).toFixed(1) + "px");
+      sky.style.setProperty("--fog", `rgb(${Math.round(bg.r * 255)},${Math.round(bg.g * 255)},${Math.round(bg.b * 255)})`);
+      sky.style.setProperty("--sky-o", (1 - night).toFixed(3));
+      sky.style.setProperty("--haze", Math.max(36, Math.min(150, yc * .4)).toFixed(0) + "px");
     }
     function setChapter(i) {
       if (i === shown) return; shown = i; const c = C[i];
@@ -2547,7 +2600,7 @@ const DATA = {"d":[["D0001","Abdulsalam Cars Company","شركة عبدالسلا
     function loop(now) {
       raf = 0; if (!playing) return;
       const ms = last ? Math.min(100, now - last) : 16.7, dt = Math.min(0.05, ms / 1000); last = now;
-      t += dt; if (t >= total) { t = 0; prevYaw = null; sec.dispatchEvent(new Event("fly:end")); }
+      t += dt * FLY_RATE; if (t >= total) { t = 0; prevYaw = null; sec.dispatchEvent(new Event("fly:end")); }
       render(dt); adapt(ms);
       raf = requestAnimationFrame(loop);
     }
@@ -2566,7 +2619,7 @@ const DATA = {"d":[["D0001","Abdulsalam Cars Company","شركة عبدالسلا
     if (RMq) t = kt[chKey[7]] + 2;
     size();
     GL.register(sec, (on) => { visible = on; if (on) loadWorld(); sync(); });
-    window.__fly = { dur: () => total, seek: (s) => { t = s; prevYaw = null; render(0); stream(true); }, streaming: () => loadingN, detailLive: () => detail.filter((d) => d.s === 2).length, keyTime: (i) => kt[chKey[i]], isReady: () => ready, pause: () => { userPaused = true; sync(); }, setPlay: (p) => { userPaused = !p; sync(); }, restart: () => { t = RMq ? kt[chKey[7]] + 2 : 0; prevYaw = null; if (ready && visible) render(0); }, prog: () => t / total };
+    window.__fly = { dur: () => total / FLY_RATE, seek: (s) => { t = s * FLY_RATE; prevYaw = null; render(0); stream(true); }, streaming: () => loadingN, detailLive: () => detail.filter((d) => d.s === 2).length, keyTime: (i) => kt[chKey[i]] / FLY_RATE, isReady: () => ready, pause: () => { userPaused = true; sync(); }, setPlay: (p) => { userPaused = !p; sync(); }, restart: () => { t = RMq ? kt[chKey[7]] + 2 : 0; prevYaw = null; if (ready && visible) render(0); }, prog: () => t / total };
   })();
 
   /* ---------- market size: first-ever derivations (scroll-pinned particle field) ---------- */
@@ -3097,6 +3150,7 @@ const DATA = {"d":[["D0001","Abdulsalam Cars Company","شركة عبدالسلا
     document.addEventListener("keydown", (e) => { if (lb.hidden) return; if (e.key === "Escape") close(); if (e.key === "ArrowRight") show(at + 1); if (e.key === "ArrowLeft") show(at - 1); });
   })();
   window.PHOTO_AR = {"n-nojoom-facade": 0.562, "s-jariwi": 1.333, "s-mawj": 0.75, "s-wafi": 1.333, "q-tank": 0.563, "s-odaini-s": 1.333, "q-pickups": 0.562, "s-ramz": 1.333, "q-barimi-mclaren": 0.563, "q-safh-hall": 0.75, "s-ustul": 0.75, "n-pickups": 0.562, "n-rc-merc2": 0.562, "s15byr-4": 1.778, "q-barimi-g": 0.562, "n-rayat": 1.776, "n-rc-facade": 0.563, "n-rolls": 1.778, "q-safh-dark": 0.563, "s-suwaidan": 1.776, "s15aqd-1": 1.333, "s15nsm-1": 1.333, "s14wrd-1": 1.333, "s-subaie": 1.776, "d0141-1": 1.778, "n-saber-facade": 0.562, "s-dosari": 1.776, "s-imtiyaz": 0.75, "q-street-fullspeed": 0.75, "s-raad": 1.776, "s-ghost": 1.333, "s-lc300": 1.333, "n-gclass-front": 0.563, "d0261-2": 1.778, "s0095-1": 1.778, "q-riyadhcars": 0.563, "n-hexhall": 0.562, "d0258-1": 1.778, "s0036-3": 1.778, "n-rc-mercedes": 0.563, "n-soum": 0.75, "q-riyadhcars-night": 0.562, "q-street-ibtikar": 0.75, "n-porsche-row": 0.563, "s-qahtani": 1.776, "q-barimi-urus": 0.563, "s-street": 0.562, "n-tank": 0.563, "s-odaini": 1.778, "s-sunset-row": 1.776, "q-redcarpet": 0.563, "q-nojoom": 0.562, "hq-skyline": 0.563, "s-uruba": 1.333, "q-barimi-rolls": 0.563, "s-future": 0.563, "s-nufai": 1.776, "n-rc-hall": 0.563, "n-saber-smart": 0.562, "s13nb2-3": 1.778, "n-rc-night": 0.562, "s-qannas": 1.776, "s-otaibi": 1.776, "q-street-binomaira": 0.75, "s-odaini-p": 0.562, "s-najoom": 1.333, "s14sbr-2": 1.778, "s-hall": 1.333, "s13ads-2": 1.333, "s-kathiri": 1.776, "s-shumukh": 1.776, "d0261-1": 1.778, "q-luxhall": 0.563, "s-autopark": 0.75, "s-jeeps": 0.563, "s-ajyal": 1.776, "s0053-1": 1.778, "n-rc-ar": 0.562, "hq-kafd": 0.563, "n-redcarpet": 0.563, "s16nfy-1": 1.778, "q-gclass": 0.563, "s-glass": 1.776, "q-porsche": 0.563, "n-imad-facade": 1.776, "s-saber-street": 0.75, "n-mezzanine": 0.563, "n-gclass-rear": 0.75, "s16asm-1": 1.778, "@albarimi": 1.778};
+  window.PHOTO_FOCUS = {"d0141-1": [31, 58], "d0258-1": [30, 49], "d0261-1": [30, 63], "d0261-2": [68, 68], "hq-kafd": [31, 35], "hq-skyline": [64, 55], "n-gclass-front": [70, 45], "n-gclass-rear": [30, 49], "n-hexhall": [40, 51], "n-imad-facade": [30, 60], "n-mezzanine": [30, 55], "n-nojoom-facade": [43, 65], "n-pickups": [61, 57], "n-porsche-row": [30, 52], "n-rayat": [30, 62], "n-rc-ar": [47, 68], "n-rc-facade": [70, 51], "n-rc-hall": [66, 64], "n-rc-merc2": [38, 40], "n-rc-mercedes": [69, 50], "n-rc-night": [61, 50], "n-redcarpet": [70, 49], "n-rolls": [47, 43], "n-saber-facade": [60, 55], "n-saber-smart": [59, 46], "n-soum": [33, 65], "n-tank": [52, 53], "q-barimi-g": [38, 44], "q-barimi-mclaren": [70, 49], "q-barimi-rolls": [56, 52], "q-barimi-urus": [51, 51], "q-gclass": [70, 45], "q-luxhall": [30, 46], "q-nojoom": [43, 65], "q-pickups": [61, 57], "q-porsche": [30, 52], "q-redcarpet": [70, 49], "q-riyadhcars-night": [61, 50], "q-riyadhcars": [70, 51], "q-safh-dark": [53, 43], "q-safh-hall": [47, 37], "q-street-binomaira": [30, 47], "q-street-fullspeed": [30, 45], "q-street-ibtikar": [70, 46], "q-tank": [46, 52], "s-ajyal": [30, 72], "s-autopark": [30, 54], "s-dosari": [30, 60], "s-future": [42, 47], "s-ghost": [70, 58], "s-glass": [30, 62], "s-hall": [30, 42], "s-imtiyaz": [30, 69], "s-jariwi": [57, 70], "s-jeeps": [30, 35], "s-kathiri": [38, 63], "s-lc300": [70, 59], "s-mawj": [68, 52], "s-najoom": [51, 70], "s-nufai": [50, 53], "s-odaini-p": [43, 66], "s-odaini-s": [70, 67], "s-odaini": [42, 66], "s-otaibi": [46, 72], "s-qahtani": [70, 57], "s-qannas": [70, 58], "s-raad": [68, 60], "s-ramz": [58, 79], "s-saber-street": [30, 39], "s-shumukh": [30, 72], "s-street": [70, 57], "s-subaie": [70, 47], "s-sunset-row": [42, 72], "s-suwaidan": [30, 54], "s-uruba": [46, 79], "s-ustul": [70, 52], "s-wafi": [61, 61], "s0036-3": [70, 72], "s0053-1": [30, 66], "s0095-1": [62, 67], "s13ads-2": [66, 71], "s13nb2-3": [30, 71], "s14sbr-2": [70, 54], "s14wrd-1": [65, 55], "s15aqd-1": [57, 68], "s15byr-4": [34, 68], "s15nsm-1": [67, 61], "s16asm-1": [48, 72], "s16nfy-1": [50, 53]};
   window.LOGO_HAVE = ["audi", "bentley", "bmw", "cadillac", "changan", "chevrolet", "chrysler", "citroen", "ford", "geely", "gmc", "haval", "honda", "hyundai", "infiniti", "jeep", "jetour", "kia", "lamborghini", "landrover", "lexus", "mazda", "mclaren", "mercedes", "mg", "mini", "mitsubishi", "nissan", "peugeot", "porsche", "renault", "rollsroyce", "seat", "suzuki", "tata", "toyota", "volkswagen"];
   window.LEGEND_OK = ["legend-911", "legend-countach", "legend-f1", "legend-g", "legend-ghost"];
   /* ==================== Marques: brand strata + legends ==================== */
@@ -6451,6 +6505,16 @@ window.RB = window.RB || {};
       media.appendChild(img); clip.appendChild(media); reveal.appendChild(clip); return media;
     });
     root.appendChild(reveal);
+    /* Text Hover Effect (Aceternity), multi-line: an outline of every glyph draws itself on, and a warm gradient stroke
+       is revealed through a radial mask that follows the pointer, or wanders through the letters when nobody is pointing */
+    const hov = document.createElementNS(NS, "svg"); hov.setAttribute("class", "masked-heading__hover"); hov.setAttribute("aria-hidden", "true");
+    hov.innerHTML = `<defs><linearGradient id="${id}-g" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="600" y2="0"><stop offset="0" stop-color="#ffd27a"/><stop offset=".3" stop-color="#ff7a1a"/><stop offset=".55" stop-color="#ffe2c2"/><stop offset=".8" stop-color="#ff9a4a"/><stop offset="1" stop-color="#4fd1c9"/></linearGradient>
+      <radialGradient id="${id}-r" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="160"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient>
+      <mask id="${id}-m" maskUnits="userSpaceOnUse" x="-50%" y="-50%" width="200%" height="200%"><rect x="-2000" y="-2000" width="6000" height="6000" fill="url(#${id}-r)"/></mask></defs>
+      <g class="mh-draw"></g><g class="mh-glow" mask="url(#${id}-m)" stroke="url(#${id}-g)"></g>`;
+    const gDraw = hov.querySelector(".mh-draw"), gGlow = hov.querySelector(".mh-glow"), rgEl = hov.querySelector("radialGradient"), lgEl = hov.querySelector("linearGradient");
+    const hovT = glyphs.map((g) => [gDraw, gGlow].map((grp) => { const t = document.createElementNS(NS, "text"); t.textContent = g.el.textContent; grp.appendChild(t); return t; }));
+    root.appendChild(hov);
     root.setAttribute("aria-label", label);
 
     /* geometry: per-glyph boxes, exactly as the component measures them */
@@ -6459,9 +6523,9 @@ window.RB = window.RB || {};
     function renderGlyphs() {
       for (let i = 0; i < glyphs.length; i++) {
         const g = glyphs[i].el, box = boxes[i], st = states[i];
-        if (!box || (st.x === 0 && st.y === 0 && st.s === 1)) { if (g.hasAttribute("transform")) g.removeAttribute("transform"); continue; }
+        if (!box || (st.x === 0 && st.y === 0 && st.s === 1)) { if (g.hasAttribute("transform")) { g.removeAttribute("transform"); hovT[i].forEach((h) => h.removeAttribute("transform")); } continue; }
         const s = Math.max(st.s, .0001), tx = box.cx * (1 - s) + st.x * (box.cx - box.lc), ty = box.cy * (1 - s) + st.y;
-        g.setAttribute("transform", `translate(${tx.toFixed(2)} ${ty.toFixed(2)}) scale(${s.toFixed(4)})`);
+        const tr = `translate(${tx.toFixed(2)} ${ty.toFixed(2)}) scale(${s.toFixed(4)})`; g.setAttribute("transform", tr); hovT[i].forEach((h) => h.setAttribute("transform", tr));
       }
     }
     function sync() {
@@ -6478,6 +6542,7 @@ window.RB = window.RB || {};
           boxes[index] = { x, y: Math.round(y * 100) / 100, w: width, cx: x + width / 2, cy: y - fontPx * .36, lc: 0 };
           const t = glyphs[index].el; t.setAttribute("x", x.toFixed(2)); t.setAttribute("y", `${y}`);
           t.style.fontFamily = cs.fontFamily; t.style.fontSize = cs.fontSize; t.style.fontWeight = cs.fontWeight; t.style.fontStyle = cs.fontStyle; t.style.letterSpacing = cs.letterSpacing;
+          hovT[index].forEach((h) => { h.setAttribute("x", x.toFixed(2)); h.setAttribute("y", `${y}`); h.style.cssText = t.style.cssText; h.style.strokeWidth = Math.max(.8, fontPx * .018).toFixed(2) + "px"; });
           index++;
         });
       });
@@ -6501,11 +6566,17 @@ window.RB = window.RB || {};
       const e = 1 - Math.exp(-dt / .18);
       off.x += (off.tx + Math.sin(clock * .21) * o.drift - off.x) * e; off.y += (off.ty + Math.cos(clock * .17) * o.drift * .6 - off.y) * e;
       if (tween && tween.isActive()) renderGlyphs();
+      const W = root.clientWidth || 1, H = root.clientHeight || 1;
+      const gx = hover ? hp.x : W * (.5 + .48 * Math.sin(clock * .5)), gy = hover ? hp.y : H * (.5 + .35 * Math.sin(clock * .83 + .7));
+      const k2 = 1 - Math.exp(-dt / (hover ? .08 : .4)); mp.x += (gx - mp.x) * k2; mp.y += (gy - mp.y) * k2;
+      rgEl.setAttribute("cx", mp.x.toFixed(1)); rgEl.setAttribute("cy", mp.y.toFixed(1)); rgEl.setAttribute("r", Math.max(90, Math.min(W, H * 2.2) * .38).toFixed(0)); lgEl.setAttribute("x2", W.toFixed(0));
       place(); if (shown && !RM) raf = requestAnimationFrame(frame);
     }
     const wake = () => { if (!raf && alive && !RM) { last = 0; raf = requestAnimationFrame(frame); } };
     root.addEventListener("pointermove", (e) => { const r = root.getBoundingClientRect(); off.tx = clamp(((e.clientX - r.left) / (r.width || 1)) * 2 - 1, -1, 1) * -o.parallax; off.ty = clamp(((e.clientY - r.top) / (r.height || 1)) * 2 - 1, -1, 1) * -o.parallax; });
-    root.addEventListener("pointerleave", () => { off.tx = off.ty = 0; });
+    const hp = { x: 0, y: 0 }, mp = { x: 0, y: 0 }; let hover = false;
+    root.addEventListener("pointermove", (e) => { const r = root.getBoundingClientRect(); hp.x = e.clientX - r.left; hp.y = e.clientY - r.top; hover = e.pointerType !== "touch"; });
+    root.addEventListener("pointerleave", () => { off.tx = off.ty = 0; hover = false; });
     new ResizeObserver(() => sync()).observe(root);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => alive && sync());
 
@@ -6516,6 +6587,7 @@ window.RB = window.RB || {};
     function settle() { tween && tween.kill(); states.forEach((st) => { st.x = 0; st.y = 0; st.s = 1; }); renderGlyphs(); }
     function play(delay = 0, dur = o.duration) {
       shown = true; wake();
+      hov.classList.remove("draw"); void hov.getBoundingClientRect(); hov.style.setProperty("--mh-delay", (delay + .2).toFixed(2) + "s"); hov.classList.add("draw");
       if (RM || !gsap) { settle(); return; }
       sync(); const s = em();
       tween && tween.kill();
@@ -7379,8 +7451,8 @@ window.RB = window.RB || {};
     const cur = { t: K[0].t.clone(), d: 105, p: 86, a: -12 };
     let from = null, to = K[0], tt = 1, dur = 1, lift = 0, beat = -1, active = false, playing = true, raf = 0, last = 0, clock = 0, mixFrom = 0, mixT = 0, mixDelay = 0;
     const ease = (x) => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
-    function moveTo(k, d, lf) { from = { t: cur.t.clone(), d: cur.d, p: cur.p, a: cur.a }; to = Object.assign({}, K[k], { d: K[k].d * (cam.aspect < 1 && (k === 0 || k === 3) ? 1.3 : 1) }); tt = 0; dur = d; lift = lf || 0; }
-    function morph(focus, delay) { U.uFocus.value.copy(focus); mixFrom = U.uMix.value; mixT = 0; mixDelay = delay; }
+    function moveTo(k, d, lf) { d *= .66; from = { t: cur.t.clone(), d: cur.d, p: cur.p, a: cur.a }; to = Object.assign({}, K[k], { d: K[k].d * (cam.aspect < 1 && (k === 0 || k === 3) ? 1.3 : 1) }); tt = 0; dur = d; lift = lf || 0; }
+    function morph(focus, delay) { U.uFocus.value.copy(focus); mixFrom = U.uMix.value; mixT = 0; mixDelay = delay * .62; }
     function build(b) {
       if (b === beat) return; const prev = beat; beat = b;
       if (b === 0) { if (prev < 0 || prev > 0) { Object.assign(cur, { t: K[0].t.clone(), d: prev < 0 ? 105 : cur.d, p: prev < 0 ? 86 : cur.p, a: prev < 0 ? -12 : cur.a }); } moveTo(0, prev < 0 ? 5.2 : 3.2); U.uMix.value = 0; morph(K[0].t, 3.4); }
@@ -7410,7 +7482,7 @@ window.RB = window.RB || {};
       if (mixT >= 0) {
         mixT += dt;
         if (mixT < mixDelay) U.uMix.value = Math.max(0, mixFrom * (1 - Math.min(1, mixT / Math.min(1.2, mixDelay * .5))));
-        else U.uMix.value = Math.min(1, (mixT - mixDelay) / 3.6);
+        else U.uMix.value = Math.min(1, (mixT - mixDelay) / 2.5);
         if (U.uMix.value >= 1 && mixT > mixDelay) mixT = -1;
       }
       const shown = mixT < 0 ? 1 : Math.max(0, (mixT - mixDelay) / 1.4);
@@ -7531,7 +7603,7 @@ window.RB = window.RB || {};
     const exoFolio = window.Folio ? window.Folio.mount($("exoFolio"), { hold: 2300 }) : null;
     const EXO = [["n-rolls", "Rolls-Royce Spectre · Aston Martin DBX · Bentley"], ["q-barimi-rolls", "Rolls-Royce Cullinan"], ["q-barimi-urus", "Lamborghini Urus"], ["q-barimi-mclaren", "McLaren"]];
     /* on the ground: five glass folders, four photographs each, alternating districts */
-    const gFolio = window.Folio ? window.Folio.mount($("groundFolio"), { hold: 1150 }) : null;
+    const gFolio = window.Folio ? window.Folio.mount($("groundFolio"), { hold: 950 }) : null;
     const wq = WALL.filter((w) => w.dist === MK[0]), ws = WALL.filter((w) => w.dist === MK[1]);
     const GROUPS = [[wq, 0, 0], [ws, 0, 1], [wq, 4, 0], [ws, 4, 1], [wq, 8, 0]].map(([L, a, mk]) => ({ mk, items: L.slice(a, a + 4).map((w) => [w.p, w.units ? `${w.name} · ${fmt(w.units)} cars` : w.name]) })).filter((g) => g.items.length);
     window.__FOL = { exoFolio, EXO, gFolio, GROUPS };
@@ -7646,7 +7718,7 @@ window.RB = window.RB || {};
     }
 
     /* ==================== the director: one clock, a cue sheet, scrub and glide ==================== */
-    const TR = RMk ? 0 : 1.25;                      /* chapter transition, seconds */
+    let TR = RMk ? 0 : 1;                           /* chapter transition, seconds (set per cut) */
     const smooth = (x) => x * x * (3 - 2 * x), clamp01 = (x) => x < 0 ? 0 : x > 1 ? 1 : x;
     const flyDur = () => window.__fly && window.__fly.dur ? window.__fly.dur() : 60;
     let lastT = 0, warp = 0, lastScrub = 0, flyLast = -1, flyStall = 0, cues = [], chap = [], TOTAL = 0, T = 0, TT = null, vel = 0, holdUntil = 0, glide = null, speed = 1, leaving = null;
@@ -7654,10 +7726,11 @@ window.RB = window.RB || {};
        never shorter than its visual needs to play out, never so long the eye starts to wander */
     /* how long a beat holds, by what it shows: reading time (3.3 words a second) on top of the time its visual needs to land.
        particle morphs need ~2.8 s to settle, a count-up 1.3 s, a camera move its own flight time, a photo deck one hold per frame */
+    /* attention pacing: the eye gets a new thing every 3-7 s. A beat holds for its visual to land, plus reading at 4 words a second, and no longer */
     const VIS = {
-      uni: { land: 2.8, min: 5.2, max: 10.5 }, count: { land: 1.6, min: 4.4, max: 9 }, globe: { land: 4.5, min: 9, max: 12 }, city: { land: 4.6, min: 8.2, max: 11.5 },
-      size: { land: 2.2, min: 6, max: 10 }, ground: { land: 1.6, fixed: (s, bb) => 1.6 + 4 * 1.15 + .6 }, exo: { land: 1, min: 9, max: 12 },
-      marques: { land: 0, fixed: (s, bb) => bb === 0 ? 11.5 : 7.4 }, text: { land: .6, min: 3.6, max: 9 },
+      uni: { land: 2.2, min: 4.2, max: 6.2 }, opp: { fixed: () => 9.5 }, glance: { fixed: (s, bb) => bb === 0 ? 3.2 : 8.2 }, count: { land: 1.2, min: 3.4, max: 6 }, globe: { land: 3.4, min: 6.4, max: 8 }, city: { land: 3, min: 5.8, max: 7.4 },
+      size: { land: 1.8, min: 4.5, max: 7.5 }, ground: { land: 1.4, fixed: () => 1.4 + 4 * .95 + .4 }, exo: { land: 1, min: 6, max: 7.5 },
+      marques: { land: 0, fixed: (s, bb) => bb === 0 ? 8.5 : 5.4 }, text: { land: .5, min: 3, max: 6.5 },
     };
     function kindOf(s) {
       if (VIS[s.id]) return VIS[s.id];
@@ -7670,7 +7743,7 @@ window.RB = window.RB || {};
       const parts = s.parts.filter((el) => el.hasAttribute("data-only") ? +el.dataset.only === bb : +el.dataset.b === bb);
       const loose = bb === 0 ? [...s.el.querySelectorAll(".say, .sc__sub, .kick, .mega")].filter((el) => !el.closest("[data-b],[data-only]")) : [];
       const words = parts.concat(loose).map((el) => el.textContent).join(" ").split(/\s+/).filter(Boolean).length;
-      return Math.min(K.max, Math.max(K.min, K.land + 1.2 + words / 3.3));
+      return Math.min(K.max, Math.max(K.min, K.land + .8 + words / 4));
     }
     function sheet() {
       cues = []; chap = []; let t0 = 0;
@@ -7699,7 +7772,7 @@ window.RB = window.RB || {};
       if (c.i !== i) show(c.i, c.b); else if (c.b !== b) { b = c.b; builds(); }
       if (scrubbed && S[i].id === "tour" && window.__fly && window.__fly.seek) window.__fly.seek(Math.max(0, T - chap[i].t0));
     }
-    function finishLeave() { if (!leaving) return; const el = leaving.el; el.classList.remove("is-leaving"); el.style.opacity = ""; el.style.filter = ""; el.style.removeProperty("--se-z"); leaving = null; }
+    function finishLeave() { if (!leaving) return; const el = leaving.el; el.classList.remove("is-leaving"); el.style.opacity = ""; el.style.filter = ""; el.style.transform = ""; el.style.borderRadius = ""; el.style.zIndex = ""; el.style.removeProperty("--se-z"); leaving = null; }
     /* ScrollExpand's frame, driven by the clock: the next chapter opens from a rounded card to full bleed */
     /* chapter transitions: three cuts in rotation (light blade, iris, shutter) so no two arrivals feel the same */
     const txLight = $("txLight"), KINDS = ["blade", "iris", "shutter", "blade", "shutter", "iris"];
@@ -7722,23 +7795,47 @@ window.RB = window.RB || {};
       txLight.style.background = `linear-gradient(112deg, transparent calc(${f.toFixed(2)}% - 2px), rgba(255,214,170,${(.95 * Math.sin(Math.PI * k)).toFixed(3)}) ${f.toFixed(2)}%, rgba(255,140,60,${(.35 * Math.sin(Math.PI * k)).toFixed(3)}) calc(${f.toFixed(2)}% + 10px), transparent calc(${f.toFixed(2)}% + 60px))`;
       return `polygon(0% 0%, ${(f + 20).toFixed(2)}% 0%, ${(f - 20).toFixed(2)}% 100%, 0% 100%)`;
     }
+    /* cuts, Reels-style: every chapter arrives with a different move, never the same twice in a row */
+    const CUTS = ["swipe", "pan", "pop", "blade", "shrink", "zoom", "iris", "swipe", "shutter", "pan", "pop", "shrink", "zoom", "blade", "swipe", "iris", "pan", "pop", "shrink"];
+    const CUT_D = { swipe: .78, pan: .82, pop: .68, shrink: .92, zoom: .78, blade: .95, iris: 1, shutter: .95 };
+    const easeExpo = (x) => x >= 1 ? 1 : 1 - Math.pow(2, -10 * x), easeBack = (x) => { const c = 1.6; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+    function motion(kind, k, el, out) {
+      /* returns [incoming transform, outgoing transform, outgoing opacity, radius] */
+      const W = innerWidth, H = innerHeight;
+      if (kind === "swipe") { const e = easeExpo(k); return [`translate3d(0, ${((1 - e) * H).toFixed(1)}px, 0)`, `translate3d(0, ${(-e * H * .28).toFixed(1)}px, 0) scale(${(1 - .06 * e).toFixed(4)})`, 1 - .55 * e, 18 * (1 - e)]; }
+      if (kind === "pan") { const e = easeExpo(k); return [`translate3d(${((1 - e) * W).toFixed(1)}px, 0, 0)`, `translate3d(${(-e * W * .32).toFixed(1)}px, 0, 0) scale(${(1 - .05 * e).toFixed(4)})`, 1 - .55 * e, 18 * (1 - e)]; }
+      if (kind === "pop") { const e = easeBack(Math.min(1, k)); return [`scale(${(.78 + .22 * e).toFixed(4)})`, `scale(${(1 + .08 * k).toFixed(4)})`, 1 - k, 26 * (1 - Math.min(1, k * 1.2))]; }
+      if (kind === "shrink") { const e = 1 - Math.pow(1 - k, 3); return [`scale(${(1.08 - .08 * e).toFixed(4)})`, `translate3d(0, ${(-e * H * .06).toFixed(1)}px, 0) scale(${(1 - .42 * e).toFixed(4)})`, 1 - e * e, 0, 32 * e]; }
+      if (kind === "zoom") { const e = easeExpo(k); return [`scale(${(1.22 - .22 * e).toFixed(4)})`, `scale(${(1 + .35 * e).toFixed(4)})`, 1 - e, 0]; }
+      return null;
+    }
     function stageFx() {
       const s = S[i]; if (!s) return;
+      const kind = CUTS[i % CUTS.length]; TR = RMk ? 0 : CUT_D[kind];
       const e = TR ? clamp01((T - chap[i].t0) / TR) : 1, k = ease3(e), cp = clamp01((T - chap[i].t0) / Math.max(1, chap[i].d));
       if (e < 1 && i > 0) {
-        s.el.style.clipPath = clipFor(KINDS[i % KINDS.length], k, s.el);
-        s.el.style.setProperty("--se-z", (1.05 - .05 * k).toFixed(4));
-        if (leaving) { leaving.el.style.opacity = (1 - k * .85).toFixed(3); leaving.el.style.setProperty("--se-z", (1 - .05 * k).toFixed(4)); leaving.el.style.filter = `brightness(${(1 - .5 * k).toFixed(3)}) blur(${(4 * k).toFixed(2)}px)`; }
+        const m = motion(kind, e, s.el);
+        if (m) {
+          s.el.style.transform = m[0]; s.el.style.borderRadius = m[3] ? m[3].toFixed(1) + "px" : ""; s.el.style.overflow = "hidden"; s.el.style.clipPath = "";
+          if (leaving) { leaving.el.style.transform = m[1]; leaving.el.style.opacity = Math.max(0, m[2]).toFixed(3); leaving.el.style.borderRadius = m[4] ? m[4].toFixed(1) + "px" : ""; leaving.el.style.filter = `brightness(${(1 - .45 * e).toFixed(3)})`; leaving.el.style.zIndex = kind === "shrink" ? 3 : ""; }
+          txLight.style.opacity = 0;
+        } else {
+          s.el.style.clipPath = clipFor(kind, k, s.el); s.el.style.transform = "";
+          s.el.style.setProperty("--se-z", (1.05 - .05 * k).toFixed(4));
+          if (leaving) { leaving.el.style.opacity = (1 - k * .85).toFixed(3); leaving.el.style.setProperty("--se-z", (1 - .05 * k).toFixed(4)); leaving.el.style.filter = `brightness(${(1 - .5 * k).toFixed(3)}) blur(${(4 * k).toFixed(2)}px)`; }
+          txLight.style.opacity = 1;
+        }
         if (!stage.classList.contains("is-transit") && fibRef()) fibRef().set({ paused: false });
-        stage.classList.add("is-transit"); txLight.style.opacity = 1;
+        stage.classList.add("is-transit");
       } else {
         if (s.el.style.clipPath) s.el.style.clipPath = "";
+        if (s.el.style.transform) { s.el.style.transform = ""; s.el.style.borderRadius = ""; s.el.style.overflow = ""; }
         s.el.style.setProperty("--se-z", "1"); finishLeave(); if (stage.classList.contains("is-transit") && fibRef()) fibRef().set({ paused: S[i].el.dataset.fx !== "fibers" }); stage.classList.remove("is-transit"); txLight.style.opacity = 0;
       }
       if (!RMk) s.el.style.setProperty("--dolly", (1 + .022 * smooth(cp)).toFixed(4));
       /* the open loop: the next chapter is named a moment before it arrives */
       const left = chap[i].t0 + chap[i].d - T, nx = S[i + 1];
-      upEl.classList.toggle("on", !!nx && left < 2.2 && left > .15 && !glide);
+      upEl.classList.toggle("on", !!nx && left < 1.8 && left > .15 && !glide);
       if (nx && upEl.dataset.k !== String(i + 1)) { upEl.dataset.k = i + 1; upEl.innerHTML = `<span>Next</span><b>${nx.title}</b>`; }
     }
     const upEl = $("kUp");
