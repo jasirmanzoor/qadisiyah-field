@@ -193,7 +193,7 @@
     const VIS = {
       uni: { land: 2.2, min: 4.2, max: 6.2 }, opp: { fixed: () => 9.5 }, glance: { fixed: (s, bb) => bb === 0 ? 3.2 : 8.2 }, count: { land: 1.2, min: 3.4, max: 6 }, globe: { land: 3.4, min: 6.4, max: 8 }, city: { land: 3, min: 5.8, max: 7.4 },
       size: { land: 1.8, min: 4.5, max: 7.5 }, ground: { land: 1.4, fixed: () => 1.4 + 4 * .95 + .4 }, exo: { land: 1, min: 6, max: 7.5 },
-      marques: { land: 0, fixed: (s, bb) => bb === 0 ? 8.5 : 5.4 }, text: { land: .5, min: 3, max: 6.5 },
+      walk: { fixed: () => 11.5 }, marques: { land: 0, fixed: (s, bb) => bb === 0 ? 8.5 : 5.4 }, text: { land: .5, min: 3, max: 6.5 },
     };
     function kindOf(s) {
       if (VIS[s.id]) return VIS[s.id];
@@ -364,6 +364,7 @@
     };
     $("s-tour").addEventListener("fly:end", () => { if (playing && S[i].id === "tour") T = chap[i].t0 + chap[i].d + .001; });
     hooks.city = { enter: (p) => window.__city && window.__city.enter(p), build: (bb) => window.__city && window.__city.build(bb), play: (p) => window.__city && window.__city.play(p), leave: () => window.__city && window.__city.leave() };
+    hooks.walk = { build: (bb) => window.__walk && window.__walk.build(bb) };
     hooks.marques = { build: (bb) => window.__marques && window.__marques.build(bb) };
     hooks.size = { build: (bb) => window.__size && window.__size.beat(bb), enter: () => window.__size && window.__size.set(0) };
     /* the photo wall: a concave ring of real photos; each beat turns it two frames, the one in front is lit */

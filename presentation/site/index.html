@@ -1422,6 +1422,33 @@ body { background: #000; }
 .dbc__cap span { opacity: .55; letter-spacing: .08em; }
 .dbc.swap .dbc__cap b { animation: dbcCap .5s var(--ease-out); }
 @keyframes dbcCap { from { opacity: 0; transform: translateY(8px); } }
+
+/* ---- The virtual walk: shuffle deck ---- */
+.sc--walk .walk__glow { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.walk__glow i { position: absolute; width: 60vmax; height: 60vmax; border-radius: 50%; filter: blur(90px); opacity: .32; }
+.walk__glow i:nth-child(1) { left: -20vmax; top: -10vmax; background: radial-gradient(circle, rgba(255,120,40,.8), transparent 65%); }
+.walk__glow i:nth-child(2) { right: -25vmax; bottom: -20vmax; background: radial-gradient(circle, rgba(60,200,190,.7), transparent 65%); }
+.walk__copy { position: absolute; z-index: 2; left: max(24px, calc((100vw - 1320px) / 2 + 24px)); top: calc(104px + env(safe-area-inset-top, 0px)); width: min(34vw, 440px); }
+.walk__copy > [data-only] { position: absolute; left: 0; right: 0; top: 0; }
+.walk__copy .say { margin-top: 14px; }
+.wk { position: absolute; right: max(24px, calc((100vw - 1320px) / 2 + 24px)); top: calc(92px + env(safe-area-inset-top, 0px)); bottom: calc(112px + env(safe-area-inset-bottom, 0px)); width: min(60vw, 840px); }
+.wk__stack { position: absolute; left: 0; right: 0; top: 0; bottom: 92px; }
+.wk__card { position: absolute; left: 50%; top: 50%; width: var(--cw); height: var(--ch); margin: calc(var(--ch) / -2) 0 0 calc(var(--cw) / -2); padding: 8px 8px 0; border-radius: 22px; background: linear-gradient(160deg, #3a2d26, #1d1612); border: 1px solid rgba(255,255,255,.18); box-shadow: 0 30px 70px -28px rgba(0,0,0,.8); backdrop-filter: none; transition: transform .65s cubic-bezier(.22,1,.36,1), opacity .5s ease; will-change: transform; display: flex; flex-direction: column; }
+.wk__img { flex: 1; min-height: 0; border-radius: 15px; overflow: hidden; background: #181310; }
+.wk__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wk__card figcaption { flex: none; height: 72px; display: flex; flex-direction: column; justify-content: center; gap: 3px; padding: 0 10px; }
+.wk__card figcaption b { font: 600 17px/1.2 var(--sans, Inter, sans-serif); color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wk__card figcaption span { font: 500 12px/1.2 var(--mono, ui-monospace, monospace); letter-spacing: .06em; color: rgba(255,255,255,.6); }
+.wk__cnt { position: absolute; right: 4px; bottom: 14px; font-size: 12px; opacity: .55; letter-spacing: .08em; }
+.wk__thumbs { position: absolute; left: 0; right: 0; bottom: 8px; display: flex; gap: 8px; justify-content: center; }
+.wk__thumbs i { width: 54px; height: 38px; border-radius: 8px; background-size: cover; background-position: center; opacity: .4; outline: 2px solid transparent; transition: opacity .35s, outline-color .35s, transform .35s; }
+.wk__thumbs i.on { opacity: 1; outline-color: #ff9a4a; transform: translateY(-3px); }
+@media (max-width: 820px) {
+  .walk__copy { width: auto; right: 24px; top: calc(80px + env(safe-area-inset-top, 0px)); }
+  .walk__copy .sc__sub { font-size: 13px; }
+  .wk { left: 12px; right: 12px; width: auto; top: calc(300px + env(safe-area-inset-top, 0px)); bottom: calc(104px + env(safe-area-inset-bottom, 0px)); }
+  .wk__thumbs i { width: 36px; height: 28px; }
+}
 .ghost-fibers-container {
   position: relative;
   width: 100%;
@@ -1758,6 +1785,16 @@ body { background: #000; }
       <p class="kick">On the ground</p>
       <h2 class="say say--md">Every figure came from a door <em>we stood in front of</em>.</h2>
     </div>
+  </section>
+
+  <!-- 11b the virtual walk -->
+  <section class="sc sc--walk" id="s-walk" data-title="The walk" data-dur="11500,11500" aria-label="A virtual walk through both markets">
+    <div class="walk__glow" aria-hidden="true"><i></i><i></i></div>
+    <div class="walk__copy">
+      <div data-only="0"><p class="kick">The virtual walk · 01 / 02</p><h2 class="say say--md">Down <em>Al Qadisiyah</em>, floor by floor.</h2><p class="sc__sub">Real photographs from the walk: the seven largest floors we counted in this district.</p></div>
+      <div data-only="1"><p class="kick">The virtual walk · 02 / 02</p><h2 class="say say--md">Across <em>Al Shifa</em>, door to door.</h2><p class="sc__sub">Real photographs from the walk: the seven largest floors we counted in this district.</p></div>
+    </div>
+    <div class="wk" id="walkDeck"><div class="wk__stack"></div><div class="wk__thumbs" id="walkThumbs"></div><span class="wk__cnt num" id="walkCnt"></span></div>
   </section>
 
   <!-- 12 one more thing -->
@@ -7610,6 +7647,46 @@ window.RB = window.RB || {};
     $("cityBoth").innerHTML = `${kmQS.toFixed(0)} km apart across the city. <b class="num">${fmt(R.length)}</b> showrooms and <b class="num">${fmt(TOT)}</b> cars, recorded on foot. ${mchip("showrooms_total")}`;
     $("cityRiy").innerHTML = `A region of <b class="num">8.6 million</b> people. Every building in the city, mapped from the sky, before we walk the streets. ${mchip("ext_pop")}`;
   })();
+  /* ==================== The virtual walk: a shuffle deck of real showroom photos, one district at a time ====================
+     Our own build of the Framer "Carousel 01" shuffle deck: the front card sits flat, two more fan out behind it, and each turn
+     the front card is dealt away and the next comes forward. Cards carry the floor's name, its district and its counted cars. */
+  (function () {
+    const sec = document.getElementById("s-walk"); if (!sec) return;
+    const $ = (id) => document.getElementById(id), RMw = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const KEY = [0, 1], TAB = ["Al Qadisiyah", "Al Shifa"];
+    /* the largest floors of each district that we photographed on the walk; the pin status is the census's own, not a guess */
+    const sets = KEY.map((mk) => R.filter((r) => r.mk === mk && r.photos && r.photos.length && !(r.ar === "" && !r.en))
+      .sort((a, b) => (b.units || 0) - (a.units || 0)).slice(0, 7).map((r) => ({ src: `photos/${r.photos[0]}.jpg`, name: r.en, units: r.units, mk })));
+    const root = $("walkDeck"), thumbs = $("walkThumbs"), cnt = $("walkCnt");
+    let list = [], cur = 0, timer = 0, W = 0, H = 0, cw = 0, ch = 0;
+    function size() {
+      W = root.clientWidth; H = root.clientHeight; if (!W) return;
+      const port = W < H * .9; cw = Math.min(W * (port ? .9 : .78), 760); ch = Math.min(H * .74, cw * (port ? .86 : .68));
+      root.style.setProperty("--cw", cw.toFixed(0) + "px"); root.style.setProperty("--ch", ch.toFixed(0) + "px");
+    }
+    function paint(first) {
+      const n = list.length; if (!n) return;
+      [...root.querySelectorAll(".wk__card")].forEach((el) => {
+        const k = +el.dataset.k, rank = ((k - cur) % n + n) % n, side = rank === 1 ? -1 : 1;
+        const show = rank <= 2, x = rank === 0 ? 0 : side * (cw * .075), y = rank === 0 ? 10 : rank === 1 ? -9 : -23, rot = rank === 0 ? 0 : side * 7, sc = rank === 0 ? 1 : rank === 1 ? .955 : .91;
+        el.style.transform = `translate(${x.toFixed(1)}px, ${y}px) rotate(${rot}deg) scale(${sc})`;
+        el.style.opacity = show ? 1 : 0; el.style.zIndex = show ? 10 - rank : 0; el.style.pointerEvents = "none";
+        el.classList.toggle("is-front", rank === 0);
+      });
+      [...thumbs.children].forEach((t, k) => t.classList.toggle("on", k === cur));
+      cnt.textContent = `${String(cur + 1).padStart(2, "0")} / ${String(n).padStart(2, "0")}`;
+    }
+    function build(bb) {
+      clearInterval(timer); size(); list = sets[Math.min(1, bb)] || []; cur = 0;
+      root.querySelector(".wk__stack").innerHTML = list.map((c, k) => `<figure class="wk__card" data-k="${k}"><div class="wk__img"><img alt="" decoding="async" src="${c.src}"></div>
+        <figcaption><b>${esc(c.name)}</b><span>${TAB[c.mk]} · ${c.units ? fmt(c.units) + " cars counted" : "survey floor"}</span></figcaption></figure>`).join("");
+      thumbs.innerHTML = list.map((c) => `<i style="background-image:url(${c.src})"></i>`).join("");
+      root.dataset.mk = bb; paint(true);
+      if (list.length > 1 && !RMw) timer = setInterval(() => { if (!sec.classList.contains("is-on")) return clearInterval(timer); cur = (cur + 1) % list.length; paint(); }, 1550);
+    }
+    new ResizeObserver(() => { size(); paint(); }).observe(root);
+    window.__walk = { build, sets };
+  })();
   /* ==================== keynote: scene content ==================== */
   (function () {
     const $ = (id) => document.getElementById(id);
@@ -7805,7 +7882,7 @@ window.RB = window.RB || {};
     const VIS = {
       uni: { land: 2.2, min: 4.2, max: 6.2 }, opp: { fixed: () => 9.5 }, glance: { fixed: (s, bb) => bb === 0 ? 3.2 : 8.2 }, count: { land: 1.2, min: 3.4, max: 6 }, globe: { land: 3.4, min: 6.4, max: 8 }, city: { land: 3, min: 5.8, max: 7.4 },
       size: { land: 1.8, min: 4.5, max: 7.5 }, ground: { land: 1.4, fixed: () => 1.4 + 4 * .95 + .4 }, exo: { land: 1, min: 6, max: 7.5 },
-      marques: { land: 0, fixed: (s, bb) => bb === 0 ? 8.5 : 5.4 }, text: { land: .5, min: 3, max: 6.5 },
+      walk: { fixed: () => 11.5 }, marques: { land: 0, fixed: (s, bb) => bb === 0 ? 8.5 : 5.4 }, text: { land: .5, min: 3, max: 6.5 },
     };
     function kindOf(s) {
       if (VIS[s.id]) return VIS[s.id];
@@ -7976,6 +8053,7 @@ window.RB = window.RB || {};
     };
     $("s-tour").addEventListener("fly:end", () => { if (playing && S[i].id === "tour") T = chap[i].t0 + chap[i].d + .001; });
     hooks.city = { enter: (p) => window.__city && window.__city.enter(p), build: (bb) => window.__city && window.__city.build(bb), play: (p) => window.__city && window.__city.play(p), leave: () => window.__city && window.__city.leave() };
+    hooks.walk = { build: (bb) => window.__walk && window.__walk.build(bb) };
     hooks.marques = { build: (bb) => window.__marques && window.__marques.build(bb) };
     hooks.size = { build: (bb) => window.__size && window.__size.beat(bb), enter: () => window.__size && window.__size.set(0) };
     /* the photo wall: a concave ring of real photos; each beat turns it two frames, the one in front is lit */

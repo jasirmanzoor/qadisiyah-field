@@ -819,3 +819,30 @@ body { background: #000; }
 .dbc__cap span { opacity: .55; letter-spacing: .08em; }
 .dbc.swap .dbc__cap b { animation: dbcCap .5s var(--ease-out); }
 @keyframes dbcCap { from { opacity: 0; transform: translateY(8px); } }
+
+/* ---- The virtual walk: shuffle deck ---- */
+.sc--walk .walk__glow { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.walk__glow i { position: absolute; width: 60vmax; height: 60vmax; border-radius: 50%; filter: blur(90px); opacity: .32; }
+.walk__glow i:nth-child(1) { left: -20vmax; top: -10vmax; background: radial-gradient(circle, rgba(255,120,40,.8), transparent 65%); }
+.walk__glow i:nth-child(2) { right: -25vmax; bottom: -20vmax; background: radial-gradient(circle, rgba(60,200,190,.7), transparent 65%); }
+.walk__copy { position: absolute; z-index: 2; left: max(24px, calc((100vw - 1320px) / 2 + 24px)); top: calc(104px + env(safe-area-inset-top, 0px)); width: min(34vw, 440px); }
+.walk__copy > [data-only] { position: absolute; left: 0; right: 0; top: 0; }
+.walk__copy .say { margin-top: 14px; }
+.wk { position: absolute; right: max(24px, calc((100vw - 1320px) / 2 + 24px)); top: calc(92px + env(safe-area-inset-top, 0px)); bottom: calc(112px + env(safe-area-inset-bottom, 0px)); width: min(60vw, 840px); }
+.wk__stack { position: absolute; left: 0; right: 0; top: 0; bottom: 92px; }
+.wk__card { position: absolute; left: 50%; top: 50%; width: var(--cw); height: var(--ch); margin: calc(var(--ch) / -2) 0 0 calc(var(--cw) / -2); padding: 8px 8px 0; border-radius: 22px; background: linear-gradient(160deg, #3a2d26, #1d1612); border: 1px solid rgba(255,255,255,.18); box-shadow: 0 30px 70px -28px rgba(0,0,0,.8); backdrop-filter: none; transition: transform .65s cubic-bezier(.22,1,.36,1), opacity .5s ease; will-change: transform; display: flex; flex-direction: column; }
+.wk__img { flex: 1; min-height: 0; border-radius: 15px; overflow: hidden; background: #181310; }
+.wk__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wk__card figcaption { flex: none; height: 72px; display: flex; flex-direction: column; justify-content: center; gap: 3px; padding: 0 10px; }
+.wk__card figcaption b { font: 600 17px/1.2 var(--sans, Inter, sans-serif); color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wk__card figcaption span { font: 500 12px/1.2 var(--mono, ui-monospace, monospace); letter-spacing: .06em; color: rgba(255,255,255,.6); }
+.wk__cnt { position: absolute; right: 4px; bottom: 14px; font-size: 12px; opacity: .55; letter-spacing: .08em; }
+.wk__thumbs { position: absolute; left: 0; right: 0; bottom: 8px; display: flex; gap: 8px; justify-content: center; }
+.wk__thumbs i { width: 54px; height: 38px; border-radius: 8px; background-size: cover; background-position: center; opacity: .4; outline: 2px solid transparent; transition: opacity .35s, outline-color .35s, transform .35s; }
+.wk__thumbs i.on { opacity: 1; outline-color: #ff9a4a; transform: translateY(-3px); }
+@media (max-width: 820px) {
+  .walk__copy { width: auto; right: 24px; top: calc(80px + env(safe-area-inset-top, 0px)); }
+  .walk__copy .sc__sub { font-size: 13px; }
+  .wk { left: 12px; right: 12px; width: auto; top: calc(300px + env(safe-area-inset-top, 0px)); bottom: calc(104px + env(safe-area-inset-bottom, 0px)); }
+  .wk__thumbs i { width: 36px; height: 28px; }
+}
