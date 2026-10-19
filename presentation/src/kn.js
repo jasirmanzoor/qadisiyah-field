@@ -63,7 +63,7 @@
     const xbar = R.find((x) => x.sd === "D0164"), mdist = (a, b) => Math.hypot((a.lng - b.lng) * 101200, (a.lat - b.lat) * 111320);
     const xnear = xbar && R.filter((x) => x !== xbar && x.mk === 0 && x.lat != null && x.asp && x.loc === "verified").sort((a, b) => mdist(a, xbar) - mdist(b, xbar))[0];
     if (xnear) $("exoSay").innerHTML = `Rolls-Royce, <em>${Math.round(mdist(xnear, xbar))} metres</em> from a SAR ${sar(xnear.asp)} floor.`;
-    const exoFolio = window.Folio ? window.Folio.mount($("exoFolio"), { hold: 2300 }) : null;
+    const exoFolio = window.DepthFlow ? window.DepthFlow.mount($("exoFolio"), { hold: 2300 }) : (window.Folio ? window.Folio.mount($("exoFolio"), { hold: 2300 }) : null);
     const EXO = [["n-rolls", "Rolls-Royce Spectre · Aston Martin DBX · Bentley"], ["q-barimi-rolls", "Rolls-Royce Cullinan"], ["q-barimi-urus", "Lamborghini Urus"], ["q-barimi-mclaren", "McLaren"]];
     /* on the ground: five glass folders, four photographs each, alternating districts */
     const gFolio = window.Folio ? window.Folio.mount($("groundFolio"), { hold: 950 }) : null;

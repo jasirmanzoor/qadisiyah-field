@@ -1410,6 +1410,18 @@ body { background: #000; }
 @keyframes mhDraw { 0% { stroke-dashoffset: 1000; opacity: 1; } 70% { opacity: .9; } 100% { stroke-dashoffset: 0; opacity: .28; } }
 .mh-glow text { stroke-width: inherit; filter: drop-shadow(0 0 6px rgba(255,140,60,.55)); }
 @media (prefers-reduced-motion: reduce) { .mh-draw text { stroke-dashoffset: 0; opacity: .28; animation: none !important; } }
+
+/* ---- Depth Blur Carousel (exotic chapter) ---- */
+.dbc { position: absolute; inset: 0; perspective: 900px; pointer-events: none; opacity: 0; transition: opacity .35s var(--ease-out); }
+.dbc.on { opacity: 1; }
+.dbc__stage { position: absolute; left: 50%; top: 44%; width: 0; height: 0; transform-style: preserve-3d; }
+.dbc__card { position: absolute; left: 0; top: 0; margin: 0; border-radius: 12px; overflow: hidden; background: #111; box-shadow: 0 24px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.1); will-change: transform; }
+.dbc__card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dbc__cap { position: absolute; left: 0; right: 0; top: calc(44% + var(--ih, 200px) / 2 + 26px); margin: 0; display: flex; gap: 10px; align-items: center; justify-content: center; font: 500 13px/1.3 var(--mono, ui-monospace, monospace); color: rgba(255,255,255,.85); text-shadow: 0 1px 8px rgba(0,0,0,.7); }
+.dbc__cap i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.dbc__cap span { opacity: .55; letter-spacing: .08em; }
+.dbc.swap .dbc__cap b { animation: dbcCap .5s var(--ease-out); }
+@keyframes dbcCap { from { opacity: 0; transform: translateY(8px); } }
 .ghost-fibers-container {
   position: relative;
   width: 100%;
@@ -6698,6 +6710,69 @@ window.RB = window.RB || {};
     }
     return { mount };
   })();
+  /* ==================== Depth Blur Carousel: a 3D coverflow, the centre card sharp, the sides turned away and softened ====================
+     Our own build of the Framer "Depth Blur Carousel" idea (centre card, side cards narrower, rotateY and depth by distance, wrap-around,
+     springy settle), with the blur it names but does not apply drawn on the side cards. Same mount API as the Glass Folio. */
+  window.DepthFlow = (function () {
+    const RMd = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const srcOf = (n) => n[0] === "@" ? `video/${n.slice(1)}.jpg` : `photos/${n}.jpg`;
+    function mount(host, opts) {
+      const o = Object.assign({ hold: 2300, accent: "#ff9a4a", maxRot: 62, blur: 9, depth: 200, gap: 28 }, opts);
+      const root = document.createElement("div"); root.className = "dbc"; root.setAttribute("aria-live", "polite");
+      root.innerHTML = `<div class="dbc__stage"></div><p class="dbc__cap"><i></i><b></b><span></span></p>`;
+      host.appendChild(root);
+      const stage = root.querySelector(".dbc__stage"), capB = root.querySelector(".dbc__cap b"), capN = root.querySelector(".dbc__cap span"), dot = root.querySelector(".dbc__cap i");
+      let items = [], cards = [], target = 0, v = 0, vel = 0, raf = 0, last = 0, timer = 0, W = 0, H = 0, iw = 0, ih = 0, sw = 0, gen = 0, open = false;
+      function size() {
+        W = host.clientWidth; H = host.clientHeight; if (!W) return;
+        const port = W < H; iw = Math.min(W * (port ? .78 : .5), H * (port ? .42 : .7) * 1.5); ih = iw / 1.5; sw = iw * .62; root.style.setProperty("--ih", ih.toFixed(0) + "px");
+        cards.forEach((c) => { c.el.style.width = iw + "px"; c.el.style.height = ih + "px"; c.el.style.marginLeft = -iw / 2 + "px"; c.el.style.marginTop = -ih / 2 + "px"; });
+      }
+      /* signed distance on the ring, so the last card sits beside the first */
+      const ring = (k) => { const n = items.length; let m = ((k - v) % n + n) % n; if (m > n / 2) m -= n; return m; };
+      function paint() {
+        const n = cards.length, side = sw + o.gap, c2n = iw / 2 + o.gap + sw / 2;
+        cards.forEach((c, k) => {
+          const d = ring(k), a = Math.abs(d), s = Math.sign(d);
+          const x = a === 0 ? 0 : a <= 1 ? s * c2n * a : s * (c2n + (a - 1) * side * .85);
+          const sc = 1 - Math.min(1, a) * (1 - sw / iw), rot = s * Math.min(a * 35, o.maxRot), z = -a * o.depth;
+          c.el.style.transform = `translate3d(${x.toFixed(1)}px,0,${z.toFixed(0)}px) rotateY(${rot.toFixed(2)}deg) scale(${sc.toFixed(4)})`;
+          c.el.style.zIndex = 1000 - Math.round(a * 10);
+          c.el.style.opacity = a >= 3 ? 0 : (a > 2 ? 3 - a : 1).toFixed(3);
+          const bl = a < .04 ? 0 : Math.min(o.blur, a * o.blur * .8);
+          c.im.style.filter = bl ? `blur(${bl.toFixed(2)}px) brightness(${(1 - Math.min(.45, a * .3)).toFixed(3)})` : "";
+          c.el.style.visibility = a > 3 ? "hidden" : "";
+        });
+        const f = ((Math.round(v) % n) + n) % n, it = items[f];
+        if (it && capB.textContent !== (it[1] || "")) { capB.textContent = it[1] || ""; root.classList.remove("swap"); void root.offsetWidth; root.classList.add("swap"); }
+        capN.textContent = n > 1 ? `${String(f + 1).padStart(2, "0")} / ${String(n).padStart(2, "0")}` : "";
+      }
+      function frame(now) {
+        raf = open ? requestAnimationFrame(frame) : 0;
+        const dt = last ? Math.min(.05, (now - last) / 1000) : .016; last = now;
+        /* critically-damped-ish spring toward the target card */
+        const k = 70, dmp = 13; vel += ((target - v) * k - vel * dmp) * dt; v += vel * dt; paint();
+      }
+      function go(t) { target = t; if (RMd) { v = t; paint(); } }
+      function show(list, meta = {}) {
+        gen++; clearInterval(timer); items = (list || []).slice(0, 8); stage.innerHTML = "";
+        if (!items.length) return hide();
+        cards = items.map(([name]) => {
+          const el = document.createElement("figure"); el.className = "dbc__card";
+          el.innerHTML = `<img alt="" decoding="async" src="${srcOf(name)}">`;
+          const im = el.firstChild, fc = (window.PHOTO_FOCUS || {})[name]; if (fc) im.style.objectPosition = `${fc[0]}% ${fc[1]}%`;
+          stage.appendChild(el); return { el, im };
+        });
+        dot.style.background = meta.color || o.accent; v = -.9; vel = 0; target = 0; last = 0; size();
+        root.classList.add("on"); open = true; if (!raf) raf = requestAnimationFrame(frame);
+        if (items.length > 1) timer = setInterval(() => go(Math.round(target) + 1), o.hold);
+      }
+      function hide() { gen++; clearInterval(timer); open = false; root.classList.remove("on"); }
+      new ResizeObserver(size).observe(host);
+      return { show, hide, focus: (k) => { clearInterval(timer); go(k); }, el: root, get count() { return items.length; } };
+    }
+    return { mount };
+  })();
   /* ==================== Pinned decks: a stop's photographs ride above its building on a beam of light ==================== */
   window.PinDeck = (function () {
     const RMp = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -7600,7 +7675,7 @@ window.RB = window.RB || {};
     const xbar = R.find((x) => x.sd === "D0164"), mdist = (a, b) => Math.hypot((a.lng - b.lng) * 101200, (a.lat - b.lat) * 111320);
     const xnear = xbar && R.filter((x) => x !== xbar && x.mk === 0 && x.lat != null && x.asp && x.loc === "verified").sort((a, b) => mdist(a, xbar) - mdist(b, xbar))[0];
     if (xnear) $("exoSay").innerHTML = `Rolls-Royce, <em>${Math.round(mdist(xnear, xbar))} metres</em> from a SAR ${sar(xnear.asp)} floor.`;
-    const exoFolio = window.Folio ? window.Folio.mount($("exoFolio"), { hold: 2300 }) : null;
+    const exoFolio = window.DepthFlow ? window.DepthFlow.mount($("exoFolio"), { hold: 2300 }) : (window.Folio ? window.Folio.mount($("exoFolio"), { hold: 2300 }) : null);
     const EXO = [["n-rolls", "Rolls-Royce Spectre · Aston Martin DBX · Bentley"], ["q-barimi-rolls", "Rolls-Royce Cullinan"], ["q-barimi-urus", "Lamborghini Urus"], ["q-barimi-mclaren", "McLaren"]];
     /* on the ground: five glass folders, four photographs each, alternating districts */
     const gFolio = window.Folio ? window.Folio.mount($("groundFolio"), { hold: 950 }) : null;

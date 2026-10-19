@@ -807,3 +807,15 @@ body { background: #000; }
 @keyframes mhDraw { 0% { stroke-dashoffset: 1000; opacity: 1; } 70% { opacity: .9; } 100% { stroke-dashoffset: 0; opacity: .28; } }
 .mh-glow text { stroke-width: inherit; filter: drop-shadow(0 0 6px rgba(255,140,60,.55)); }
 @media (prefers-reduced-motion: reduce) { .mh-draw text { stroke-dashoffset: 0; opacity: .28; animation: none !important; } }
+
+/* ---- Depth Blur Carousel (exotic chapter) ---- */
+.dbc { position: absolute; inset: 0; perspective: 900px; pointer-events: none; opacity: 0; transition: opacity .35s var(--ease-out); }
+.dbc.on { opacity: 1; }
+.dbc__stage { position: absolute; left: 50%; top: 44%; width: 0; height: 0; transform-style: preserve-3d; }
+.dbc__card { position: absolute; left: 0; top: 0; margin: 0; border-radius: 12px; overflow: hidden; background: #111; box-shadow: 0 24px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.1); will-change: transform; }
+.dbc__card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dbc__cap { position: absolute; left: 0; right: 0; top: calc(44% + var(--ih, 200px) / 2 + 26px); margin: 0; display: flex; gap: 10px; align-items: center; justify-content: center; font: 500 13px/1.3 var(--mono, ui-monospace, monospace); color: rgba(255,255,255,.85); text-shadow: 0 1px 8px rgba(0,0,0,.7); }
+.dbc__cap i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.dbc__cap span { opacity: .55; letter-spacing: .08em; }
+.dbc.swap .dbc__cap b { animation: dbcCap .5s var(--ease-out); }
+@keyframes dbcCap { from { opacity: 0; transform: translateY(8px); } }
