@@ -1680,7 +1680,7 @@ const DATA = /*__DATA__*/null;
       tex.encoding = T.sRGBEncoding; tex.anisotropy = aniso; mat.map = tex; mat.needsUpdate = true; mat.userData.t0 = performance.now();
       if (visible && typeof renderer.initTexture === "function") renderer.initTexture(tex);
     }
-    function settle() { if (ready && !raf) { let k = 0; const f = () => { render(0); if (++k < 40) requestAnimationFrame(f); }; requestAnimationFrame(f); } }
+    function settle() { if (ready && !raf && visible) { let k = 0; const f = () => { render(0); if (++k < 40) requestAnimationFrame(f); }; requestAnimationFrame(f); } }
     function rectDist(d, x, z) { const dx = Math.max(d.c.x0 - x, 0, x - d.c.x1), dz = Math.max(d.c.z0 - z, 0, z - d.c.z1); return Math.hypot(dx, dz); }
     function stream(force) {
       const now = performance.now(); if (!detail.length || (!force && now - lastStream < 400)) return; lastStream = now;
@@ -2240,7 +2240,7 @@ const DATA = /*__DATA__*/null;
     try { if (T) renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, alpha: true }); } catch (e) { renderer = null; }
     if (!renderer) { wrap.classList.add("c3--off"); return; }
     const RMq = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    renderer.setPixelRatio(Math.min(1.5, window.devicePixelRatio || 1));
     const scene = new T.Scene();
     scene.fog = new T.Fog(0x0b0200, 300, 900);
     const cam = new T.PerspectiveCamera(36, 1, 1, 4000);

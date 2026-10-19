@@ -9,7 +9,7 @@
     let renderer;
     try { renderer = new T.WebGLRenderer({ antialias: false, alpha: true, powerPreference: "high-performance" }); } catch (e) { return null; }
     const coarse = matchMedia("(pointer: coarse)").matches, RMd = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, P.dpr, coarse ? 1.5 : 2));
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, P.dpr, coarse ? 1.25 : 1.5));
     renderer.setClearColor(0x000000, 0);
     const cv = renderer.domElement; cv.className = "drape__cv"; host.appendChild(cv);
     const scene = new T.Scene(), cam = new T.PerspectiveCamera(36, 1, .1, 50); cam.position.set(0, 0, 4.2);

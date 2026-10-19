@@ -11,7 +11,7 @@
     if (!renderer) { sec.classList.add("cmap--off"); window.__city = { build() {}, enter() {}, leave() {} }; return; }
     const RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const big = !window.matchMedia("(pointer: coarse)").matches && renderer.capabilities.maxTextureSize >= 4096;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.setClearColor(0x05070b, 1);
     const scene = new T.Scene(), cam = new T.PerspectiveCamera(42, 1, 0.05, 600);
 

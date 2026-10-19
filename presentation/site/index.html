@@ -2569,7 +2569,7 @@ const DATA = {"d":[["D0001","Abdulsalam Cars Company","شركة عبدالسلا
       tex.encoding = T.sRGBEncoding; tex.anisotropy = aniso; mat.map = tex; mat.needsUpdate = true; mat.userData.t0 = performance.now();
       if (visible && typeof renderer.initTexture === "function") renderer.initTexture(tex);
     }
-    function settle() { if (ready && !raf) { let k = 0; const f = () => { render(0); if (++k < 40) requestAnimationFrame(f); }; requestAnimationFrame(f); } }
+    function settle() { if (ready && !raf && visible) { let k = 0; const f = () => { render(0); if (++k < 40) requestAnimationFrame(f); }; requestAnimationFrame(f); } }
     function rectDist(d, x, z) { const dx = Math.max(d.c.x0 - x, 0, x - d.c.x1), dz = Math.max(d.c.z0 - z, 0, z - d.c.z1); return Math.hypot(dx, dz); }
     function stream(force) {
       const now = performance.now(); if (!detail.length || (!force && now - lastStream < 400)) return; lastStream = now;
@@ -3119,7 +3119,7 @@ const DATA = {"d":[["D0001","Abdulsalam Cars Company","شركة عبدالسلا
     try { if (T) renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, alpha: true }); } catch (e) { renderer = null; }
     if (!renderer) { wrap.classList.add("c3--off"); return; }
     const RMq = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    renderer.setPixelRatio(Math.min(1.5, window.devicePixelRatio || 1));
     const scene = new T.Scene();
     scene.fog = new T.Fog(0x0b0200, 300, 900);
     const cam = new T.PerspectiveCamera(36, 1, 1, 4000);
@@ -6635,6 +6635,8 @@ window.RB = window.RB || {};
     }
     function frame(now) {
       raf = 0; if (!alive) return;
+      /* run only while this heading's chapter (or the open data room) is on screen; otherwise every heading ever revealed keeps a loop alive */
+      if (!onScreen()) { shown = false; last = 0; return; }
       const dt = last ? Math.min(.05, (now - last) / 1000) : 0; last = now; clock += dt;
       const e = 1 - Math.exp(-dt / .18);
       off.x += (off.tx + Math.sin(clock * .21) * o.drift - off.x) * e; off.y += (off.ty + Math.cos(clock * .17) * o.drift * .6 - off.y) * e;
@@ -6645,6 +6647,8 @@ window.RB = window.RB || {};
       rgEl.setAttribute("cx", mp.x.toFixed(1)); rgEl.setAttribute("cy", mp.y.toFixed(1)); rgEl.setAttribute("r", Math.max(90, Math.min(W, H * 2.2) * .38).toFixed(0)); lgEl.setAttribute("x2", W.toFixed(0));
       place(); if (shown && !RM) raf = requestAnimationFrame(frame);
     }
+    const sc = root.closest(".sc");
+    const onScreen = () => !document.hidden && (sc ? sc.classList.contains("is-on") || sc.classList.contains("is-leaving") : root.offsetParent !== null);
     const wake = () => { if (!raf && alive && !RM) { last = 0; raf = requestAnimationFrame(frame); } };
     root.addEventListener("pointermove", (e) => { const r = root.getBoundingClientRect(); off.tx = clamp(((e.clientX - r.left) / (r.width || 1)) * 2 - 1, -1, 1) * -o.parallax; off.ty = clamp(((e.clientY - r.top) / (r.height || 1)) * 2 - 1, -1, 1) * -o.parallax; });
     const hp = { x: 0, y: 0 }, mp = { x: 0, y: 0 }; let hover = false;
@@ -6656,7 +6660,7 @@ window.RB = window.RB || {};
     /* reveal: rise, word by word */
     let tween = null;
     const em = () => parseFloat(getComputedStyle(root).fontSize) || 48;
-    function rest() { tween && tween.kill(); const s = em(); states.forEach((st) => { st.x = 0; st.y = s * 1.15; st.s = 1; }); renderGlyphs(); }
+    function rest() { shown = false; tween && tween.kill(); const s = em(); states.forEach((st) => { st.x = 0; st.y = s * 1.15; st.s = 1; }); renderGlyphs(); }
     function settle() { tween && tween.kill(); states.forEach((st) => { st.x = 0; st.y = 0; st.s = 1; }); renderGlyphs(); }
     function play(delay = 0, dur = o.duration) {
       shown = true; wake();
@@ -6809,6 +6813,7 @@ window.RB = window.RB || {};
         capN.textContent = n > 1 ? `${String(f + 1).padStart(2, "0")} / ${String(n).padStart(2, "0")}` : "";
       }
       function frame(now) {
+        const sc = host.closest(".sc"); if (sc && !sc.classList.contains("is-on") && !sc.classList.contains("is-leaving")) { raf = 0; last = 0; return; }   /* off screen: stop until shown again */
         raf = open ? requestAnimationFrame(frame) : 0;
         const dt = last ? Math.min(.05, (now - last) / 1000) : .016; last = now;
         /* critically-damped-ish spring toward the target card */
@@ -6826,7 +6831,7 @@ window.RB = window.RB || {};
         });
         dot.style.background = meta.color || o.accent; v = -.9; vel = 0; target = 0; last = 0; size();
         root.classList.add("on"); open = true; if (!raf) raf = requestAnimationFrame(frame);
-        if (items.length > 1) timer = setInterval(() => go(Math.round(target) + 1), o.hold);
+        if (items.length > 1) timer = setInterval(() => { go(Math.round(target) + 1); if (!raf && open) { last = 0; raf = requestAnimationFrame(frame); } }, o.hold);
       }
       function hide() { gen++; clearInterval(timer); open = false; root.classList.remove("on"); }
       new ResizeObserver(size).observe(host);
@@ -7040,7 +7045,7 @@ window.RB = window.RB || {};
     let renderer;
     try { renderer = new T.WebGLRenderer({ antialias: false, alpha: true, powerPreference: "high-performance" }); } catch (e) { return null; }
     const coarse = matchMedia("(pointer: coarse)").matches, RMd = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, P.dpr, coarse ? 1.5 : 2));
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, P.dpr, coarse ? 1.25 : 1.5));
     renderer.setClearColor(0x000000, 0);
     const cv = renderer.domElement; cv.className = "drape__cv"; host.appendChild(cv);
     const scene = new T.Scene(), cam = new T.PerspectiveCamera(36, 1, .1, 50); cam.position.set(0, 0, 4.2);
@@ -7566,7 +7571,7 @@ window.RB = window.RB || {};
     if (!renderer) { sec.classList.add("cmap--off"); window.__city = { build() {}, enter() {}, leave() {} }; return; }
     const RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const big = !window.matchMedia("(pointer: coarse)").matches && renderer.capabilities.maxTextureSize >= 4096;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.setClearColor(0x05070b, 1);
     const scene = new T.Scene(), cam = new T.PerspectiveCamera(42, 1, 0.05, 600);
 

@@ -36,6 +36,7 @@
         capN.textContent = n > 1 ? `${String(f + 1).padStart(2, "0")} / ${String(n).padStart(2, "0")}` : "";
       }
       function frame(now) {
+        const sc = host.closest(".sc"); if (sc && !sc.classList.contains("is-on") && !sc.classList.contains("is-leaving")) { raf = 0; last = 0; return; }   /* off screen: stop until shown again */
         raf = open ? requestAnimationFrame(frame) : 0;
         const dt = last ? Math.min(.05, (now - last) / 1000) : .016; last = now;
         /* critically-damped-ish spring toward the target card */
@@ -53,7 +54,7 @@
         });
         dot.style.background = meta.color || o.accent; v = -.9; vel = 0; target = 0; last = 0; size();
         root.classList.add("on"); open = true; if (!raf) raf = requestAnimationFrame(frame);
-        if (items.length > 1) timer = setInterval(() => go(Math.round(target) + 1), o.hold);
+        if (items.length > 1) timer = setInterval(() => { go(Math.round(target) + 1); if (!raf && open) { last = 0; raf = requestAnimationFrame(frame); } }, o.hold);
       }
       function hide() { gen++; clearInterval(timer); open = false; root.classList.remove("on"); }
       new ResizeObserver(size).observe(host);

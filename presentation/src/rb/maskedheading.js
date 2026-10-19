@@ -121,6 +121,8 @@ window.RB = window.RB || {};
     }
     function frame(now) {
       raf = 0; if (!alive) return;
+      /* run only while this heading's chapter (or the open data room) is on screen; otherwise every heading ever revealed keeps a loop alive */
+      if (!onScreen()) { shown = false; last = 0; return; }
       const dt = last ? Math.min(.05, (now - last) / 1000) : 0; last = now; clock += dt;
       const e = 1 - Math.exp(-dt / .18);
       off.x += (off.tx + Math.sin(clock * .21) * o.drift - off.x) * e; off.y += (off.ty + Math.cos(clock * .17) * o.drift * .6 - off.y) * e;
@@ -131,6 +133,8 @@ window.RB = window.RB || {};
       rgEl.setAttribute("cx", mp.x.toFixed(1)); rgEl.setAttribute("cy", mp.y.toFixed(1)); rgEl.setAttribute("r", Math.max(90, Math.min(W, H * 2.2) * .38).toFixed(0)); lgEl.setAttribute("x2", W.toFixed(0));
       place(); if (shown && !RM) raf = requestAnimationFrame(frame);
     }
+    const sc = root.closest(".sc");
+    const onScreen = () => !document.hidden && (sc ? sc.classList.contains("is-on") || sc.classList.contains("is-leaving") : root.offsetParent !== null);
     const wake = () => { if (!raf && alive && !RM) { last = 0; raf = requestAnimationFrame(frame); } };
     root.addEventListener("pointermove", (e) => { const r = root.getBoundingClientRect(); off.tx = clamp(((e.clientX - r.left) / (r.width || 1)) * 2 - 1, -1, 1) * -o.parallax; off.ty = clamp(((e.clientY - r.top) / (r.height || 1)) * 2 - 1, -1, 1) * -o.parallax; });
     const hp = { x: 0, y: 0 }, mp = { x: 0, y: 0 }; let hover = false;
@@ -142,7 +146,7 @@ window.RB = window.RB || {};
     /* reveal: rise, word by word */
     let tween = null;
     const em = () => parseFloat(getComputedStyle(root).fontSize) || 48;
-    function rest() { tween && tween.kill(); const s = em(); states.forEach((st) => { st.x = 0; st.y = s * 1.15; st.s = 1; }); renderGlyphs(); }
+    function rest() { shown = false; tween && tween.kill(); const s = em(); states.forEach((st) => { st.x = 0; st.y = s * 1.15; st.s = 1; }); renderGlyphs(); }
     function settle() { tween && tween.kill(); states.forEach((st) => { st.x = 0; st.y = 0; st.s = 1; }); renderGlyphs(); }
     function play(delay = 0, dur = o.duration) {
       shown = true; wake();
