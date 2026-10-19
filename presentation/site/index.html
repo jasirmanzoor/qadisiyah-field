@@ -1449,6 +1449,11 @@ body { background: #000; }
   .wk { left: 12px; right: 12px; width: auto; top: calc(300px + env(safe-area-inset-top, 0px)); bottom: calc(104px + env(safe-area-inset-bottom, 0px)); }
   .wk__thumbs i { width: 36px; height: 28px; }
 }
+
+.walk__mask { margin: 26px 0 0; font: 800 clamp(48px, 6.4vw, 96px)/.92 var(--sans, Inter, sans-serif); letter-spacing: -.035em; text-transform: uppercase; width: max-content; max-width: 46vw;
+  background-size: 210% auto; background-position: 0% 50%; -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; filter: saturate(1.25) brightness(1.15) drop-shadow(0 6px 24px rgba(0,0,0,.45)); animation: wkMask 9s ease-in-out infinite alternate; }
+@keyframes wkMask { to { background-position: 100% 50%; } }
+@media (max-width: 820px) { .walk__mask { display: none; } }
 .ghost-fibers-container {
   position: relative;
   width: 100%;
@@ -1791,8 +1796,8 @@ body { background: #000; }
   <section class="sc sc--walk" id="s-walk" data-title="The walk" data-dur="11500,11500" aria-label="A virtual walk through both markets">
     <div class="walk__glow" aria-hidden="true"><i></i><i></i></div>
     <div class="walk__copy">
-      <div data-only="0"><p class="kick">The virtual walk · 01 / 02</p><h2 class="say say--md">Down <em>Al Qadisiyah</em>, floor by floor.</h2><p class="sc__sub">Real photographs from the walk: the seven largest floors we counted in this district.</p></div>
-      <div data-only="1"><p class="kick">The virtual walk · 02 / 02</p><h2 class="say say--md">Across <em>Al Shifa</em>, door to door.</h2><p class="sc__sub">Real photographs from the walk: the seven largest floors we counted in this district.</p></div>
+      <div data-only="0"><p class="kick">The virtual walk · 01 / 02</p><h2 class="say say--md">Floor by floor down <em>Al Qadisiyah</em>.</h2><p class="sc__sub">Real photographs from the walk: the seven largest floors we counted in this district.</p><p class="walk__mask" id="walkMask0" aria-hidden="true">Al<br>Qadisiyah</p></div>
+      <div data-only="1"><p class="kick">The virtual walk · 02 / 02</p><h2 class="say say--md">Door to door across <em>Al Shifa</em>.</h2><p class="sc__sub">Real photographs from the walk: the seven largest floors we counted in this district.</p><p class="walk__mask" id="walkMask1" aria-hidden="true">Al<br>Shifa</p></div>
     </div>
     <div class="wk" id="walkDeck"><div class="wk__stack"></div><div class="wk__thumbs" id="walkThumbs"></div><span class="wk__cnt num" id="walkCnt"></span></div>
   </section>
@@ -7657,6 +7662,8 @@ window.RB = window.RB || {};
     /* the largest floors of each district that we photographed on the walk; the pin status is the census's own, not a guess */
     const sets = KEY.map((mk) => R.filter((r) => r.mk === mk && r.photos && r.photos.length && !(r.ar === "" && !r.en))
       .sort((a, b) => (b.units || 0) - (a.units || 0)).slice(0, 7).map((r) => ({ src: `photos/${r.photos[0]}.jpg`, name: r.en, units: r.units, mk })));
+    /* the district's name is cut from its own photograph, after the Framer ImageMaskText: the picture shows only through the letters */
+    sets.forEach((l, k) => { const m = $("walkMask" + k); if (m && l[0]) m.style.backgroundImage = `url(${l[0].src})`; });
     const root = $("walkDeck"), thumbs = $("walkThumbs"), cnt = $("walkCnt");
     let list = [], cur = 0, timer = 0, W = 0, H = 0, cw = 0, ch = 0;
     function size() {

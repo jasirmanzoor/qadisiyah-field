@@ -8,6 +8,8 @@
     /* the largest floors of each district that we photographed on the walk; the pin status is the census's own, not a guess */
     const sets = KEY.map((mk) => R.filter((r) => r.mk === mk && r.photos && r.photos.length && !(r.ar === "" && !r.en))
       .sort((a, b) => (b.units || 0) - (a.units || 0)).slice(0, 7).map((r) => ({ src: `photos/${r.photos[0]}.jpg`, name: r.en, units: r.units, mk })));
+    /* the district's name is cut from its own photograph, after the Framer ImageMaskText: the picture shows only through the letters */
+    sets.forEach((l, k) => { const m = $("walkMask" + k); if (m && l[0]) m.style.backgroundImage = `url(${l[0].src})`; });
     const root = $("walkDeck"), thumbs = $("walkThumbs"), cnt = $("walkCnt");
     let list = [], cur = 0, timer = 0, W = 0, H = 0, cw = 0, ch = 0;
     function size() {
