@@ -1,0 +1,219 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500&family=Instrument+Serif:ital@1&family=IBM+Plex+Mono:wght@500&display=block">
+<style>
+/* Film opening: the SwellCastPro curved stream (two mirrored rivers of field photos and drone footage, drawn as WebGL
+   meshes that bend along the curve, swell like pillows and soften with depth and speed), rendered on an exact clock. */
+:root { --d: "Inter Tight", Inter, sans-serif; --s: "Instrument Serif", serif; --m: "IBM Plex Mono", monospace; --b: Inter, sans-serif; }
+html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #070200; color: #fff; font-family: var(--b); }
+#bg { position: absolute; inset: -10%; background: radial-gradient(48% 52% at 72% 50%, rgba(255,110,30,.20), transparent 70%), radial-gradient(40% 50% at 10% 10%, rgba(255,70,0,.08), transparent 70%), radial-gradient(40% 50% at 10% 90%, rgba(255,70,0,.08), transparent 70%); }
+#stage { position: absolute; inset: 0; transform-origin: 72% 50%; will-change: transform; }
+canvas { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+#scrim { position: absolute; left: 72%; top: 50%; width: 1100px; height: 420px; transform: translate(-50%, -50%); z-index: 5; background: radial-gradient(closest-side, rgba(7,2,0,.82), rgba(7,2,0,.55) 55%, rgba(7,2,0,0)); }
+#band { position: absolute; left: 72%; top: 50%; transform: translate(-50%, -50%); text-align: center; white-space: nowrap; z-index: 6; will-change: transform; }
+#band .kick { font: 500 17px/1 var(--m); letter-spacing: .34em; text-transform: uppercase; color: #ff9a4a; display: inline-flex; align-items: center; gap: 14px; }
+#band .kick::before, #band .kick::after { content: ""; width: 34px; height: 2px; background: #ff6a00; }
+#band h1 { margin: 22px 0 0; font: 700 96px/1 var(--d); letter-spacing: -.045em; text-shadow: 0 6px 40px rgba(0,0,0,.65); }
+#band h1 em { font-family: var(--s); font-weight: 400; font-style: italic; letter-spacing: -.01em; color: #ffd2ad; margin-left: .2em; }
+#band .w { display: inline-block; will-change: transform, opacity, filter; }
+#band .m { display: inline-block; overflow: hidden; vertical-align: bottom; padding: 0 .04em .12em; margin-bottom: -.12em; }
+#band p { margin: 22px 0 0; font: 400 25px/1.4 var(--b); color: rgba(255,255,255,.76); text-shadow: 0 2px 20px rgba(0,0,0,.8); }
+#veil { position: absolute; inset: 0; background: #070200; z-index: 9; }
+#flare { position: absolute; inset: 0; z-index: 8; pointer-events: none; mix-blend-mode: screen; background: radial-gradient(30% 20% at 72% 50%, rgba(255,214,170,1), rgba(255,120,40,.55) 40%, rgba(255,80,0,0) 75%); opacity: 0; }
+#line { position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; z-index: 7; background: linear-gradient(90deg, rgba(255,106,0,0), #ff9a4a 50%, rgba(255,106,0,0)); transform-origin: 72% 50%; transform: scaleX(0); }
+</style></head><body>
+<div id="bg"></div>
+<div id="stage"><canvas id="gl" width="1920" height="1080"></canvas>
+  <div id="scrim"></div><div id="band"><div class="kick" id="kick">AutoLink · Pre-launch field research</div>
+    <h1><span class="m"><span class="w">Built</span></span> <span class="m"><span class="w">on</span></span><em><span class="m"><span class="w">the</span></span> <span class="m"><span class="w">ground.</span></span></em></h1>
+    <p id="sub">Two people. Two districts. Every showroom, door to door.</p></div>
+</div>
+<div id="line"></div><div id="flare"></div><div id="veil"></div>
+<script>
+/* ---- helpers, track and sizing: ported unchanged from SwellCastPro ---- */
+const wrapN = (a, n) => ((a % n) + n) % n, clampN = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const ss = (x, a, b) => { const u = clampN((x - a) / (b - a), 0, 1); return u * u * (3 - 2 * u); };
+const eo = (u) => 1 - Math.pow(1 - clampN(u, 0, 1), 3), eio = (u) => (u = clampN(u, 0, 1), u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
+const SPINE = [[1.2, .375], [.96, .318], [.75, .248], [.5, .132], [.21, -.07], [-.1, -.42], [-.38, -.86]];
+function buildTrack(W, H, spread, lower) {
+  const ctl = SPINE.map(([x, y]) => { const yy = (.5 + (y - .5) * spread) * H; return [x * W, lower ? H - yy : yy]; });
+  const per = 48, n = (ctl.length - 1) * per + 1, xs = new Float32Array(n), ys = new Float32Array(n); let k = 0;
+  for (let s = 0; s < ctl.length - 1; s++) {
+    const p0 = ctl[Math.max(0, s - 1)], p1 = ctl[s], p2 = ctl[s + 1], p3 = ctl[Math.min(ctl.length - 1, s + 2)];
+    for (let i = 0; i < per || (s === ctl.length - 2 && i === per); i++) {
+      const t = i / per, t2 = t * t, t3 = t2 * t;
+      const f = (a, b, c, d) => .5 * (2 * b + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3);
+      xs[k] = f(p0[0], p1[0], p2[0], p3[0]); ys[k] = f(p0[1], p1[1], p2[1], p3[1]); k++; if (k >= n) break;
+    }
+  }
+  const arc = new Float32Array(n); for (let i = 1; i < n; i++) arc[i] = arc[i - 1] + Math.hypot(xs[i] - xs[i - 1], ys[i] - ys[i - 1]);
+  return { xs, ys, arc, len: arc[n - 1] };
+}
+function pointAt(tr, a) {
+  const n = tr.arc.length;
+  if (a <= 0 || a >= tr.len) {
+    const i0 = a <= 0 ? 0 : n - 2, tx = tr.xs[i0 + 1] - tr.xs[i0], ty = tr.ys[i0 + 1] - tr.ys[i0], l = Math.hypot(tx, ty) || 1;
+    const ex = a <= 0 ? a : a - tr.len, bx = a <= 0 ? tr.xs[0] : tr.xs[n - 1], by = a <= 0 ? tr.ys[0] : tr.ys[n - 1];
+    return { x: bx + tx / l * ex, y: by + ty / l * ex, tx: tx / l, ty: ty / l };
+  }
+  let lo = 0, hi = n - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (tr.arc[m] < a) lo = m; else hi = m; }
+  const seg = tr.arc[hi] - tr.arc[lo] || 1, f = (a - tr.arc[lo]) / seg, tx = tr.xs[hi] - tr.xs[lo], ty = tr.ys[hi] - tr.ys[lo], l = Math.hypot(tx, ty) || 1;
+  return { x: tr.xs[lo] + tx * f, y: tr.ys[lo] + ty * f, tx: tx / l, ty: ty / l };
+}
+const heightAt = (frac, s) => s.H * (s.small + (s.large - s.small) * Math.pow(Math.max(0, clampN(frac, 0, 1.4)), s.growth));
+function slotTable(tr, s) {
+  const n = tr.arc.length, t = new Float32Array(n);
+  for (let i = 1; i < n; i++) { const a = (tr.arc[i] + tr.arc[i - 1]) / 2, w = heightAt(a / tr.len, s) * s.ratio + s.gap; t[i] = t[i - 1] + (tr.arc[i] - tr.arc[i - 1]) / Math.max(1, w); }
+  return t;
+}
+function arcForSlot(tr, table, t, s) {
+  const n = table.length;
+  if (t <= 0) return t * (heightAt(0, s) * s.ratio + s.gap);
+  if (t >= table[n - 1]) return tr.len + (t - table[n - 1]) * (heightAt(1, s) * s.ratio + s.gap);
+  let lo = 0, hi = n - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (table[m] < t) lo = m; else hi = m; }
+  const f = (t - table[lo]) / (table[hi] - table[lo] || 1); return tr.arc[lo] + (tr.arc[hi] - tr.arc[lo]) * f;
+}
+const VS = `#version 300 es
+in vec2 aPos; in vec2 aUv; in float aBlur; uniform vec2 uView; out vec2 vUv; out float vBlur;
+void main() { vUv = aUv; vBlur = aBlur; vec2 c = aPos / uView * 2.0 - 1.0; gl_Position = vec4(c.x, -c.y, 0.0, 1.0); }`;
+const FS = `#version 300 es
+precision highp float;
+in vec2 vUv; in float vBlur; out vec4 outColor;
+uniform sampler2D uTex; uniform vec2 uSize; uniform float uRound; uniform float uStreak; uniform float uFade; uniform vec2 uFit; uniform vec2 uFitOff; uniform float uGrade;
+const vec2 K[12] = vec2[12](vec2(-0.326, -0.406), vec2(-0.840, -0.074), vec2(-0.696, 0.457), vec2(-0.203, 0.621), vec2(0.962, -0.195), vec2(0.473, -0.480),
+    vec2(0.519, 0.767), vec2(0.185, -0.893), vec2(0.507, 0.064), vec2(0.896, 0.412), vec2(-0.322, -0.933), vec2(-0.792, -0.598));
+void main() {
+  vec2 p = vUv * uSize; vec2 q = abs(p - uSize * 0.5) - (uSize * 0.5 - uRound);
+  float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - uRound;
+  float soft = max(fwidth(d) * 0.8, vBlur * uSize.y * 0.55); float m = 1.0 - smoothstep(-soft, soft, d);
+  vec2 t = uFitOff + vUv * uFit; vec2 r = vec2(vBlur * (1.0 + uStreak) * uSize.y / uSize.x, vBlur) * uFit;
+  vec3 c = texture(uTex, t).rgb; for (int i = 0; i < 12; i++) c += texture(uTex, t + K[i] * r).rgb; c /= 13.0;
+  /* film grade (added): warm the shadows a touch and darken toward the card's lower edge so the stream sits in the scene */
+  c = mix(c, clamp((c - .5) * 1.14 + .47, 0.0, 1.0) * vec3(1.05, .97, .88), uGrade); float lu = dot(c, vec3(.299, .587, .114)); c = mix(vec3(lu), c, 1.0 + .12 * uGrade); c *= mix(1.0, .78, uGrade * smoothstep(.45, 1.0, vUv.y));
+  float a = m * uFade; outColor = vec4(c * a, a);
+}`;
+const COLS = 24, ROWS = 10, STRIDE = 5;
+
+/* ---- media: field photos and drone footage from the archive ---- */
+const PH = ["avenue2", "nightlot", "trucks", "ambul", "adini", "covered", "fullspeed", "dusk_prayer", "wadi", "saber", "avenue", "nightfloor"];
+const CLIPS = [["c2640", 160, 120], ["c2622", 20, 120], ["c2636", 0, 108], ["c2623", 10, 120]];   /* name, first frame, frame count */
+const ORDER = ["v0", "avenue2", "nightlot", "v1", "trucks", "ambul", "v2", "adini", "covered", "fullspeed", "v3", "dusk_prayer", "wadi", "saber", "avenue", "nightfloor"];
+const W = 1920, H = 1080, cv = document.getElementById("gl");
+const gl = cv.getContext("webgl2", { premultipliedAlpha: true, antialias: true, alpha: true, preserveDrawingBuffer: true });
+const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+const prog = gl.createProgram(); gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(prog); gl.useProgram(prog);
+const loc = Object.fromEntries(["uView", "uSize", "uRound", "uStreak", "uFade", "uFit", "uFitOff", "uTex", "uGrade"].map((n) => [n, gl.getUniformLocation(prog, n)]));
+const aPos = gl.getAttribLocation(prog, "aPos"), aUv = gl.getAttribLocation(prog, "aUv"), aBlur = gl.getAttribLocation(prog, "aBlur");
+const verts = new Float32Array((COLS + 1) * (ROWS + 1) * STRIDE), vbo = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, vbo); gl.bufferData(gl.ARRAY_BUFFER, verts.byteLength, gl.DYNAMIC_DRAW);
+const vao = gl.createVertexArray(); gl.bindVertexArray(vao);
+gl.enableVertexAttribArray(aPos); gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, STRIDE * 4, 0);
+gl.enableVertexAttribArray(aUv); gl.vertexAttribPointer(aUv, 2, gl.FLOAT, false, STRIDE * 4, 8);
+gl.enableVertexAttribArray(aBlur); gl.vertexAttribPointer(aBlur, 1, gl.FLOAT, false, STRIDE * 4, 16);
+const idx = []; for (let j = 0; j < COLS; j++) for (let r = 0; r < ROWS; r++) { const a = j * (ROWS + 1) + r, b = a + ROWS + 1; idx.push(a, a + 1, b, a + 1, b + 1, b); }
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(idx), gl.STATIC_DRAW);
+gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); gl.uniform1i(loc.uTex, 0);
+function upload(tex, src) {
+  gl.bindTexture(gl.TEXTURE_2D, tex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
+  gl.generateMipmap(gl.TEXTURE_2D); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+}
+const load = (src) => new Promise((ok) => { const im = new Image(); im.onload = () => im.decode().then(() => ok(im), () => ok(im)); im.onerror = () => ok(null); im.src = src; });
+let TX = [];
+async function boot() {
+  const photos = Object.fromEntries(await Promise.all(PH.map(async (n) => [n, await load(`bp3/${n}.jpg`)])));
+  const clips = await Promise.all(CLIPS.map(async ([n, f0, cnt]) => (await Promise.all([...Array(cnt)].map((_, i) => load(`bogpan/${n}/f${String(f0 + i + 1).padStart(4, "0")}.jpg`)))).filter(Boolean)));
+  TX = ORDER.map((k) => {
+    const tex = gl.createTexture();
+    if (k[0] === "v") { const fr = clips[+k[1]]; upload(tex, fr[0]); return { tex, w: fr[0].width, h: fr[0].height, frames: fr, last: 0 }; }
+    const im = photos[k]; upload(tex, im); return { tex, w: im.width, h: im.height };
+  });
+  await document.fonts.ready; window.__ready = true;
+}
+
+/* ---- layout (component defaults, scaled to 1080p) ---- */
+const O = { radius: .07, spread: 1, smear: .6, bulge: .22, bend: .25, focusX: .58, focusWidth: .2, depthBlur: 1 };
+const SZ = { H, small: .28, large: .95, growth: 3, ratio: 1.08, gap: 22 };
+const trT = buildTrack(W, H, O.spread, false), trB = buildTrack(W, H, O.spread, true);
+const LANES = [{ tr: trT, table: slotTable(trT, SZ), off: 0, shift: 0 }, { tr: trB, table: slotTable(trB, SZ), off: .5, shift: 1 }];
+
+/* ---- choreography (s) ---- */
+const DUR = 11.6;
+/* stream speed in slots/s: a fast launch that settles into the component's glide, then a rush out of the scene */
+const speedAt = (t) => t < .5 ? 0 : mixv(3.4, .42, eo((t - .5) / 3.2)) + 3.6 * Math.pow(ss(t, 8.6, 11.6), 1.6);
+function mixv(a, b, u) { return a + (b - a) * u; }
+const phaseAt = (t) => { let p = 0; const dt = 1 / 240; for (let x = 0; x < t; x += dt) p += speedAt(Math.min(t, x + dt / 2)) * Math.min(dt, t - x); return p; };
+
+function draw(t) {
+  const phase = phaseAt(t), speed = speedAt(t), n = TX.length;
+  gl.viewport(0, 0, W, H); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); gl.useProgram(prog); gl.bindVertexArray(vao);
+  gl.uniform2f(loc.uView, W, H); gl.uniform1f(loc.uGrade, 1);
+  const list = [];
+  for (const lane of LANES) {
+    const tMax = lane.table[lane.table.length - 1] + 3, ph = phase + lane.off - 1.2;
+    for (let k = Math.ceil(-ph - 1); k <= Math.floor(tMax - ph); k++) {
+      const tt = k + ph; if (tt < -1) continue;
+      const born = -k - lane.off + 1.2;                 /* the phase at which this card left the origin; nothing exists before the launch */
+      if (born < -.4) continue;
+      const a = arcForSlot(lane.tr, lane.table, tt, SZ), h = heightAt(a / lane.tr.len, SZ);
+      list.push({ lane, t: tt, a, h, item: wrapN(k + lane.shift * Math.floor(n / 2), n) });
+    }
+  }
+  list.sort((p, q) => p.h - q.h);
+  for (const c of list) {
+    const w = c.h * SZ.ratio, tr = c.lane.tr, frac0 = clampN(c.a / tr.len, 0, 1.3);
+    const motion = O.smear * .012 * frac0 * frac0 * Math.min(3, speed * 2.5), mid = pointAt(tr, c.a);
+    let minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+    for (let j = 0; j <= COLS; j++) {
+      const cu = j / COLS, aj = c.a + (cu - .5) * w, onPath = pointAt(tr, aj), bd = O.bend;
+      const rx = mid.x + mid.tx * (cu - .5) * w, ry = mid.y + mid.ty * (cu - .5) * w;
+      let tx = mid.tx + (onPath.tx - mid.tx) * bd, ty = mid.ty + (onPath.ty - mid.ty) * bd; const tl = Math.hypot(tx, ty) || 1; tx /= tl; ty /= tl;
+      const p = { x: rx + (onPath.x - rx) * bd, y: ry + (onPath.y - ry) * bd, tx, ty };
+      const hl = heightAt(aj / tr.len, SZ) * .5 * bd + c.h * (1 - .5 * bd), nx = -p.ty, ny = p.tx, across = 2 * cu - 1, swell = 1 + O.bulge * (1 - across * across);
+      for (let r = 0; r <= ROWS; r++) {
+        const rv = r / ROWS, down = 2 * rv - 1, off = (.5 - rv) * hl * swell, bow = O.bulge * .14 * w * (1 - down * down) * across;
+        const x = p.x + nx * off + p.tx * bow, y = p.y + ny * off + p.ty * bow;
+        const dx = Math.abs(x / W - O.focusX), kk = clampN((dx - O.focusWidth) / .32, 0, 1), dof = O.depthBlur * .045 * kk * kk * (3 - 2 * kk);
+        const bi = (j * (ROWS + 1) + r) * STRIDE; verts[bi] = x; verts[bi + 1] = y; verts[bi + 2] = 1 - cu; verts[bi + 3] = rv; verts[bi + 4] = dof + motion;
+        if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y;
+      }
+    }
+    if (maxX < 0 || minX > W || maxY < 0 || minY > H) continue;
+    const tx = TX[c.item];
+    if (tx.frames) { const f = Math.floor(t * 30) % tx.frames.length; if (f !== tx.last) { upload(tx.tex, tx.frames[f]); tx.last = f; } }
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbo); gl.bufferSubData(gl.ARRAY_BUFFER, 0, verts);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tx.tex);
+    const ca = w / c.h, ta = tx.w / Math.max(1, tx.h);
+    if (ta > ca) { gl.uniform2f(loc.uFit, ca / ta, 1); gl.uniform2f(loc.uFitOff, (1 - ca / ta) / 2, 0); } else { gl.uniform2f(loc.uFit, 1, ta / ca); gl.uniform2f(loc.uFitOff, 0, (1 - ta / ca) / 2); }
+    gl.uniform2f(loc.uSize, w, c.h); gl.uniform1f(loc.uRound, c.h * O.radius); gl.uniform1f(loc.uStreak, O.smear * Math.min(2, speed * 1.5));
+    gl.uniform1f(loc.uFade, clampN((c.t + .6) / .9, 0, 1));
+    gl.drawElements(gl.TRIANGLES, COLS * ROWS * 6, gl.UNSIGNED_SHORT, 0);
+  }
+}
+
+/* ---- the frame: stream, layered camera, title and exit ---- */
+const $ = (s) => document.querySelector(s), words = [...document.querySelectorAll("#band .w")];
+function render(t) {
+  draw(t);
+  /* camera: the stage settles in from a slight push, holds a slow drift, then dives toward the title for the exit;
+     the title layer moves less than the stream behind it, which reads as depth */
+  const settle = 1.08 - .08 * eo(t / 4.5), dive = .16 * Math.pow(ss(t, 9.2, 11.6), 2), drift = .012 * Math.sin(t * .5);
+  $("#stage").style.transform = `scale(${(settle + dive + drift).toFixed(4)}) rotate(${(-.6 * ss(t, 9.2, 11.6)).toFixed(3)}deg)`;
+  $("#band").style.transform = `translate(-50%, -50%) scale(${(1 / (settle + dive * .55 + drift)).toFixed(4)})`;
+  $("#scrim").style.opacity = (ss(t, 1.2, 2.2) * (1 - ss(t, 10.0, 10.9))).toFixed(3);
+  $("#veil").style.opacity = (1 - ss(t, .15, .9)).toFixed(3);
+  $("#line").style.transform = `scaleX(${(eo((t - .3) / 1.2) * (1 - ss(t, 1.4, 2.0))).toFixed(4)})`;
+  $("#line").style.opacity = (1 - ss(t, 1.5, 2.0)).toFixed(3);
+  const kick = $("#kick"); kick.style.opacity = (ss(t, .9, 1.5) * (1 - ss(t, 9.6, 10.4))).toFixed(3); kick.style.letterSpacing = (.6 - .26 * eo((t - .9) / 1.6)).toFixed(3) + "em";
+  words.forEach((w, i) => {
+    const a = 1.55 + i * .16, u = eo((t - a) / .95), out = ss(t, 10.0 + i * .05, 10.9);
+    w.style.transform = `translateY(${((1 - u) * 105 - out * 40).toFixed(1)}%)`; w.style.opacity = (Math.min(1, u * 1.3) * (1 - out)).toFixed(3);
+    w.style.filter = `blur(${((1 - u) * 10 + out * 8).toFixed(2)}px)`;
+  });
+  const sub = $("#sub"); sub.style.opacity = (ss(t, 3.0, 3.9) * (1 - ss(t, 9.4, 10.2))).toFixed(3); sub.style.transform = `translateY(${((1 - eo((t - 3) / 1.1)) * 16).toFixed(1)}px)`;
+  /* exit: a warm light bloom opens from the title and carries into the next scene */
+  $("#flare").style.opacity = (Math.pow(ss(t, 10.2, 11.5), 1.5) * .95).toFixed(3);
+  $("#flare").style.transform = `scale(${(1 + 2.4 * ss(t, 10.2, 11.6)).toFixed(3)})`;
+}
+window.__dur = DUR; window.__render = render;
+boot().then(() => { const q = new URLSearchParams(location.search); render(+(q.get("t") || 0)); });
+</script></body></html>

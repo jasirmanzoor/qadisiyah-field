@@ -2,7 +2,7 @@
    usage: node rz.mjs URL OUTDIR FPS t0 t1  (or: node rz.mjs URL OUTDIR stills t,t,t) */
 import { chromium } from "/home/user/qadisiyah-field/node_modules/playwright/index.mjs";
 const [,, url, out, fps, a, b] = process.argv;
-const br = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome", args: ["--hide-scrollbars"] });
+const br = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome", args: ["--hide-scrollbars", "--use-gl=swiftshader", "--enable-webgl", "--ignore-gpu-blocklist", "--enable-unsafe-swiftshader"] });
 const p = await (await br.newContext({ viewport: { width: 1920, height: 1080 } })).newPage();
 const errs = []; p.on("pageerror", (e) => errs.push(e.message)); p.on("console", (m) => m.type() === "error" && errs.push(m.text()));
 await p.goto(url); await p.waitForFunction(() => window.__ready === true, null, { timeout: 180000 });
