@@ -43,7 +43,7 @@ h2 { margin: 0; font: 700 92px/.98 var(--d); letter-spacing: -.042em; }
 .shade-l { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(7,2,0,.97) 0%, rgba(7,2,0,.88) 38%, rgba(7,2,0,0) 62%); }
 .edge { position: absolute; top: -10%; bottom: -10%; width: 3px; background: linear-gradient(180deg, transparent, var(--flame-lit), transparent); transform: skewX(-8deg); filter: drop-shadow(0 0 12px var(--flame)); }
 .brand { position: absolute; z-index: 60; left: 64px; top: 52px; text-shadow: 0 2px 12px rgba(0,0,0,.6); display: flex; align-items: center; gap: 14px; font: 600 24px/1 var(--d); letter-spacing: -.02em; }
-.brand svg { width: 36px; height: 36px; }
+.brand img { height: 30px; width: auto; display: block; filter: drop-shadow(0 2px 10px rgba(0,0,0,.6)); }
 
 /* InfiniteStory-style stack: full-bleed panels arrive from below, the previous one sinks, shrinks and dims */
 .st-p { position: absolute; inset: 0; overflow: hidden; background: #000; will-change: transform; }
@@ -60,7 +60,7 @@ h2 { margin: 0; font: 700 92px/.98 var(--d); letter-spacing: -.042em; }
 .st-rail i { display: block; width: 3px; height: 46px; background: rgba(255,255,255,.25); border-radius: 2px; }
 .st-rail i.on { background: var(--flame-lit); box-shadow: 0 0 10px var(--flame); }
 </style></head><body>
-<div class="brand" id="brand"><svg viewBox="0 0 28 28" fill="none"><path d="M14 1.6 20.3 8 14 14.4 7.7 8 14 1.6Z" fill="#FF6A00"/><path d="M6.4 9.3 12.7 15.7 6.4 22.1.1 15.7 6.4 9.3Z" fill="#FF3D00"/><path d="M21.6 9.3 27.9 15.7 21.6 22.1 15.3 15.7 21.6 9.3Z" fill="#FF9A2E"/></svg>Sub-Dealer Portfolio</div>
+<div class="brand" id="brand"><img src="brand/autolink-lockup.png" alt="AutoLink AI Tech"></div>
 <div id="stage"></div>
 <script>
 const ACT = new URLSearchParams(location.search).get("act") || "1";
@@ -80,7 +80,7 @@ function panel(par, x, y, w, h, src) {
   const el = $(`<div class="pn" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"><img src="${src}"></div>`); par.appendChild(el); el._w = w; el._h = h; el._img = el.firstChild; return el;
 }
 function seq(el, clip, n, t, rate = .75) {           /* drive a pan clip frame by frame; waits for decode before the frame is captured */
-  const k = Math.min(n, 1 + Math.floor(t * 30 * rate)) ; const src = `bogpan/${clip}/f${String(k).padStart(4, "0")}.jpg`;
+  const k = Math.min(n, 1 + Math.floor(t * 30 * rate)) ; const src = `bogpan2/${clip}/f${String(k).padStart(4, "0")}.jpg`;
   if (el._img.dataset.src !== src) { el._img.dataset.src = src; el._img.src = src; pend.push(el._img.decode()); }
 }
 function words(h) {                                 /* wrap every word in a span; words inside <em> keep the italic */
@@ -126,7 +126,7 @@ if (ACT === "1") {
 /* S1: opening triptych of the drive-by footage */
 scene(7.6, (r) => {
   const P = [["c2640", 677], ["c2622", 348], ["c2623", 156]], W = 600, H = 1240, xs = [70, 660, 1250];
-  const ps = P.map(([c], i) => panel(r, xs[i], -80, W, H, `bogpan/${c}/f0001.jpg`));
+  const ps = P.map(([c], i) => panel(r, xs[i], -80, W, H, `bogpan2/${c}/f0001.jpg`));
   r.appendChild($(`<div class="shade-b"></div>`));
   const c = $(`<div class="copy" style="bottom:120px;width:1100px"><p class="kick">Pre-launch · Riyadh fieldwork</p><h1>${words("Built on <em>the ground.</em>")}</h1><p class="sub" style="max-width:820px">Before launch, two people set out to learn Riyadh's independent car market. Door to door.</p></div>`); r.appendChild(c);
   return (t) => {
@@ -136,7 +136,7 @@ scene(7.6, (r) => {
 });
 /* S2: the founder's vision */
 scene(7.0, (r) => {
-  const v = panel(r, 1000, -60, 820, 1200, "bogpan/c2629/f0001.jpg");
+  const v = panel(r, 1000, -60, 820, 1200, "bogpan2/c2629/f0001.jpg");
   const cp = $(`<div class="copy" style="top:200px;width:780px"><p class="kick">The founder's vision</p><h2>${words("Map a market <em>no one had mapped.</em>")}</h2>
     <p class="sub">Our founder and CEO, Leon, set the task: understand Riyadh's sub-dealer market, showroom by showroom.</p></div>`); r.appendChild(cp);
   return (t) => { seq(v, "c2629", 151, t, .7); enter(v, t, .1, 1.2, -1); fade(cp.querySelector(".kick"), t, .2); rise(cp.querySelector("h2"), t, .35, .08); fade(cp.querySelector(".sub"), t, 1.8); };
@@ -155,7 +155,7 @@ scene(7.0, (r) => {
 });
 /* S4: into the market */
 scene(7.4, (r) => {
-  const v = panel(r, 1220, -40, 560, 1160, "bogpan/c2636/f0001.jpg"), a = panel(r, 760, 110, 470, 400, "bp3/saber.jpg"), b = panel(r, 700, 560, 480, 420, "bp3/wadi.jpg");
+  const v = panel(r, 1220, -40, 560, 1160, "bogpan2/c2636/f0001.jpg"), a = panel(r, 760, 110, 470, 400, "bp3/saber.jpg"), b = panel(r, 700, 560, 480, 420, "bp3/wadi.jpg");
   r.appendChild($(`<div class="shade-l" style="background:linear-gradient(90deg,rgba(7,2,0,.97) 0%,rgba(7,2,0,.9) 30%,rgba(7,2,0,0) 44%)"></div>`));
   const cp = $(`<div class="copy" style="top:130px;width:560px"><p class="kick">On-field research</p><h2>${words("Into the <em>market.</em>")}</h2>
     <div class="verbs">${["Visit.", "Observe.", "Ask.", "Document.", "Repeat."].map((x) => `<div class="verb">${x}</div>`).join("")}</div>

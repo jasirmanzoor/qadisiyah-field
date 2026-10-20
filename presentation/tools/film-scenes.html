@@ -1,0 +1,202 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&family=Instrument+Serif:ital@1&family=IBM+Plex+Mono:wght@500&display=block">
+<style>
+/* Film v6 scenes, rendered on an exact clock (?s=founder | pins | kafd): the founder's line with a curved photo ring,
+   every showroom dropped as a GPS pin, and a clean KAFD finale where the footage is never covered. */
+:root { --ink: #fff; --soft: rgba(255,255,255,.74); --flame: #ff6a00; --flame-lit: #ff9a4a;
+  --d: "Inter Tight", Inter, sans-serif; --s: "Instrument Serif", serif; --m: "IBM Plex Mono", monospace; --b: Inter, sans-serif; }
+html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #070200; color: var(--ink); font-family: var(--b); }
+.abs { position: absolute; }
+.kick { font: 500 18px/1 var(--m); letter-spacing: .3em; text-transform: uppercase; color: var(--flame-lit); display: flex; align-items: center; gap: 16px; }
+.kick::before { content: ""; width: 44px; height: 2px; background: var(--flame); }
+h2 { margin: 0; font: 700 88px/.98 var(--d); letter-spacing: -.042em; }
+h2 em, .q em { font-family: var(--s); font-weight: 400; font-style: italic; letter-spacing: -.01em; color: #ffd2ad; }
+.sub { font: 400 27px/1.45 var(--b); color: var(--soft); }
+.w { display: inline-block; will-change: transform, opacity, filter; }
+.brand { position: absolute; z-index: 60; left: 64px; top: 52px; } .brand img { height: 30px; display: block; filter: drop-shadow(0 2px 10px rgba(0,0,0,.6)); }
+/* founder */
+#ring { position: absolute; inset: 0; perspective: 1400px; perspective-origin: 28% 30%; }
+#ring .rg { position: absolute; left: 28%; top: 50%; transform-style: preserve-3d; }
+#ring .c { position: absolute; width: 400px; height: 268px; left: -200px; top: -134px; border-radius: 14px; overflow: hidden; backface-visibility: hidden; box-shadow: 0 30px 60px -20px rgba(0,0,0,.8); }
+#ring .c img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.glow { position: absolute; border-radius: 50%; pointer-events: none; }
+#por { position: absolute; left: 150px; bottom: 0; width: 780px; height: 780px; }
+#por img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: bottom; }
+#por .sweep { position: absolute; inset: 0; -webkit-mask: url(bp3/leon.png) center bottom / contain no-repeat; mask: url(bp3/leon.png) center bottom / contain no-repeat;
+  background: linear-gradient(100deg, transparent 40%, rgba(255,220,180,.5) 50%, transparent 60%); background-size: 260% 100%; mix-blend-mode: screen; }
+#arch { position: absolute; left: 270px; bottom: 0; width: 540px; height: 860px; border: 2px solid rgba(255,154,74,.55); border-bottom: 0; border-radius: 270px 270px 0 0; }
+.q { margin: 0; font: 400 italic 72px/1.08 var(--s); color: #fff; letter-spacing: -.012em; }
+.cred { display: flex; align-items: center; gap: 22px; }
+.cred i { display: block; width: 60px; height: 2px; background: var(--flame); }
+.cred b { display: block; font: 700 36px/1 var(--d); letter-spacing: -.02em; }
+.cred span { display: block; margin-top: 8px; font: 500 20px/1 var(--b); color: var(--soft); }
+/* pins */
+.pan { position: absolute; border-radius: 18px; overflow: hidden; box-shadow: 0 40px 90px -30px rgba(0,0,0,.9), inset 0 0 0 1px rgba(255,255,255,.12); background: #120a05; }
+.pan canvas { position: absolute; inset: 0; }
+.tag { position: absolute; left: 22px; top: 20px; padding: 14px 18px; border-radius: 12px; background: rgba(8,4,2,.78); border: 1px solid rgba(255,255,255,.14); }
+.tag small { display: block; font: 500 14px/1 var(--m); letter-spacing: .22em; text-transform: uppercase; color: var(--soft); }
+.tag b { display: block; margin-top: 8px; font: 700 40px/1 var(--d); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.tag b span { font: 500 18px/1 var(--b); color: var(--soft); letter-spacing: 0; margin-left: 8px; }
+.phone { position: absolute; width: 360px; height: 750px; border-radius: 58px; background: #0b0b0d; padding: 14px; box-sizing: border-box; box-shadow: 0 60px 120px -30px rgba(0,0,0,.95), inset 0 0 0 2px rgba(255,255,255,.14); }
+.phone .scr { position: relative; width: 100%; height: 100%; border-radius: 46px; overflow: hidden; background: #000; }
+.phone img { position: absolute; left: 0; top: 0; width: 100%; }
+.phone .isl { position: absolute; left: 50%; top: 14px; width: 110px; height: 32px; margin-left: -55px; border-radius: 20px; background: #000; z-index: 2; }
+/* kafd */
+.kp { position: absolute; top: 0; height: 1080px; overflow: hidden; background: #000; }
+.kp img { position: absolute; left: 50%; top: 50%; width: 100%; height: 100%; object-fit: cover; transform: translate(-50%, -50%); }
+.kp::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); pointer-events: none; }
+</style></head><body><div id="root"></div>
+<script>
+const W = 1920, H = 1080, S = new URLSearchParams(location.search).get("s") || "founder", root = document.getElementById("root");
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x)), mix = (a, b, u) => a + (b - a) * u;
+const ss = (x, a, b) => { const u = clamp((x - a) / (b - a)); return u * u * (3 - 2 * u); };
+const eo = (u) => 1 - Math.pow(1 - clamp(u), 3), eio = (u) => (u = clamp(u), u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
+const el = (html, parent = root) => { const t = document.createElement("template"); t.innerHTML = html.trim(); const e = t.content.firstChild; parent.appendChild(e); return e; };
+const words = (h) => h.replace(/(<[^>]+>)|([^\s<]+)/g, (m, tag, w) => tag || `<span class="w">${w}</span>`);
+const load = (src) => new Promise((ok) => { const im = new Image(); im.onload = () => im.decode().then(() => ok(im), () => ok(im)); im.onerror = () => ok(null); im.src = src; });
+function rise(e, t, a, step = .07, d = .9) {
+  e.querySelectorAll(".w").forEach((w, i) => { const u = eo((t - a - i * step) / d); w.style.opacity = Math.min(1, u * 1.4).toFixed(3); w.style.transform = `translateY(${((1 - u) * 46).toFixed(1)}px)`; w.style.filter = `blur(${((1 - u) * 9).toFixed(2)}px)`; });
+}
+const fade = (e, t, a, d = .8, dy = 18) => { const u = eo((t - a) / d); e.style.opacity = u.toFixed(3); e.style.transform = `translateY(${((1 - u) * dy).toFixed(1)}px)`; return u; };
+el(`<div class="brand"><img src="brand/autolink-lockup.png" alt="AutoLink AI Tech"></div>`);
+const D2R = Math.PI / 180, mx = (lng) => (lng + 180) / 360 * 256, my = (lat) => (1 - Math.asinh(Math.tan(lat * D2R)) / Math.PI) / 2 * 256;
+let render = () => {}, DUR = 9, boot = async () => {};
+
+/* ================= founder ================= */
+if (S === "founder") {
+  DUR = 9.2;
+  const RING = ["avenue2", "nightlot", "trucks", "meet", "ambul", "adini", "train2", "covered", "fullspeed", "review1", "dusk_prayer", "wadi", "office", "saber"];
+  el(`<div class="glow" style="left:-260px;top:120px;width:1500px;height:1300px;background:radial-gradient(closest-side,rgba(255,110,30,.30),rgba(255,80,0,.08) 55%,transparent)"></div>`);
+  const ring = el(`<div id="ring"><div class="rg"></div></div>`), rg = ring.firstChild;
+  const cards = RING.map((n) => el(`<div class="c"><img src="bp3/${n}.jpg"></div>`, rg));
+  const scrim = el(`<div class="abs" style="inset:0;background:linear-gradient(90deg,rgba(7,2,0,0) 0%,rgba(7,2,0,.1) 44%,rgba(7,2,0,.82) 58%,rgba(7,2,0,.9) 100%)"></div>`);
+  const arch = el(`<div id="arch"></div>`);
+  const por = el(`<div id="por"><img src="bp3/leon.png" alt="Leon, Founder and CEO of AutoLink"><div class="sweep"></div></div>`);
+  const box = el(`<div class="abs" style="left:1050px;top:330px;width:790px"></div>`);
+  const kick = el(`<p class="kick" style="margin:0 0 40px">The founder's vision</p>`, box);
+  const q = el(`<p class="q">${words("“There was no map. <em>So we built one</em> — one showroom at a time.”")}</p>`, box);
+  const cred = el(`<div class="cred" style="margin-top:54px"><i></i><div><b>Leon</b><span>Founder &amp; CEO, AutoLink</span></div></div>`, box);
+  boot = async () => { await Promise.all([...document.images].map((i) => i.decode().catch(() => {}))); };
+  render = (t) => {
+    const n = cards.length, R = 820, spin = -18 - t * 7.5;
+    rg.style.transform = `translateZ(-520px) rotateX(-9deg) rotateY(${spin.toFixed(2)}deg)`;
+    cards.forEach((c, i) => {
+      const a = i / n * 360, w = ((a + spin) % 360 + 360) % 360, front = Math.cos(w * D2R);    /* 1 facing the camera, -1 behind */
+      c.style.transform = `rotateY(${a}deg) translateZ(${R}px)`;
+      c.style.opacity = ((.25 + .75 * (front * .5 + .5)) * ss(t, .1 + i * .04, .9 + i * .04)).toFixed(3);
+      c.style.filter = `brightness(${(.45 + .45 * (front * .5 + .5)).toFixed(2)}) blur(${((1 - (front * .5 + .5)) * 3).toFixed(1)}px)`;
+    });
+    ring.style.opacity = ss(t, 1.0, 2.0).toFixed(3);
+    scrim.style.opacity = ss(t, .3, 1.4).toFixed(3);
+    const pu = eo((t - .1) / 1.3);
+    por.style.opacity = pu.toFixed(3); por.style.filter = `blur(${((1 - pu) * 10).toFixed(1)}px) drop-shadow(0 0 40px rgba(255,140,60,${(.25 * pu).toFixed(2)}))`;
+    por.style.transform = `translateY(${((1 - pu) * 50).toFixed(1)}px) scale(${(1.03 - .03 * eo(t / 9)).toFixed(4)})`;
+    por.querySelector(".sweep").style.backgroundPosition = `${(120 - 140 * eio((t - 2.1) / 1.6)).toFixed(1)}% 0`;
+    const au = eio((t - .9) / 1.4); arch.style.opacity = (au * .9).toFixed(3); arch.style.clipPath = `inset(${((1 - au) * 100).toFixed(1)}% 0 0 0)`;
+    fade(kick, t, 1.2); rise(q, t, 1.6, .11, 1.0); fade(cred, t, 4.9, 1.0, 14);
+    cred.querySelector("i").style.width = (60 * eo((t - 5.0) / .9)).toFixed(1) + "px";
+  };
+}
+
+/* ================= pins ================= */
+if (S === "pins") {
+  DUR = 11.2;
+  let SPEC = [], LAYER = {}, PIN = { q: [], s: [] };
+  const head = el(`<div class="abs" style="left:96px;top:120px;width:1500px"></div>`);
+  const hk = el(`<p class="kick" style="margin:0 0 24px">Ground truth, pinned</p>`, head);
+  const hh = el(`<h2>${words("Every showroom, <em>on the map.</em>")}</h2>`, head);
+  const foot = el(`<p class="abs sub" style="left:96px;bottom:44px;margin:0;font-size:24px">474 showrooms pinned at their real GPS coordinates · 449 verified on site, day and night</p>`);
+  const mk = (x, cls, name) => { const p = el(`<div class="pan" style="left:${x}px;top:300px;width:844px;height:690px"><canvas width="844" height="690"></canvas><div class="tag"><small>${name}</small><b>0<span>pins</span></b></div></div>`); return { p, c: p.querySelector("canvas"), g: p.querySelector("canvas").getContext("2d"), b: p.querySelector("b") }; };
+  const PQ = mk(96, "", "Al Qadisiyah"), PS = mk(980, "", "Al Shifa");
+  /* beat two: the same pins, live on Google Earth */
+  const h2b = el(`<div class="abs" style="left:96px;top:300px;width:760px"></div>`);
+  const k2 = el(`<p class="kick" style="margin:0 0 30px">Live on Google Earth</p>`, h2b);
+  const t2 = el(`<h2>${words("One map. <em>Every door.</em>")}</h2>`, h2b);
+  const p2 = el(`<p class="sub" style="margin:34px 0 0">The first complete map of Riyadh's sub-dealer market: every pin a showroom our team stood in, now on one shared Google Earth map.</p>`, h2b);
+  const phones = [1, 2, 3].map((i) => el(`<div class="phone"><div class="scr"><div class="isl"></div><img src="ge/ge${i}.jpg"></div></div>`));
+  boot = async () => {
+    SPEC = await (await fetch("zoom/spec.json")).json();
+    for (const id of ["q16", "s16", "q17", "s17"]) { const l = SPEC.find((x) => x.id === id); LAYER[id] = { ...l, im: await load(`zoom/${id}.jpg`) }; }
+    const csv = (await (await fetch("data/showrooms.csv")).text()).trim().split("\n"), hd = csv[0].split(",");
+    for (const r of csv.slice(1)) {
+      const c = r.match(/("([^"]|"")*"|[^,]*)(,|$)/g).map((s) => s.replace(/,$/, "")), la = +c[hd.indexOf("lat")], ln = +c[hd.indexOf("lng")];
+      if (!la || !ln) continue; (c[hd.indexOf("district")] === "Al Qadisiyah" ? PIN.q : PIN.s).push([la, ln]);
+    }
+    await Promise.all([...document.images].map((i) => i.decode().catch(() => {})));
+  };
+  function sat(P, lid, cLat, cLng, z, pins, col, t, t0) {
+    const g = P.g, Wp = 844, Hp = 690, L = LAYER[lid], k = Math.pow(2, z - L.z), s = 256 / Math.pow(2, L.z);
+    const cx = mx(cLng), cy = my(cLat), X = Wp / 2 + (L.x0 * s - cx) * Math.pow(2, z), Y = Hp / 2 + (L.y0 * s - cy) * Math.pow(2, z);
+    g.fillStyle = "#120a05"; g.fillRect(0, 0, Wp, Hp); g.drawImage(L.im, X, Y, L.n * 256 * k, L.n * 256 * k);
+    g.fillStyle = "rgba(7,2,0,.18)"; g.fillRect(0, 0, Wp, Hp);
+    const N = pins.length, dur = 3.4; let shown = 0;
+    pins.forEach(([la, ln], i) => {
+      const at = t0 + i / N * dur, u = clamp((t - at) / .45); if (u <= 0) return; shown++;
+      const x = Wp / 2 + (mx(ln) - cx) * Math.pow(2, z), y = Hp / 2 + (my(la) - cy) * Math.pow(2, z);
+      const drop = (1 - eo(u)) * -38, sc = u < 1 ? .6 + .4 * eo(u) + Math.sin(u * Math.PI) * .25 : 1, r = 13 * sc;
+      if (u < 1) { g.strokeStyle = col; g.globalAlpha = (1 - u) * .8; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 13 + u * 26, 0, 7); g.stroke(); }
+      g.globalAlpha = Math.min(1, u * 2); g.fillStyle = col; g.strokeStyle = "#fff"; g.lineWidth = 2;
+      g.beginPath(); g.arc(x, y + drop, r, 0, 7); g.fill(); g.stroke();
+      if (u > .5) { g.fillStyle = "#fff"; g.font = `600 ${i >= 99 ? 10 : 12}px Inter`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(String(i + 1), x, y + drop + .5); }
+      g.globalAlpha = 1;
+    });
+    return shown;
+  }
+  render = (t) => {
+    const out = eio((t - 5.6) / 1.1);
+    fade(hk, t, .2); rise(hh, t, .35, .08); fade(foot, t, 1.4);
+    head.style.opacity = foot.style.opacity = (1 - out).toFixed(3);
+    [[PQ, 96, 0], [PS, 980, .15]].forEach(([P, x, d]) => {
+      const u = eo((t - .5 - d) / 1.1); P.p.style.opacity = (u * (1 - out)).toFixed(3);
+      P.p.style.transform = `translate(${(-out * 900 * (1 + d * 2)).toFixed(1)}px, ${((1 - u) * 60).toFixed(1)}px) scale(${(1 - out * .1).toFixed(3)})`;
+    });
+    const zq = 15.75 + .3 * eio(t / 6), zs = 15.95 + .3 * eio(t / 6);
+    PQ.b.firstChild.nodeValue = sat(PQ, zq > 16.4 ? "q17" : "q16", 24.8236, 46.8247, zq, PIN.q, "#2236a8", t, 1.2) + "";
+    PS.b.firstChild.nodeValue = sat(PS, "s16", 24.5476, 46.6842, zs, PIN.s, "#e8590c", t, 1.4) + "";
+    /* beat two */
+    fade(k2, t, 6.3); rise(t2, t, 6.45, .08); fade(p2, t, 7.2);
+    phones.forEach((ph, i) => {
+      const u = eio((t - 6.0 - i * .22) / 1.3), x = 900 + i * 300, y = 150 + (i % 2) * 60;
+      ph.style.opacity = clamp(u * 1.5).toFixed(3);
+      ph.style.transform = `perspective(1800px) translate(${((1 - u) * 700).toFixed(1)}px, ${(y - 150 + (1 - u) * 80).toFixed(1)}px) rotateY(${(-16 + 6 * u).toFixed(2)}deg) rotateZ(${(-2 + i * 2).toFixed(1)}deg)`;
+      ph.style.left = x + "px"; ph.style.top = "150px";
+      const img = ph.querySelector("img"); img.style.transform = `translateY(${(-60 * eio((t - 6.5) / 4.5)).toFixed(1)}px) scale(${(1.0 + .05 * eio((t - 6.5) / 4.5)).toFixed(3)})`;
+    });
+  };
+}
+
+/* ================= kafd ================= */
+if (S === "kafd") {
+  DUR = 10.6;
+  const FA = 270, FB = 218;   /* frames in the two stabilised clips (30 fps) */
+  const txt = el(`<div class="abs" style="left:110px;top:300px;width:900px"></div>`);
+  const kk = el(`<p class="kick" style="margin:0 0 34px">Headquarters · King Abdullah Financial District</p>`, txt);
+  const hh = el(`<h2 style="font-size:96px">${words("From the showroom floor <em>to KAFD.</em>")}</h2>`, txt);
+  const pp = el(`<p class="sub" style="margin:36px 0 0;max-width:760px">Every record from the field was filed back to one roster, here at our Riyadh headquarters.</p>`, txt);
+  const A = el(`<div class="kp"><img></div>`), M = el(`<div class="kp"><img src="kafdv/p3.jpg"><img src="kafdv/p2.jpg" style="opacity:0"></div>`), B = el(`<div class="kp"><img></div>`);
+  const fr = (dir, i, n) => `kafdv/${dir}/f${String(Math.min(n, Math.max(1, i))).padStart(4, "0")}.jpg`;
+  boot = async () => { await Promise.all([...document.images].filter((i) => i.src).map((i) => i.decode().catch(() => {}))); };
+  render = async (t) => {
+    const wA = 640, sl = eio((t - 4.0) / 1.4), gap = 14, w3 = (W - 2 * gap - 12) / 3;
+    /* beat one: the title beside clip A, revealed with a slanted wipe; beat two: a clean triptych */
+    const ax = mix(1180, 6, sl), aw = mix(wA, w3, sl);
+    A.style.left = ax.toFixed(1) + "px"; A.style.width = aw.toFixed(1) + "px";
+    const ru = eio((t - .2) / 1.0); A.style.clipPath = `polygon(${((1 - ru) * 100 + 0).toFixed(1)}% 0, 100% 0, 100% 100%, ${((1 - ru) * 100 - 14 * (1 - ru)).toFixed(1)}% 100%)`;
+    const mu = eio((t - 4.3) / 1.3), bu = eio((t - 4.55) / 1.3);
+    M.style.left = (6 + w3 + gap + (1 - mu) * 700).toFixed(1) + "px"; M.style.width = w3.toFixed(1) + "px"; M.style.opacity = clamp(mu * 1.6).toFixed(3);
+    B.style.left = (6 + 2 * (w3 + gap) + (1 - bu) * 700).toFixed(1) + "px"; B.style.width = w3.toFixed(1) + "px"; B.style.opacity = clamp(bu * 1.6).toFixed(3);
+    const [m1, m2] = M.querySelectorAll("img"), x2 = ss(t, 7.6, 8.6);
+    m1.style.transform = `translate(-50%, -50%) scale(${(1.0 + .04 * clamp((t - 4.3) / 6)).toFixed(4)})`; m2.style.opacity = x2.toFixed(3);
+    m2.style.transform = `translate(-50%, -50%) scale(${(1.04 - .04 * clamp((t - 7.6) / 3)).toFixed(4)})`;
+    fade(kk, t, .5); rise(hh, t, .7, .08); fade(pp, t, 1.6);
+    document.querySelector(".brand").style.opacity = (1 - ss(t, 3.6, 4.3)).toFixed(3);   /* nothing sits on the KAFD footage */
+    txt.style.opacity = (1 - ss(t, 3.7, 4.5)).toFixed(3); txt.style.transform = `translateX(${(-120 * ss(t, 3.7, 4.6)).toFixed(1)}px)`;
+    const ia = A.querySelector("img"), ib = B.querySelector("img");
+    ia.src = fr("a", 40 + Math.floor(t * 30), FA); ib.src = fr("b", 1 + Math.floor(Math.max(0, t - 4.4) * 30), FB);
+    await Promise.all([ia.decode().catch(() => {}), ib.decode().catch(() => {})]);
+  };
+}
+window.__dur = DUR;
+window.__render = (t) => render(t);
+boot().then(() => document.fonts.ready).then(async () => { await render(+(new URLSearchParams(location.search).get("t") || 0)); window.__ready = true; });
+</script></body></html>
