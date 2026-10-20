@@ -136,10 +136,11 @@ scene(7.6, (r) => {
 });
 /* S2: the founder's vision */
 scene(7.0, (r) => {
-  const v = panel(r, 1000, -60, 820, 1200, "bogpan2/c2629/f0001.jpg");
+  /* field photos instead of the drive-by clip: three street shots crossfade with a slow push */
+  const vs = ["photos/q-street-ibtikar.jpg", "photos/q-street-binomaira.jpg", "photos/s-saber-street.jpg"].map((src) => panel(r, 1000, -60, 820, 1200, src));
   const cp = $(`<div class="copy" style="top:200px;width:780px"><p class="kick">The founder's vision</p><h2>${words("Map a market <em>no one had mapped.</em>")}</h2>
     <p class="sub">Our founder and CEO, Leon, set the task: understand Riyadh's sub-dealer market, showroom by showroom.</p></div>`); r.appendChild(cp);
-  return (t) => { seq(v, "c2629", 151, t, .7); enter(v, t, .1, 1.2, -1); fade(cp.querySelector(".kick"), t, .2); rise(cp.querySelector("h2"), t, .35, .08); fade(cp.querySelector(".sub"), t, 1.8); };
+  return (t) => { vs.forEach((v, i) => { enter(v, t, .1, 1.2, -1); v.style.opacity = i === 0 ? 1 : clamp((t - 1.9 * i) / .7); kb(v, t, 7, 1.04, 1.12, 0, -20); }); fade(cp.querySelector(".kick"), t, .2); rise(cp.querySelector("h2"), t, .35, .08); fade(cp.querySelector(".sub"), t, 1.8); };
 });
 /* S3: a small team, a critical mandate */
 scene(7.0, (r) => {

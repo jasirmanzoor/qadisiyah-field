@@ -1,0 +1,297 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&family=Instrument+Serif:ital@1&family=IBM+Plex+Mono:wght@500&display=block">
+<style>
+/* Film v7 scenes on an exact clock (?s=survey | premium | indep | bank | kafd). Built from the user's Framer components:
+   Slide Image (spring slider, thumbnail tabs, title reel), Fluid Glass Button (the tab pill), CommitGrid (cell grid
+   patterns) and NumberOdometer (digit reels). Each is re-implemented from its published source so it renders frame by frame. */
+:root { --ink: #fff; --soft: rgba(255,255,255,.76); --flame: #ff6a00; --flame-lit: #ff9a4a; --teal: #4fd1c5; --gold: #ffb340;
+  --d: "Inter Tight", Inter, sans-serif; --s: "Instrument Serif", serif; --m: "IBM Plex Mono", monospace; --b: Inter, sans-serif; }
+html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #070200; color: var(--ink); font-family: var(--b); }
+.abs { position: absolute; }
+.brand { position: absolute; z-index: 60; left: 64px; top: 52px; } .brand img { height: 30px; display: block; filter: drop-shadow(0 2px 10px rgba(0,0,0,.6)); }
+.kick { margin: 0; font: 500 18px/1 var(--m); letter-spacing: .3em; text-transform: uppercase; color: var(--flame-lit); display: flex; align-items: center; gap: 16px; text-shadow: 0 1px 10px rgba(0,0,0,.7); }
+.kick::before { content: ""; width: 44px; height: 2px; background: var(--flame); }
+/* Slide Image */
+.sl-strip { position: absolute; inset: 0; overflow: hidden; background: #000; }
+.sl-img { position: absolute; top: 0; width: 1920px; height: 1080px; overflow: hidden; }
+.sl-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; will-change: transform; }
+.sl-shade { position: absolute; left: 0; right: 0; bottom: 0; height: 420px; background: linear-gradient(0deg, rgba(0,0,0,.62), rgba(0,0,0,0)); pointer-events: none; }
+.sl-thumbs { position: absolute; left: 0; right: 0; top: 50%; display: flex; justify-content: center; align-items: center; gap: 0; z-index: 2; }
+.sl-th { width: 140px; height: 155px; overflow: hidden; flex: none; will-change: transform, filter; box-shadow: 0 18px 40px -16px rgba(0,0,0,.85); }
+.sl-th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sl-pill { position: absolute; left: 50%; bottom: 74px; height: 92px; transform: translateX(-50%); z-index: 3; border-radius: 999px; overflow: hidden; box-shadow: 0 24px 60px -18px rgba(0,0,0,.8); }
+.sl-pill canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sl-reel { position: absolute; inset: 0; overflow: hidden; }
+.sl-reel span { position: absolute; left: 0; right: 0; text-align: center; white-space: nowrap; font: 700 40px/92px var(--d); letter-spacing: -.02em; color: #fff; will-change: transform, filter; }
+.sl-head { position: absolute; left: 64px; top: 112px; z-index: 4; }
+.sl-head h2 { margin: 18px 0 0; font: 700 76px/1 var(--d); letter-spacing: -.04em; text-shadow: 0 4px 30px rgba(0,0,0,.6); }
+.sl-head h2 em { font-family: var(--s); font-weight: 400; font-style: italic; color: #ffd2ad; }
+.sl-note { margin-top: 18px; font: 500 21px/1.4 var(--b); color: rgba(255,255,255,.88); text-shadow: 0 2px 14px rgba(0,0,0,.8); }
+/* CommitGrid scenes */
+.cg { position: absolute; }
+.big { display: flex; align-items: flex-end; font: 800 200px/1 var(--d); letter-spacing: -.05em; }
+.big .reel { position: relative; height: 1em; width: .62em; overflow: hidden; display: inline-block; }
+.big .reel div { position: absolute; left: 0; top: 0; width: 100%; text-align: center; background: linear-gradient(180deg, #fff 30%, #ffb27a); -webkit-background-clip: text; background-clip: text; color: transparent; will-change: transform, filter; }
+.big .st { background: linear-gradient(180deg, #fff 30%, #ffb27a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.big small { font: 700 64px/1 var(--d); letter-spacing: -.03em; margin: 0 0 22px 16px; color: #fff; }
+.lead { margin: 10px 0 0; font: 700 50px/1.06 var(--d); letter-spacing: -.035em; }
+.foot { margin: 18px 0 0; font: 400 24px/1.45 var(--b); color: var(--soft); }
+.tag { display: inline-flex; align-items: center; gap: 8px; margin-left: 8px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,.35); font: 500 13px/1 var(--m); letter-spacing: .14em; color: rgba(255,255,255,.8); vertical-align: 3px; }
+.tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #7bd88f; }
+.call { position: absolute; display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+.call i { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.call b { display: block; font: 700 30px/1 var(--d); letter-spacing: -.02em; }
+.call span { display: block; margin-top: 6px; font: 500 16px/1 var(--b); color: var(--soft); }
+.scrim { position: absolute; pointer-events: none; }
+/* KAFD */
+.kw { position: absolute; inset: 0; overflow: hidden; background: #000; }
+.kw img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; will-change: transform; }
+.ktitle { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.ktitle h2 { margin: 26px 0 0; font: 700 96px/1 var(--d); letter-spacing: -.045em; }
+.ktitle h2 em { font-family: var(--s); font-weight: 400; font-style: italic; color: #ffd2ad; }
+.ktitle p { margin: 26px 0 0; font: 400 26px/1.45 var(--b); color: var(--soft); }
+</style></head><body><div id="root"></div>
+<script>
+const W = 1920, H = 1080, S = new URLSearchParams(location.search).get("s") || "survey", root = document.getElementById("root");
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x)), mix = (a, b, u) => a + (b - a) * u;
+const ss = (x, a, b) => { const u = clamp((x - a) / (b - a)); return u * u * (3 - 2 * u); };
+const eo = (u) => 1 - Math.pow(1 - clamp(u), 3);
+const el = (html, parent = root) => { const t = document.createElement("template"); t.innerHTML = html.trim(); const e = t.content.firstChild; parent.appendChild(e); return e; };
+const load = (src) => new Promise((ok) => { const im = new Image(); im.onload = () => im.decode().then(() => ok(im), () => ok(im)); im.onerror = () => ok(null); im.src = src; });
+const fade = (e, t, a, d = .8, dy = 18) => { const u = eo((t - a) / d); e.style.opacity = u.toFixed(3); e.style.transform = `translateY(${((1 - u) * dy).toFixed(1)}px)`; return u; };
+/* cubic-bezier(x1,y1,x2,y2) as used by NumberOdometer's ease [0.16, 1, 0.3, 1] */
+function bezier(x1, y1, x2, y2) {
+  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx, cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+  const X = (s) => ((ax * s + bx) * s + cx) * s, Y = (s) => ((ay * s + by) * s + cy) * s, dX = (s) => (3 * ax * s + 2 * bx) * s + cx;
+  return (x) => { x = clamp(x); let s = x; for (let i = 0; i < 8; i++) { const d = dX(s); if (Math.abs(d) < 1e-6) break; s -= (X(s) - x) / d; s = clamp(s); } return Y(s); };
+}
+const ODO_EASE = bezier(.16, 1, .3, 1);
+/* Slide Image's spring (stiffness 160, damping 60, mass 2.4), stepped exactly from the start of the scene */
+function springPos(targets, t) {         /* targets: [[time, value], ...] sorted; returns position at t */
+  let x = targets[0][1], v = 0, k = 160, c = 60, m = 2.4, dt = 1 / 600, tt = 0, i = 0;
+  while (tt < t) { while (i + 1 < targets.length && targets[i + 1][0] <= tt) i++; const a = (-k * (x - targets[i][1]) - c * v) / m; v += a * dt; x += v * dt; tt += dt; }
+  return x;
+}
+el(`<div class="brand"><img src="brand/autolink-lockup.png" alt="AutoLink AI Tech"></div>`);
+let render = () => {}, DUR = 10, boot = async () => {};
+
+/* ---------- Fluid Glass Button shader (the tab pill) ---------- */
+const GLASS_FS = `precision highp float;
+varying vec2 vUv; uniform float uTime, uHover, uClick; uniform vec3 uBaseColor, uGlassColor; uniform vec2 uResolution;
+float hash(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
+float noise(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}
+float fbm(vec2 p){float f=0.,a=.5;for(int i=0;i<4;i++){f+=a*noise(p);p*=2.;a*=.5;}return f;}
+void main(){float aspect=uResolution.x/uResolution.y;vec2 p=vUv*2.-1.;p.x*=aspect;vec2 center=vec2(.5);vec2 dirToCenter=normalize(vUv-center+vec2(.0001));float distToCenter=length(vUv-center);
+float r=1.;vec2 b=vec2(max(aspect-1.,0.),0.);vec2 d=abs(p)-b;float dist=length(max(d,0.))+min(max(d.x,d.y),0.)-r;float innerDist=clamp(abs(dist),0.,1.);float t=uTime;
+vec2 noiseUv=vUv*vec2(2.,1.);vec2 warp=vec2(fbm(noiseUv+t*.5),fbm(noiseUv+t*.5+12.34))*mix(0.,.4,uHover);warp-=dirToCenter*uClick*.25*smoothstep(.8,0.,distToCenter);
+float n1=fbm(noiseUv+warp+vec2(t,0.));float n2=fbm(noiseUv+warp+vec2(n1,t*1.2));float rimWidth=mix(.15,.35,n2)*mix(1.,1.4,uHover);rimWidth+=uClick*.15;float rim=smoothstep(rimWidth,0.,innerDist);
+float specDist=abs(innerDist-.12+n1*.08);float specular=smoothstep(.03,0.,specDist);float rightBias=smoothstep(.2,1.,vUv.x);rim*=mix(.6,1.5,rightBias);specular*=mix(.5,2.,rightBias);
+vec2 starUv=vUv*vec2(aspect*6.,6.);starUv.x-=uTime*.2;starUv.y+=sin(uTime*.5+starUv.x)*mix(.2,.6,uHover);starUv+=dirToCenter*uClick*1.5;vec2 id=floor(starUv);vec2 gv=fract(starUv)-.5;float nStar=hash(id);float star=0.;
+float starThreshold=mix(.94,.86,uHover);if(nStar>starThreshold){float sizeMod=mix(.5,2.5,hash(id+13.37));vec2 lw=vec2(sin(uTime*2.+nStar*50.),cos(uTime*2.3+nStar*40.))*.25*uHover;float sd=length(gv-lw)*sizeMod;star=smoothstep(.12,0.,sd);star+=smoothstep(.25,0.,sd)*.3;star*=sin(uTime*mix(5.,15.,hash(id+42.))+nStar*100.)*.5+.5;star*=smoothstep(.05,.2,innerDist);}
+vec3 color=uBaseColor;float innerLiquid=smoothstep(.2,.9,n2)*(1.-innerDist)*mix(.2,.45,uHover);color+=uGlassColor*innerLiquid;color+=uGlassColor*rim*mix(.6,1.2,uHover);color+=vec3(1.)*specular*mix(.8,2.,uHover);color+=vec3(1.)*star*mix(.8,1.5,uHover);
+color+=uGlassColor*rim*uClick*.8;color+=vec3(1.)*specular*uClick*1.5;color+=uGlassColor*exp(-distToCenter*6.)*uClick*.6;color*=smoothstep(1.5,.2,length(vUv-.5));gl_FragColor=vec4(color,1.);}`;
+function glassPill(parent, w, h) {
+  const cv = el(`<canvas width="${w * 2}" height="${h * 2}"></canvas>`, parent), gl = cv.getContext("webgl", { preserveDrawingBuffer: true });
+  const sh = (ty, src) => { const s = gl.createShader(ty); gl.shaderSource(s, src); gl.compileShader(s); return s; };
+  const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, "attribute vec2 a;varying vec2 vUv;void main(){vUv=a*.5+.5;gl_Position=vec4(a,0.,1.);}")); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, GLASS_FS)); gl.linkProgram(pr); gl.useProgram(pr);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  const a = gl.getAttribLocation(pr, "a"); gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
+  const U = (n) => gl.getUniformLocation(pr, n);
+  gl.uniform3f(U("uBaseColor"), 0, 0, 0); gl.uniform3f(U("uGlassColor"), .76, .76, .76); gl.uniform2f(U("uResolution"), w, h);
+  return (time, hover, click) => { gl.viewport(0, 0, cv.width, cv.height); gl.uniform1f(U("uTime"), time); gl.uniform1f(U("uHover"), hover); gl.uniform1f(U("uClick"), click); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); };
+}
+
+/* ---------- Slide Image ---------- */
+function slider(items, opt) {
+  /* items: [{src, title}]; opt: {t0, step, pillW, head, note} */
+  const frame = el(`<div class="sl-strip"></div>`), strip = el(`<div style="position:absolute;left:0;top:0;width:${items.length * W}px;height:${H}px;will-change:transform"></div>`, frame), imgs = items.map((it, i) => el(`<div class="sl-img" style="left:${i * W}px"><img src="${it.src}"></div>`, strip));
+  el(`<div class="sl-shade"></div>`);
+  const thumbs = el(`<div class="sl-thumbs"></div>`), ths = items.map((it) => el(`<div class="sl-th"><img src="${it.src}"></div>`, thumbs));
+  const pill = el(`<div class="sl-pill" style="width:${opt.pillW}px"></div>`), drawGlass = glassPill(pill, opt.pillW, 92);
+  const reel = el(`<div class="sl-reel"></div>`, pill), ts = items.map((it) => el(`<span>${it.title}</span>`, reel));
+  const head = opt.head ? el(`<div class="sl-head">${opt.head}</div>`) : null;
+  const targets = items.map((_, i) => [i === 0 ? 0 : opt.t0 + i * opt.step, i]);
+  return (t) => {
+    const pos = springPos(targets, t), act = Math.round(pos);
+    strip.style.transform = `translateX(${(-pos * W).toFixed(1)}px)`;
+    imgs.forEach((im, i) => { const d = i - pos, lt = t - (i === 0 ? 0 : targets[i][0]); im.querySelector("img").style.transform = `scale(${(1.08 - .06 * clamp(lt / (opt.step * 2))).toFixed(4)})`; });
+    ths.forEach((th, i) => { const k = clamp(1 - Math.abs(i - pos)); th.style.transform = `scale(${(1 + .2 * k).toFixed(3)})`; th.style.zIndex = Math.round(k * 10); th.style.filter = `brightness(${(.7 + .3 * k).toFixed(2)})`; });
+    const tu = eo((t - .5) / 1.0); thumbs.style.opacity = tu.toFixed(3); thumbs.style.transform = `translateY(${(-50 + (1 - tu) * 20).toFixed(1)}%)`;
+    ts.forEach((s, i) => { const d = i - pos; s.style.transform = `translateY(${(d * 92).toFixed(1)}px)`; s.style.filter = `blur(${(Math.min(1, Math.abs(d)) * 5).toFixed(2)}px)`; s.style.opacity = clamp(1.4 - Math.abs(d)).toFixed(3); });
+    const since = targets.reduce((m, [tt]) => (tt <= t ? tt : m), 0), click = targets.length > 1 && t >= targets[1][0] ? Math.exp(-(t - since) * 3.2) : 0;
+    drawGlass(t * .6 * 1.5, 1, click);
+    pill.style.opacity = eo((t - .6) / .8).toFixed(3);
+    if (head) fade(head, t, .3, .9);
+    return act;
+  };
+}
+if (S === "survey") {
+  DUR = 11.6;
+  const IT = [["o01", "Built on the ground."], ["o03", "Day and night."], ["o04", "Door to door."], ["o05", "Every floor."], ["o06", "Every sign."], ["o07", "Every row."],
+    ["o08", "Every street."], ["o09", "Every showroom."], ["o10", "Every count."], ["o11", "Walked, not estimated."], ["o12", "Al Qadisiyah & Al Shifa."]];
+  const go = slider(IT.map(([n, title]) => ({ src: `slides/${n}.jpg`, title })), { t0: .95, step: .95, pillW: 640,
+    head: `<p class="kick">AutoLink · Pre-launch field research</p>` });
+  const veil = el(`<div class="abs" style="inset:0;background:#070200;z-index:50"></div>`);
+  render = (t) => { go(t); veil.style.opacity = (1 - ss(t, .05, .7)).toFixed(3); };
+}
+if (S === "premium") {
+  /* InfiniteImageFall: portrait cards drift out of the fog toward the camera (depth-scaled, brightened as they near),
+     with a Fluid Glass pill naming the car nearest the lens. Seeded so every render is identical. */
+  DUR = 9.4;
+  const CARS = [["c01", "Rolls-Royce"], ["c02", "Rolls-Royce Cullinan"], ["c03", "Lamborghini Urus"], ["c04", "McLaren · Lamborghini"], ["c05", "Mercedes-AMG G-Class"],
+    ["c06", "Mercedes-AMG G-Class"], ["c08", "Porsche 911"], ["c10", "Rolls-Royce · Al Shifa"], ["c11", "Mercedes-Benz"], ["c12", "Mercedes-Benz"]];
+  const BG = "#0A0A0C", CARD = 300, COUNT = 18, SPREAD = 980, DEPTH = 2400, DRIFT = 2.2, SMOOTH = .72, FADE = 900, OPA = .95, RAD = 12;
+  const farZ = -DEPTH, nearZ = Math.max(80, DEPTH * .12), nearRecycleZ = nearZ + Math.max(60, DEPTH * .04), persp = Math.max(700, CARD * 4 + DEPTH * .35), CH = CARD * 4 / 3;
+  let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647, rr = (a, b) => a + rnd() * (b - a);
+  const stage = el(`<div class="abs" style="inset:0;background:${BG};perspective:${persp}px;perspective-origin:50% 50%;overflow:hidden"></div>`);
+  el(`<div class="abs" style="inset:0;background:radial-gradient(60% 60% at 50% 55%,rgba(255,110,30,.10),transparent 70%);pointer-events:none"></div>`);
+  const world = el(`<div style="position:absolute;left:50%;top:50%;transform-style:preserve-3d"></div>`, stage);
+  const nodes = [...Array(COUNT)].map(() => el(`<div style="position:absolute;left:${-CARD / 2}px;top:${-CH / 2}px;width:${CARD}px;height:${CH}px;border-radius:${RAD}px;overflow:hidden;box-shadow:0 30px 60px -20px rgba(0,0,0,.9)"><img style="width:100%;height:100%;object-fit:cover;display:block"><div style="position:absolute;inset:0;background:${BG}"></div></div>`, world));
+  /* keep the centre lane clear for the title: cards spawn away from the middle band */
+  const spot = () => { let x, y; do { x = rr(-SPREAD, SPREAD); y = rr(-SPREAD * .62, SPREAD * .62); } while (Math.abs(x) < 170 && Math.abs(y) < 120); return { x, y }; };
+  const cards = nodes.map(() => ({ ...spot(), z: rr(farZ, nearZ), img: Math.floor(rnd() * CARS.length) }));
+  el(`<div class="abs" style="left:0;top:0;width:1200px;height:420px;background:radial-gradient(90% 100% at 0% 0%,rgba(10,10,12,.92),rgba(10,10,12,.6) 50%,rgba(10,10,12,0) 80%);z-index:3;pointer-events:none"></div>`);
+  const head = el(`<div class="sl-head"><p class="kick">The top end · on independent floors</p><h2>Flagships, <em>door to door.</em></h2><p class="sl-note">Also stocked across the two districts: Lexus on 129 floors · Mercedes on 81 · BMW on 61</p></div>`);
+  const pill = el(`<div class="sl-pill" style="width:620px"></div>`), drawGlass = glassPill(pill, 620, 92), reel = el(`<div class="sl-reel"></div>`, pill), label = el(`<span style="transform:none"></span>`, reel);
+  const veil = el(`<div class="abs" style="inset:0;background:${BG};z-index:50"></div>`);
+  let motion = { v: 0, tv: 6, simT: 0 }, lastName = "", changed = -9;
+  const step = (dt) => {
+    const pullToDrift = clamp((1 - SMOOTH) * dt * 4.5 + .01), velocityLerp = clamp((1 - SMOOTH) * dt * 14 + .04);
+    motion.tv += (DRIFT - motion.tv) * pullToDrift; motion.v += (motion.tv - motion.v) * velocityLerp;
+    motion.tv *= Math.pow(.985 + SMOOTH * .01, dt * 60); motion.v *= Math.pow(.992 + SMOOTH * .007, dt * 60);
+    const dz = motion.v * dt * 140;
+    for (const c of cards) { c.z += dz; if (c.z > nearRecycleZ) { Object.assign(c, spot()); c.z = farZ; c.img = Math.floor(rnd() * CARS.length); } }
+  };
+  render = (t) => {
+    while (motion.simT < t) { const dt = Math.min(1 / 120, t - motion.simT); step(dt); motion.simT += dt; }   /* opening push: tv starts high, settles to the component's drift */
+    let near = null;
+    cards.forEach((c, i) => {
+      const n = clamp((c.z - farZ) / (nearZ - farZ)), fogIn = clamp((c.z - farZ) / FADE), op = clamp(fogIn * OPA, 0, OPA), sc = clamp(.12 + n * 1.45, .1, 2), br = .35 + n * .75;
+      const nd = nodes[i]; nd.style.transform = `translate3d(${c.x.toFixed(1)}px, ${c.y.toFixed(1)}px, ${c.z.toFixed(1)}px) scale(${sc.toFixed(4)})`;
+      nd.style.opacity = op.toFixed(3); nd.style.filter = `brightness(${br.toFixed(3)})`; nd.style.zIndex = Math.floor(n * 1000);
+      const im = nd.firstChild, src = `cards/${CARS[c.img][0]}.jpg`; if (im.dataset.src !== src) { im.dataset.src = src; im.src = src; }
+      nd.lastChild.style.opacity = clamp((1 - n) * .9, 0, .9).toFixed(3);
+      if (n > .55 && n < .98 && (!near || c.z > near.z)) near = c;
+    });
+    const name = near ? CARS[near.img][1] : lastName; if (name !== lastName && t - changed > 1.2) { lastName = name; changed = t; label.textContent = name; }
+    const since = t - changed; label.style.filter = `blur(${(5 * (1 - eo(since / .35))).toFixed(2)}px)`; label.style.transform = `translateY(${(30 * (1 - eo(since / .35))).toFixed(1)}px)`;
+    drawGlass(t * .9, 1, Math.exp(-since * 3.2));
+    pill.style.opacity = eo((t - .8) / .8).toFixed(3); fade(head, t, .4, .9); veil.style.opacity = (1 - ss(t, 0, .6)).toFixed(3);
+    return Promise.all([...world.querySelectorAll("img")].map((i) => i.decode().catch(() => {})));
+  };
+}
+/* ---------- NumberOdometer ---------- */
+function odometer(parent, text) {
+  const box = el(`<div class="big"></div>`, parent), reels = [];
+  const digits = [...text].map((c, i) => /\d/.test(c) ? i : -1).filter((i) => i >= 0);
+  [...text].forEach((c, i) => {
+    if (!/\d/.test(c)) { el(`<span class="st">${c}</span>`, box); return; }
+    const r = el(`<span class="reel"></span>`, box), seq = []; for (let l = 0; l < 2; l++) for (let d = 0; d <= 9; d++) seq.push(d); for (let d = 0; d <= +c; d++) seq.push(d);
+    const strip = el(`<div>${seq.map((d) => `<div style="height:1em;position:relative">${d}</div>`).join("")}</div>`, r);
+    reels.push({ strip, n: seq.length, order: digits.length - 1 - digits.indexOf(i) });
+  });
+  return { box, play: (t, t0, dur = 2.6, stagger = .15) => reels.forEach((R) => {
+    const u = clamp((t - t0 - R.order * stagger) / dur), y = -(R.n - 1) * ODO_EASE(u), bl = u < .35 ? u / .35 * 10 : (1 - eo((u - .35) / .65)) * 10;
+    R.strip.style.transform = `translateY(${y.toFixed(4)}em)`; R.strip.style.filter = `blur(${(u > 0 && u < 1 ? bl : 0).toFixed(2)}px)`; }) };
+}
+
+/* ---------- CommitGrid ---------- */
+const hash2 = (x, y) => { const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return n - Math.floor(n); };
+const PAT = {
+  ripple: (c, r, ox, oy, time, sp) => Math.sin(Math.hypot(c - ox, r - oy) * .5 - time * sp * 2) * .5 + .5,
+  wave: (c, r, ox, oy, time, sp) => Math.sin(c * .3 - time * sp * 2) * .5 + .5,
+};
+const opacityOf = (b, intensity, maxOp, minOp = .08) => clamp(minOp + b * (maxOp - minOp) * intensity);   /* CommitGrid's cell alpha; minOp lifted in the film so the photos never sink to black */
+async function tiles(n) {
+  const names = ["s-sunset-row","s-qannas","s-dosari","s-glass","s-raad","s-subaie","s-shumukh","s-otaibi","s-qahtani","s-kathiri","s-nufai","s-ajyal","s-suwaidan","n-imad-facade","n-rayat","s-odaini","s-hall","s-jariwi","s-najoom","s-odaini-s","s-ramz","s-uruba","s-wafi","s-lc300","q-riyadhcars","q-nojoom","q-luxhall","q-redcarpet","q-safh-hall","q-safh-dark","q-tank","q-pickups","q-porsche","q-gclass","n-rc-hall","n-rc-facade","n-rc-mercedes","n-rc-merc2","n-hexhall","n-mezzanine","n-nojoom-facade","n-pickups","n-saber-facade","n-tank","s-future","s-jeeps","s-street","s-saber-street","s-imtiyaz","s-mawj","s-ustul","s-autopark","n-soum","q-street-ibtikar","q-street-fullspeed","q-street-binomaira","d0141-1","d0258-1","d0261-1","s0036-3","s0053-1","s0095-1","s13ads-2","s14sbr-2","s15byr-4","s16asm-1","s16nfy-1","s14wrd-1","s15aqd-1","s15nsm-1"];
+  const ims = (await Promise.all(names.map((x) => load(`tiles/${x}.jpg`)))).filter(Boolean);
+  return [...Array(n)].map((_, i) => ims[Math.floor(hash2(i * 1.7, i * .3) * ims.length)]);
+}
+function drawCell(g, im, x, y, s, rad) { g.save(); g.beginPath(); g.roundRect(x, y, s, s, rad); g.clip(); g.drawImage(im, x, y, s, s); g.restore(); }
+
+if (S === "indep") {
+  DUR = 8.6;
+  const N = 307, COLS = 22, ROWS = Math.ceil(N / COLS), CELL = 50, GAP = 7, R = 8, GX = 640, GY = 130;
+  const AUTH = [6, 58, 96, 141, 208, 263];    /* 6 manufacturer-authorised floors, spread through the grid */
+  const cv = el(`<canvas class="cg" width="${W}" height="${H}" style="left:0;top:0"></canvas>`), g = cv.getContext("2d");
+  el(`<div class="scrim" style="left:0;top:0;width:900px;height:1080px;background:linear-gradient(90deg,rgba(7,2,0,.92) 55%,rgba(7,2,0,0))"></div>`);
+  const call = el(`<div class="call" style="left:${GX + (AUTH[0] % COLS) * (CELL + GAP) + CELL + 16}px;top:${GY + Math.floor(AUTH[0] / COLS) * (CELL + GAP) + 8}px"><i style="background:var(--teal);box-shadow:0 0 14px var(--teal)"></i><div><b>6 authorised</b><span>manufacturer-backed floors</span></div></div>`);
+  const box = el(`<div class="abs" style="left:96px;top:300px;width:620px"></div>`);
+  el(`<p class="kick" style="margin-bottom:26px">Who owns the floor</p>`, box);
+  const odo = odometer(box, "98%"); const lead = el(`<p class="lead">of Al Qadisiyah floors<br>are fully independent</p>`, box);
+  const ft = el(`<p class="foot">Only 6 of 307 floors asked hold a manufacturer authorisation.<span class="tag">OBSERVED · N=307</span></p>`, box);
+  let T = [];
+  boot = async () => { T = await tiles(N); };
+  render = (t) => {
+    g.clearRect(0, 0, W, H);
+    const ox = COLS * .5, oy = ROWS * .5;
+    for (let i = 0; i < N; i++) {
+      const c = i % COLS, r = Math.floor(i / COLS), x = GX + c * (CELL + GAP), y = GY + r * (CELL + GAP);
+      const appear = ss(t, .2 + Math.hypot(c - ox, r - oy) * .06, .7 + Math.hypot(c - ox, r - oy) * .06); if (appear <= 0) continue;
+      if (AUTH.includes(i)) {
+        const glow = ss(t, 3.0, 3.8);
+        g.globalAlpha = appear * (.35 + .65 * glow); g.fillStyle = "#4fd1c5"; g.shadowColor = "#4fd1c5"; g.shadowBlur = 24 * glow; g.beginPath(); g.roundRect(x, y, CELL, CELL, R); g.fill(); g.shadowBlur = 0;
+        continue;
+      }
+      g.globalAlpha = appear * opacityOf(PAT.ripple(c, r, ox, oy, t, 1), 1, 1, .62) * (1 - .25 * ss(t, 3.0, 3.8));
+      drawCell(g, T[i], x, y, CELL, R);
+    }
+    g.globalAlpha = 1;
+    fade(box.querySelector(".kick"), t, .4); odo.box.style.opacity = ss(t, .5, .9); odo.play(t, .5);
+    fade(lead, t, 1.6); fade(ft, t, 2.4); fade(call, t, 3.4, .8, 10);
+  };
+}
+if (S === "bank") {
+  DUR = 8.6;
+  const N = 13, CELL = 132, GAP = 10, R = 16, GX = (W - (N * CELL + (N - 1) * GAP)) / 2, GY = 300, BANK = [3, 9];
+  const cv = el(`<canvas class="cg" width="${W}" height="${H}" style="left:0;top:0"></canvas>`), g = cv.getContext("2d");
+  const cx = (i) => GX + i * (CELL + GAP);
+  const c1 = el(`<div class="call" style="left:${cx(3)}px;top:${GY - 76}px"><i style="background:var(--gold);box-shadow:0 0 14px var(--gold)"></i><div><b>Bank on site</b><span>2 of 13 floors</span></div></div>`);
+  const c2 = el(`<div class="call" style="left:${cx(10)}px;top:${GY - 76}px"><i style="background:#c9d2e3"></i><div><b>No lender</b><span>11 of 13 floors</span></div></div>`);
+  const box = el(`<div class="abs" style="left:96px;top:560px;width:1100px"></div>`);
+  el(`<p class="kick" style="margin-bottom:22px">Financing on the floor</p>`, box);
+  const row = el(`<div style="display:flex;align-items:flex-end"></div>`, box); const odo = odometer(row, "11"); el(`<small style="font:700 64px/1 var(--d);letter-spacing:-.03em;margin:0 0 22px 16px">of 13</small>`, row);
+  const lead = el(`<p class="lead">floors have no bank on site</p>`, box);
+  const ft = el(`<p class="foot">Asked in 13 owner sit-downs. Only 5 of 25 owners named a partner bank.<span class="tag">OBSERVED · N=13</span></p>`, box);
+  let T = [];
+  boot = async () => { const all = await tiles(60); T = [4, 11, 19, 27, 33, 38, 41, 45, 50, 2, 8, 23, 30].map((k) => all[k]); };
+  render = (t) => {
+    g.clearRect(0, 0, W, H);
+    for (let i = 0; i < N; i++) {
+      const x = cx(i), y = GY, ap = ss(t, .2 + i * .08, .8 + i * .08); if (ap <= 0) continue;
+      const lift = (1 - eo((t - .2 - i * .08) / .8)) * 40;
+      if (BANK.includes(i)) {
+        const glow = ss(t, 2.6, 3.4);
+        g.globalAlpha = ap; drawCell(g, T[i], x, y + lift, CELL, R);
+        g.globalAlpha = ap * glow; g.strokeStyle = "#ffb340"; g.lineWidth = 4; g.shadowColor = "#ffb340"; g.shadowBlur = 30; g.beginPath(); g.roundRect(x, y + lift, CELL, CELL, R); g.stroke(); g.shadowBlur = 0;
+        g.fillStyle = "rgba(255,179,64,.22)"; g.fill(); continue;
+      }
+      g.globalAlpha = ap * opacityOf(PAT.wave(i, 0, 0, 0, t, 1), 1, 1, .62) * (1 - .3 * ss(t, 2.6, 3.4));
+      drawCell(g, T[i], x, y + lift, CELL, R);
+    }
+    g.globalAlpha = 1;
+    fade(box.querySelector(".kick"), t, .4); odo.box.style.opacity = ss(t, .5, .9); odo.play(t, .5); row.lastChild.style.opacity = ss(t, 1.4, 2.0);
+    fade(lead, t, 1.8); fade(ft, t, 2.5); fade(c1, t, 3.0, .8, 10); fade(c2, t, 3.3, .8, 10);
+  };
+}
+
+/* ---------- KAFD: one shot, nothing laid over it ---------- */
+if (S === "kafd") {
+  DUR = 9.0;
+  document.querySelector(".brand").style.display = "none";
+  const kw = el(`<div class="kw"><img></div>`), img = kw.querySelector("img");
+  const tt = el(`<div class="ktitle"><p class="kick">Headquarters · King Abdullah Financial District</p><h2>From the showroom floor <em>to KAFD.</em></h2><p>Every record from the field was filed back to one roster, here at our Riyadh headquarters.</p></div>`);
+  render = async (t) => {
+    /* the title holds on black, leaves, and only then does the shot open from a horizontal slit */
+    const tin = eo((t - .15) / .9), tout = ss(t, 1.9, 2.4);
+    tt.style.opacity = (tin * (1 - tout)).toFixed(3); tt.style.transform = `translateY(${((1 - tin) * 20 - tout * 30).toFixed(1)}px)`;
+    const open = eo((t - 2.3) / 1.1); kw.style.clipPath = `inset(${((1 - open) * 50).toFixed(2)}% 0 ${((1 - open) * 50).toFixed(2)}% 0)`;
+    const f = Math.min(210, Math.max(1, 1 + Math.floor(Math.max(0, t - 2.3) * 30)));
+    img.src = `kafdv/wide/f${String(f).padStart(4, "0")}.jpg`; img.style.transform = `scale(${(1.0 + .045 * clamp((t - 2.3) / 6.7)).toFixed(4)})`;
+    await img.decode().catch(() => {});
+  };
+}
+window.__dur = DUR; window.__render = (t) => render(t);
+boot().then(() => Promise.all([...document.images].filter((i) => i.src).map((i) => i.decode().catch(() => {})))).then(() => document.fonts.ready)
+  .then(async () => { await render(+(new URLSearchParams(location.search).get("t") || 0)); window.__ready = true; });
+</script></body></html>

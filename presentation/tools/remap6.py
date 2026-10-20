@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import remap5
 V = remap5.V
 T5 = {c["name"]: (c["start"], c["dur"]) for c in json.load(open(os.path.join(V, "timeline_v5.json")))["clips"]}
-T6 = {c["name"]: (c["start"], c["dur"]) for c in json.load(open(os.path.join(V, "timeline.json")))["clips"]}
+T6 = {c["name"]: (c["start"], c["dur"]) for c in json.load(open(os.path.join(V, os.environ.get("REMAP_V6", "timeline.json"))))["clips"]}
 B = {k: v[0] for k, v in T6.items()}
 M = json.load(open(os.path.join(V, "act1v6_map.json")))
 SH = (268 - 186) / 24
