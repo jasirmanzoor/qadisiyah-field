@@ -44,6 +44,21 @@ h2 { margin: 0; font: 700 92px/.98 var(--d); letter-spacing: -.042em; }
 .edge { position: absolute; top: -10%; bottom: -10%; width: 3px; background: linear-gradient(180deg, transparent, var(--flame-lit), transparent); transform: skewX(-8deg); filter: drop-shadow(0 0 12px var(--flame)); }
 .brand { position: absolute; z-index: 60; left: 64px; top: 52px; text-shadow: 0 2px 12px rgba(0,0,0,.6); display: flex; align-items: center; gap: 14px; font: 600 24px/1 var(--d); letter-spacing: -.02em; }
 .brand svg { width: 36px; height: 36px; }
+
+/* InfiniteStory-style stack: full-bleed panels arrive from below, the previous one sinks, shrinks and dims */
+.st-p { position: absolute; inset: 0; overflow: hidden; background: #000; will-change: transform; }
+.st-p img { position: absolute; left: 0; top: -12%; width: 100%; height: 124%; object-fit: cover; will-change: transform; }
+.st-p .dim { position: absolute; inset: 0; background: #000; opacity: 0; }
+.st-p .grad { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(5,2,0,.88) 0%, rgba(5,2,0,.35) 38%, rgba(5,2,0,0) 60%); }
+.st-mq { position: absolute; left: 0; top: 50%; white-space: nowrap; font: 800 300px/1 var(--d); letter-spacing: -.05em; color: transparent; -webkit-text-stroke: 2px rgba(255,255,255,.55); text-transform: uppercase; will-change: transform; mix-blend-mode: overlay; }
+.st-cap { position: absolute; left: 120px; bottom: 110px; width: 1300px; }
+.st-cap .n { font: 500 20px/1 var(--m); letter-spacing: .28em; color: var(--flame-lit); }
+.st-cap h3 { margin: 18px 0 0; font: 700 104px/.96 var(--d); letter-spacing: -.045em; }
+.st-cap h3 em { font-family: var(--s); font-weight: 400; font-style: italic; color: #ffd2ad; }
+.st-cap p { margin: 18px 0 0; font: 400 28px/1.4 var(--b); color: var(--soft); max-width: 900px; }
+.st-rail { position: absolute; right: 70px; top: 50%; display: grid; gap: 12px; transform: translateY(-50%); }
+.st-rail i { display: block; width: 3px; height: 46px; background: rgba(255,255,255,.25); border-radius: 2px; }
+.st-rail i.on { background: var(--flame-lit); box-shadow: 0 0 10px var(--flame); }
 </style></head><body>
 <div class="brand" id="brand"><svg viewBox="0 0 28 28" fill="none"><path d="M14 1.6 20.3 8 14 14.4 7.7 8 14 1.6Z" fill="#FF6A00"/><path d="M6.4 9.3 12.7 15.7 6.4 22.1.1 15.7 6.4 9.3Z" fill="#FF3D00"/><path d="M21.6 9.3 27.9 15.7 21.6 22.1 15.3 15.7 21.6 9.3Z" fill="#FF9A2E"/></svg>Sub-Dealer Portfolio</div>
 <div id="stage"></div>
@@ -77,6 +92,32 @@ function fade(el, t, t0, d = .7, y = 26) { const u = eo(ramp(t, t0, d)); el.styl
 function kb(el, t, dur, z0 = 1.04, z1 = 1.14, dx = 0, dy = 0) { const u = clamp(t / dur); el._img.style.transform = `translate(calc(-50% + ${dx * u}px), calc(-50% + ${dy * u}px)) scale(${z0 + (z1 - z0) * u})`; }
 function enter(el, t, t0, d = 1, dir = 1) { const u = eo(ramp(t, t0, d)); el.style.clipPath = poly(el._w, el._h, u, dir); el.style.transform = `translateY(${(1 - u) * 60}px)`; }
 
+
+function stack(r, items, seg) {
+  /* items: [src, number, title html, line, marquee word]; one panel per seg seconds, each arriving over mv seconds */
+  const mv = .95, H = 1080, els = items.map(([src, n, h, ln, mq, fy = 55], i) => {
+    const el = $(`<div class="st-p" style="z-index:${i}"><img src="${src}" style="object-position:50% ${fy}%"><div class="grad"></div><div class="st-mq">${mq} · ${mq} · ${mq}</div><div class="dim"></div>
+      <div class="st-cap"><div class="n">${n}</div><h3>${words(h)}</h3><p>${ln}</p></div></div>`); r.appendChild(el); return el; });
+  const rail = $(`<div class="st-rail" style="z-index:99">${items.map(() => "<i></i>").join("")}</div>`); r.appendChild(rail);
+  return (t) => {
+    els.forEach((el, i) => {
+      const a = i * seg, u = i === 0 ? 1 : eio(ramp(t, a, mv));
+      const nxt = i < els.length - 1 ? eio(ramp(t, a + seg, mv)) : 0;
+      el.style.transform = `translate3d(0, ${((1 - u) * H).toFixed(1)}px, 0) scale(${(1 - nxt * .08).toFixed(4)})`;
+      el.style.display = t > a - .05 || i === 0 ? "" : "none";   /* display, not visibility: a visible child would show through a hidden scene */
+      el.style.borderRadius = (nxt * 28).toFixed(1) + "px";
+      el.querySelector(".dim").style.opacity = (nxt * .7).toFixed(3);
+      const lt = t - a;
+      el.querySelector("img").style.transform = `translate3d(0, ${(-4 + lt * 1.2 - (1 - u) * 6).toFixed(2)}%, 0) scale(${(1.06 + lt * .012).toFixed(4)})`;
+      const mq = el.querySelector(".st-mq");
+      mq.style.transform = `translate3d(${(-500 - lt * 260).toFixed(1)}px, -50%, 0) scale(${(1.35 - .1 * Math.min(1, lt / seg)).toFixed(3)})`;
+      mq.style.opacity = (eo(ramp(t, a + .2, .8)) * (1 - nxt)).toFixed(3);
+      const cap = el.querySelector(".st-cap"); rise(cap.querySelector("h3"), t, a + .45, .07, .8); fade(cap.querySelector(".n"), t, a + .35); fade(cap.querySelector("p"), t, a + 1.1);
+    });
+    const k = Math.min(els.length - 1, Math.floor(t / seg)); [...rail.children].forEach((x, i) => x.classList.toggle("on", i === k));
+  };
+}
+
 /* ---------- scenes: build() makes the DOM once, draw(t) poses it at local time t ---------- */
 const S = [];
 function scene(dur, build) { const el = $(`<div class="sc"><div class="glow"></div></div>`); document.getElementById("stage").appendChild(el); const draw = build(el); S.push({ el, dur, draw }); }
@@ -84,7 +125,7 @@ function scene(dur, build) { const el = $(`<div class="sc"><div class="glow"></d
 if (ACT === "1") {
 /* S1: opening triptych of the drive-by footage */
 scene(7.6, (r) => {
-  const P = [[2623, 122], [2635, 177], [2620, 92]], W = 600, H = 1240, xs = [70, 660, 1250];
+  const P = [["c2640", 677], ["c2622", 348], ["c2623", 156]], W = 600, H = 1240, xs = [70, 660, 1250];
   const ps = P.map(([c], i) => panel(r, xs[i], -80, W, H, `bogpan/${c}/f0001.jpg`));
   r.appendChild($(`<div class="shade-b"></div>`));
   const c = $(`<div class="copy" style="bottom:120px;width:1100px"><p class="kick">Pre-launch · Riyadh fieldwork</p><h1>${words("Built on <em>the ground.</em>")}</h1><p class="sub" style="max-width:820px">Before launch, two people set out to learn Riyadh's independent car market. Door to door.</p></div>`); r.appendChild(c);
@@ -93,81 +134,63 @@ scene(7.6, (r) => {
     rise(c.querySelector("h1"), t, 1.2, .1); fade(c.querySelector(".kick"), t, .9); fade(c.querySelector(".sub"), t, 2.2);
   };
 });
-/* S2: a small team, a critical mandate */
-scene(7.4, (r) => {
-  const a = panel(r, 980, 110, 820, 520, "bogph/008.jpg"), b = panel(r, 1010, 660, 430, 330, "bogph/010.jpg"), c = panel(r, 1470, 660, 380, 330, "bogph/000.jpg");
+/* S2: the founder's vision */
+scene(7.0, (r) => {
+  const v = panel(r, 1000, -60, 820, 1200, "bogpan/c2629/f0001.jpg");
+  const cp = $(`<div class="copy" style="top:200px;width:780px"><p class="kick">The founder's vision</p><h2>${words("Map a market <em>no one had mapped.</em>")}</h2>
+    <p class="sub">Our founder and CEO, Leon, set the task: understand Riyadh's sub-dealer market, showroom by showroom.</p></div>`); r.appendChild(cp);
+  return (t) => { seq(v, "c2629", 151, t, .7); enter(v, t, .1, 1.2, -1); fade(cp.querySelector(".kick"), t, .2); rise(cp.querySelector("h2"), t, .35, .08); fade(cp.querySelector(".sub"), t, 1.8); };
+});
+/* S3: a small team, a critical mandate */
+scene(7.0, (r) => {
+  const a = panel(r, 980, 110, 820, 520, "bp3/review1.jpg"), b = panel(r, 1010, 660, 430, 330, "bp3/selfie_kafd.jpg"), c = panel(r, 1470, 660, 380, 330, "bp3/car_laptop.jpg");
   const cp = $(`<div class="copy" style="top:150px"><p class="kick">Early team · Pre-launch</p><h2>${words("A small team. <em>A critical mandate.</em>")}</h2>
     <p class="sub">In retail, the team was two people: a retail executive and the director of retail.</p>
     <div class="chips"><div class="chip"><b>A few</b><span>people company-wide</span></div><div class="chip"><b>2</b><span>people in retail</span></div><div class="chip"><b>1</b><span>field mission</span></div></div></div>`); r.appendChild(cp);
   return (t) => {
-    [a, b, c].forEach((p, i) => { enter(p, t, .2 + i * .25, 1.1); kb(p, t, 7.4, 1.04, 1.13, i % 2 ? -20 : 20); });
+    [a, b, c].forEach((p, i) => { enter(p, t, .2 + i * .25, 1.1); kb(p, t, 7, 1.04, 1.13, i % 2 ? -20 : 20); });
     fade(cp.querySelector(".kick"), t, .2); rise(cp.querySelector("h2"), t, .35, .08); fade(cp.querySelector(".sub"), t, 1.6);
     cp.querySelectorAll(".chip").forEach((x, i) => fade(x, t, 2.4 + i * .25, .7, 30));
   };
 });
-/* S3: into the market */
-scene(7.6, (r) => {
-  const v = panel(r, 1220, -40, 560, 1160, "bogpan/2636/f0001.jpg"), a = panel(r, 760, 110, 470, 400, "bogph/002.jpg"), b = panel(r, 700, 560, 480, 420, "bogph/026.jpg");
+/* S4: into the market */
+scene(7.4, (r) => {
+  const v = panel(r, 1220, -40, 560, 1160, "bogpan/c2636/f0001.jpg"), a = panel(r, 760, 110, 470, 400, "bp3/saber.jpg"), b = panel(r, 700, 560, 480, 420, "bp3/wadi.jpg");
   r.appendChild($(`<div class="shade-l" style="background:linear-gradient(90deg,rgba(7,2,0,.97) 0%,rgba(7,2,0,.9) 30%,rgba(7,2,0,0) 44%)"></div>`));
   const cp = $(`<div class="copy" style="top:130px;width:560px"><p class="kick">On-field research</p><h2>${words("Into the <em>market.</em>")}</h2>
     <div class="verbs">${["Visit.", "Observe.", "Ask.", "Document.", "Repeat."].map((x) => `<div class="verb">${x}</div>`).join("")}</div>
     <p class="sub" style="font-size:24px">Ground truth had to be collected in person.</p></div>`); r.appendChild(cp);
   return (t) => {
-    seq(v, 2636, 108, t, .55); enter(v, t, .05, 1.1); [a, b].forEach((p, i) => { enter(p, t, .35 + i * .25, 1.1, -1); kb(p, t, 7.6, 1.05, 1.15); });
+    seq(v, "c2636", 108, t, .55); enter(v, t, .05, 1.1); [a, b].forEach((p, i) => { enter(p, t, .35 + i * .25, 1.1, -1); kb(p, t, 7.4, 1.05, 1.15); });
     fade(cp.querySelector(".kick"), t, .1); rise(cp.querySelector("h2"), t, .2, .1);
     cp.querySelectorAll(".verb").forEach((x, i) => { const on = t > 1.4 + i * .62; x.classList.toggle("on", on); x.classList.toggle("now", on && t < 1.4 + (i + 1) * .62); x.style.transform = `translateX(${(1 - eo(ramp(t, 1.4 + i * .62, .5))) * -30}px)`; });
     fade(cp.querySelector(".sub"), t, 4.9);
   };
 });
-/* S4: every door, a new insight: a filmstrip of floors sliding past */
-scene(7.2, (r) => {
-  const L = ["034", "038", "028", "040", "006", "103", "105", "066", "068"], W = 520, H = 560, gap = 34;
-  const strip = $(`<div style="position:absolute;left:0;top:330px;height:${H}px;width:${L.length * (W + gap)}px"></div>`); r.appendChild(strip);
-  const ps = L.map((k, i) => panel(strip, i * (W + gap), 0, W, H, `bogph/${k}.jpg`));
-  const cp = $(`<div class="copy" style="top:110px;width:1500px"><p class="kick">Showrooms · Direct observation</p><h2 style="font-size:84px">${words("Every door. <em>A new insight.</em>")}</h2></div>`); r.appendChild(cp);
-  const cap = $(`<p class="sub" style="position:absolute;left:120px;top:930px;margin:0;max-width:1300px;font-size:25px">Showrooms varied in scale, format and stock. Each visit added to the picture of the independent dealer market.</p>`); r.appendChild(cap);
-  return (t) => {
-    strip.style.transform = `translateX(${300 - t * 190}px)`;
-    ps.forEach((p, i) => { enter(p, t, .05 + i * .09, .9); kb(p, t, 7.2, 1.06, 1.12); });
-    fade(cp.querySelector(".kick"), t, .1); rise(cp.querySelector("h2"), t, .2, .08); fade(cap, t, 1.6);
-  };
-});
-/* S5: capturing ground truth — the windscreen notices */
-scene(7.8, (r) => {
+/* S5: day and night, as a stacked story */
+scene(4 * 2.5 + .6, (r) => stack(r, [
+  ["bp3/avenue2.jpg", "Daylight · Al Qadisiyah", "Door after door, <em>down the avenue.</em>", "Every showroom on the strip, visited and logged.", "Day", 62],
+  ["bp3/fullspeed.jpg", "Daylight · the survey route", "Every sign, <em>every floor.</em>", "Names, stock and location, recorded at the door.", "Survey", 58],
+  ["bp3/nightlot.jpg", "After dark · Al Shifa", "The market <em>trades at night.</em>", "So the survey carried on after sunset.", "Night", 72],
+  ["bp3/dusk_prayer.jpg", "Dusk · between visits", "Prayer on <em>the showroom walk.</em>", "Long days, in the market's own rhythm.", "Dusk", 70],
+], 2.5));
+/* S6: every floor is different: the specialisations */
+scene(4 * 2.5 + .6, (r) => stack(r, [
+  ["bp3/trucks.jpg", "Specialists 01 · Commercial", "Fleet <em>trucks.</em>", "Some floors sell nothing but refrigerated trucks and light commercial vehicles.", "Trucks", 88],
+  ["bp3/ambul.jpg", "Specialists 02 · Emergency service", "Ambulances <em>on the lot.</em>", "Others stock ambulances and service vehicles, by the row.", "Emergency", 62],
+  ["bp3/adini.jpg", "Specialists 03 · Luxury", "Flagships, <em>under the lights.</em>", "A few hold only luxury sedans.", "Luxury", 70],
+  ["bp3/covered.jpg", "Specialists 04 · Everyday", "The <em>everyday</em> floor.", "Most move the cars Riyadh drives every day.", "Volume", 70],
+], 2.5));
+/* S7: capturing ground truth — the windscreen notices */
+scene(7.6, (r) => {
   const m = panel(r, 1420, 110, 400, 380, "bogph/054.jpg"), n = panel(r, 1400, 530, 420, 440, "bogph/048.jpg"), s = panel(r, 820, 110, 580, 860, "bogph/050.jpg");
   const co = $(`<div class="callout" style="left:120px;top:720px;width:600px"><small>On the windscreen · 2025 Rolls-Royce Spectre, 6,000 km</small><b>SAR 1,550,000</b><span>Asking prices, mileage and model year, read off the floor.</span></div>`); r.appendChild(co);
   const cp = $(`<div class="copy" style="top:150px;width:640px"><p class="kick">Field survey · Data collection</p><h2>${words("Capturing <em>ground truth.</em>")}</h2>
-    <p class="sub" style="font-size:26px">Windscreen notices and showroom floors confirmed what desk research could not.</p>
-    <div class="chips" style="flex-wrap:wrap;gap:12px;margin-top:36px">${["Pricing", "Inventory", "Year & mileage", "Dealer location"].map((x) => `<div class="chip" style="width:auto;padding:14px 18px"><span style="margin:0;font:600 20px/1 var(--d);color:#fff">${x}</span></div>`).join("")}</div></div>`); r.appendChild(cp);
+    <p class="sub" style="font-size:26px">Windscreen notices and showroom floors confirmed what desk research could not.</p></div>`); r.appendChild(cp);
   return (t) => {
     enter(s, t, .1, 1.1); enter(m, t, .4, 1, -1); enter(n, t, .65, 1, -1);
-    s._img.style.transform = `translate(-50%, calc(-50% + ${-40 * eio(ramp(t, 1.4, 4))}px)) scale(${1.02 + .22 * eio(ramp(t, 1.4, 4))})`; kb(m, t, 7.8, 1.04, 1.12); kb(n, t, 7.8, 1.04, 1.1);
+    s._img.style.transform = `translate(-50%, calc(-50% + ${-40 * eio(ramp(t, 1.4, 4))}px)) scale(${1.02 + .22 * eio(ramp(t, 1.4, 4))})`; kb(m, t, 7.6, 1.04, 1.12); kb(n, t, 7.6, 1.04, 1.1);
     fade(co, t, 2.4, .8, 30); fade(cp.querySelector(".kick"), t, .1); rise(cp.querySelector("h2"), t, .2, .1); fade(cp.querySelector(".sub"), t, 1.4);
-    cp.querySelectorAll(".chip").forEach((x, i) => fade(x, t, 3 + i * .2, .6, 20));
-  };
-});
-/* S6: the hours behind the work — a daylight panel, then the night arrives beside it */
-scene(7.0, (r) => {
-  const day = panel(r, 80, 90, 860, 640, "bogph/004.jpg"), n1 = panel(r, 980, 90, 860, 640, "bogph/066.jpg");
-  const lab1 = $(`<div class="cap" style="left:130px;top:110px">Daylight · market visits</div>`), lab2 = $(`<div class="cap" style="left:1050px;top:110px">After dark · showroom floors</div>`); r.append(lab1, lab2);
-  const cp = $(`<div class="copy" style="top:790px;width:1600px;display:flex;align-items:flex-end;gap:60px"><div><p class="kick">Field resilience · Day and night</p><h2 style="font-size:86px">${words("The hours <em>behind the work.</em>")}</h2></div><p class="sub" style="margin:0 0 10px;max-width:560px;font-size:25px">Not a staged campaign. Photographs from the work itself.</p></div>`); r.appendChild(cp);
-  return (t) => {
-    enter(day, t, .1, 1.1); enter(n1, t, 1.4, 1.2, -1); kb(day, t, 7, 1.06, 1.16, -20); kb(n1, t, 7, 1.14, 1.04, 20);
-    fade(lab1, t, .6); fade(lab2, t, 2.2);
-    fade(cp.querySelector(".kick"), t, .2); rise(cp.querySelector("h2"), t, .35, .09); fade(cp.querySelector(".sub"), t, 2.6);
-  };
-});
-/* S7: from notes to insight — three steps, joined by a line */
-scene(7.4, (r) => {
-  const cp = $(`<div class="copy" style="top:120px;width:1500px"><p class="kick">Field intelligence · Team review</p><h2>${words("From notes <em>to insight.</em>")}</h2></div>`); r.appendChild(cp);
-  const st = $(`<div class="steps"></div>`); r.appendChild(st);
-  const D = [["075", "01", "Observe the market", "Bring back real dealer and vehicle information."], ["091", "02", "Organise findings", "Turn scattered notes into clear patterns."], ["093", "03", "Inform the model", "Use field knowledge as the foundation."]];
-  const items = D.map(([k, n, h, p]) => { const s = $(`<div class="step"><div class="pn" style="height:330px"><img src="bogph/${k}.jpg"></div><i>${n}</i><h3>${h}</h3><p>${p}</p></div>`); st.appendChild(s); const pn = s.firstChild; pn._img = pn.firstChild; return s; });
-  const ln = $(`<div class="line" style="left:120px;width:1680px;top:812px"></div>`); r.appendChild(ln);
-  return (t) => {
-    fade(cp.querySelector(".kick"), t, .1); rise(cp.querySelector("h2"), t, .2, .1);
-    items.forEach((s, i) => { const a = .9 + i * .55; fade(s, t, a, .8, 40); const pn = s.firstChild; pn._w = pn.offsetWidth; pn._h = 330; pn.style.clipPath = poly(pn._w, 330, eo(ramp(t, a, 1))); kb(pn, t, 7.4, 1.04, 1.12); });
-    ln.style.transform = `scaleX(${eio(ramp(t, 1.2, 2.6))})`;
   };
 });
 /* S8: the turn to the data */
@@ -177,22 +200,26 @@ scene(3.8, (r) => {
   return (t) => { rise(c.querySelector("h2"), t, .2, .1, 1); c.querySelector(".line").style.transform = `scaleX(${eio(ramp(t, 1.1, 1.4))})`; };
 });
 } else {
-/* C1: the people behind the work */
-scene(7.4, (r) => {
-  const a = panel(r, 900, 100, 470, 480, "bogph/117.jpg"), b = panel(r, 1400, 100, 420, 480, "bogph/121.jpg"), c = panel(r, 880, 610, 520, 380, "bogph/119.jpg"), d = panel(r, 1430, 610, 400, 380, "bogph/014.jpg");
-  const cp = $(`<div class="copy" style="top:170px;width:700px"><p class="kick">People · Presence · Persistence</p><h2>${words("The people <em>behind the work.</em>")}</h2>
-    <p class="sub">In the field, in Riyadh's dealer corridors. In the room, walking teams through it. A small-team mission, sustained by dedication.</p></div>`); r.appendChild(cp);
-  return (t) => {
-    [a, b, c, d].forEach((p, i) => { enter(p, t, .2 + i * .22, 1.1, i % 2 ? -1 : 1); kb(p, t, 7.4, 1.04, 1.13, i % 2 ? 18 : -18); });
-    fade(cp.querySelector(".kick"), t, .1); rise(cp.querySelector("h2"), t, .25, .09); fade(cp.querySelector(".sub"), t, 1.8);
-  };
-});
-/* C2: the foundation was built here */
+/* C1: from field to system: AutoLink, analysis, meetings, training */
+scene(5 * 2.4 + .6, (r) => stack(r, [
+  ["bp3/portal_screen.jpg", "01 / 05 · Introducing AutoLink", "The <em>portal</em>, on the big screen.", "Field knowledge, turned into a system dealers could use.", "AutoLink", 45],
+  ["bp3/review1.jpg", "02 / 05 · Initial analysis", "From notes <em>to insight.</em>", "Every visit reviewed, organised and fed into the model.", "Analysis", 50],
+  ["bp3/meet.jpg", "03 / 05 · Dealership meetings", "Across <em>the table.</em>", "Meetings with dealer groups, face to face.", "Meetings", 50],
+  ["bp3/train2.jpg", "04 / 05 · System training", "Training <em>the sales teams.</em>", "Showroom staff, walked through the portal step by step.", "Training", 55],
+  ["bp3/office.jpg", "05 / 05 · In the dealer's office", "Over coffee <em>and dates.</em>", "Where the real conversations happen.", "Dealers", 18],
+], 2.4));
+/* C2: the people behind the work */
+scene(3 * 2.4 + .6, (r) => stack(r, [
+  ["bp3/pair.jpg", "People · Presence · Persistence", "The people <em>behind the work.</em>", "Real people, who kept showing up.", "People", 40],
+  ["bp3/dinner3.jpg", "Partners", "Relationships, <em>not just records.</em>", "Built at the table as much as on the floor.", "Partners", 50],
+  ["bp3/dinner2.jpg", "One team", "Everyone <em>who carried it.</em>", "Together, from the field to the launch.", "Team", 55],
+], 2.4));
+/* C3: the foundation was built here */
 scene(9.6, (r) => {
-  const p = panel(r, 0, 0, 1920, 1080, "bogph/133.jpg"); p.style.boxShadow = "none"; p._img.style.filter = "saturate(1.15) brightness(.62)";
-  r.appendChild($(`<div style="position:absolute;inset:0;background:radial-gradient(70% 70% at 50% 50%,rgba(7,2,0,.35),rgba(7,2,0,.9))"></div>`));
+  const p = panel(r, 0, 0, 1920, 1080, "bp3/sunset.jpg"); p.style.boxShadow = "none"; p._img.style.filter = "saturate(1.1) brightness(.6)";
+  r.appendChild($(`<div style="position:absolute;inset:0;background:radial-gradient(70% 70% at 50% 50%,rgba(7,2,0,.3),rgba(7,2,0,.88))"></div>`));
   const c = $(`<div class="center"><p class="kick" style="justify-content:center">Contribution · Resilience · Impact</p><h2 style="font-size:112px">${words("The foundation <em>was built here.</em>")}</h2>
-    <p class="quote">The earliest contribution is not always the most visible. Sometimes it is the one everything else stands on.</p><p class="small">The field research that helped shape AutoLink's business model</p></div>`); r.appendChild(c);
+    <p class="quote">The earliest contribution is not always the most visible. Sometimes it is the one everything else stands on.</p><p class="small">Our founder's vision, carried out on the ground · the field research behind AutoLink</p></div>`); r.appendChild(c);
   return (t) => {
     kb(p, t, 9.6, 1.0, 1.12, 0, 20); p.style.opacity = eo(ramp(t, 0, 1.2));
     fade(c.querySelector(".kick"), t, .5); rise(c.querySelector("h2"), t, .8, .1, 1.1); fade(c.querySelector(".quote"), t, 3.2, 1.2, 20); fade(c.querySelector(".small"), t, 5.2, 1);
