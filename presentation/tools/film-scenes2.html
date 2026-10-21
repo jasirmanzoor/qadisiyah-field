@@ -50,7 +50,40 @@ html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; backgro
 .ktitle h2 { margin: 26px 0 0; font: 700 96px/1 var(--d); letter-spacing: -.045em; }
 .ktitle h2 em { font-family: var(--s); font-weight: 400; font-style: italic; color: #ffd2ad; }
 .ktitle p { margin: 26px 0 0; font: 400 26px/1.45 var(--b); color: var(--soft); }
-</style></head><body><div id="root"></div>
+.moat-h { margin: 0; font: 700 84px/.98 var(--d); letter-spacing: -.042em; } .moat-h em { font-family: var(--s); font-weight: 400; font-style: italic; letter-spacing: -.01em; color: #ffd2ad; }
+/* Aceternity 3D Card (ported) */
+.c3-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; perspective: 1000px; }
+.c3-cont { position: relative; transform-style: preserve-3d; will-change: transform; }
+.c3-body { position: relative; width: 760px; padding: 44px 46px 40px; border-radius: 22px; background: #000; border: 1px solid rgba(255,255,255,.2); transform-style: preserve-3d; }
+.c3-body > * { transform-style: preserve-3d; will-change: transform; }
+.c3-it { width: fit-content; }
+.c3-title { font: 400 italic 46px/1.12 var(--s); color: #fff; max-width: 640px; }
+.c3-title em { color: #ffd2ad; }
+.c3-sub { margin-top: 14px; font: 400 21px/1.45 var(--b); color: rgba(255,255,255,.72); max-width: 600px; }
+.c3-img { width: 100%; margin-top: 26px; }
+.c3-img .ph { position: relative; height: 320px; border-radius: 18px; overflow: hidden; background: radial-gradient(70% 80% at 50% 100%, rgba(255,120,40,.42), rgba(255,80,0,.08) 60%, #0d0603); }
+.c3-img .ph img { position: absolute; left: 50%; bottom: 0; height: 112%; transform: translateX(-50%); }
+.c3-row { display: flex; justify-content: space-between; align-items: center; margin-top: 64px; }
+.c3-btn { padding: 12px 20px; border-radius: 14px; font: 600 17px/1 var(--b); }
+.c3-btn.a { color: #fff; } .c3-btn.b { background: #fff; color: #000; font-weight: 700; }
+/* Aceternity 3D Marquee (ported) */
+.mq-outer { position: absolute; inset: 0; overflow: hidden; }
+.mq-stage { position: absolute; left: 50%; top: 50%; width: 1720px; height: 1720px; margin: -860px 0 0 -860px; }
+.mq-grid { position: relative; top: 384px; right: 50%; width: 100%; height: 100%; transform-origin: top left; display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; transform: rotateX(55deg) rotateY(0deg) rotateZ(-45deg); transform-style: preserve-3d; }
+.mq-col { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 32px; will-change: transform; }
+.mq-col img { width: 100%; aspect-ratio: 970 / 700; object-fit: cover; border-radius: 8px; box-shadow: 0 0 0 1px rgba(255,255,255,.06); display: block; }
+.mq-cell { position: relative; width: 100%; }
+.gl-h { position: absolute; left: -10px; top: -16px; height: 1px; width: calc(100% + 20px); z-index: 30;
+  background: linear-gradient(to right, rgba(255,255,255,.2), rgba(255,255,255,.2) 50%, transparent 0, transparent); background-size: 5px 1px;
+  -webkit-mask: linear-gradient(to left, #fff 90%, transparent), linear-gradient(to right, #fff 90%, transparent), linear-gradient(black, black); -webkit-mask-composite: xor; mask-composite: exclude; }
+.gl-v { position: absolute; left: -16px; top: -40px; width: 1px; height: calc(100% + 80px); z-index: 30;
+  background: linear-gradient(to bottom, rgba(255,255,255,.2), rgba(255,255,255,.2) 50%, transparent 0, transparent); background-size: 1px 5px;
+  -webkit-mask: linear-gradient(to top, #fff 90%, transparent), linear-gradient(to bottom, #fff 90%, transparent), linear-gradient(black, black); -webkit-mask-composite: xor; mask-composite: exclude; }
+.moat-list { margin: 30px 0 0; padding: 0; list-style: none; display: grid; gap: 16px; }
+.moat-list li { display: grid; grid-template-columns: 34px 1fr; align-items: start; font: 500 25px/1.32 var(--b); color: rgba(255,255,255,.9); }
+.moat-list li i { font: 500 14px/1 var(--m); color: var(--flame-lit); letter-spacing: .1em; margin-top: 8px; font-style: normal; }
+.moat-list li b { color: #fff; font-weight: 700; }
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><script src="matter.js"></script></head><body><div id="root"></div>
 <script>
 const W = 1920, H = 1080, S = new URLSearchParams(location.search).get("s") || "survey", root = document.getElementById("root");
 const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x)), mix = (a, b, u) => a + (b - a) * u;
@@ -116,7 +149,7 @@ function slider(items, opt) {
     strip.style.transform = `translateX(${(-pos * W).toFixed(1)}px)`;
     imgs.forEach((im, i) => { const d = i - pos, lt = t - (i === 0 ? 0 : targets[i][0]); im.querySelector("img").style.transform = `scale(${(1.08 - .06 * clamp(lt / (opt.step * 2))).toFixed(4)})`; });
     ths.forEach((th, i) => { const k = clamp(1 - Math.abs(i - pos)); th.style.transform = `scale(${(1 + .2 * k).toFixed(3)})`; th.style.zIndex = Math.round(k * 10); th.style.filter = `brightness(${(.7 + .3 * k).toFixed(2)})`; });
-    const tu = eo((t - .5) / 1.0); thumbs.style.opacity = tu.toFixed(3); thumbs.style.transform = `translateY(${(-50 + (1 - tu) * 20).toFixed(1)}%)`;
+    const tu = opt.noThumbs ? 0 : eo((t - .5) / 1.0); thumbs.style.opacity = tu.toFixed(3); thumbs.style.transform = `translateY(${(-50 + (1 - tu) * 20).toFixed(1)}%)`;
     ts.forEach((s, i) => { const d = i - pos; s.style.transform = `translateY(${(d * 92).toFixed(1)}px)`; s.style.filter = `blur(${(Math.min(1, Math.abs(d)) * 5).toFixed(2)}px)`; s.style.opacity = clamp(1.4 - Math.abs(d)).toFixed(3); });
     const since = targets.reduce((m, [tt]) => (tt <= t ? tt : m), 0), click = targets.length > 1 && t >= targets[1][0] ? Math.exp(-(t - since) * 3.2) : 0;
     drawGlass(t * .6 * 1.5, 1, click);
@@ -220,9 +253,11 @@ if (S === "indep") {
   el(`<p class="kick" style="margin-bottom:26px">Who owns the floor</p>`, box);
   const odo = odometer(box, "98%"); const lead = el(`<p class="lead">of Al Qadisiyah floors<br>are fully independent</p>`, box);
   const ft = el(`<p class="foot">Only 6 of 307 floors asked hold a manufacturer authorisation.<span class="tag">OBSERVED · N=307</span></p>`, box);
+  const mat = MatterBG(root, { before: box, mx: -2.2, my: .3, radius: 1.05, detail: 36, t0: 4 });
   let T = [];
   boot = async () => { T = await tiles(N); };
   render = (t) => {
+    mat(t, .42 * ss(t, .1, 1.2));
     g.clearRect(0, 0, W, H);
     const ox = COLS * .5, oy = ROWS * .5;
     for (let i = 0; i < N; i++) {
@@ -253,9 +288,11 @@ if (S === "bank") {
   const row = el(`<div style="display:flex;align-items:flex-end"></div>`, box); const odo = odometer(row, "11"); el(`<small style="font:700 64px/1 var(--d);letter-spacing:-.03em;margin:0 0 22px 16px">of 13</small>`, row);
   const lead = el(`<p class="lead">floors have no bank on site</p>`, box);
   const ft = el(`<p class="foot">Asked in 13 owner sit-downs. Only 5 of 25 owners named a partner bank.<span class="tag">OBSERVED · N=13</span></p>`, box);
+  const mat = MatterBG(root, { before: box, mx: -2.5, my: -.35, radius: 1.0, detail: 36, t0: 11 });
   let T = [];
   boot = async () => { const all = await tiles(60); T = [4, 11, 19, 27, 33, 38, 41, 45, 50, 2, 8, 23, 30].map((k) => all[k]); };
   render = (t) => {
+    mat(t, .4 * ss(t, .1, 1.2));
     g.clearRect(0, 0, W, H);
     for (let i = 0; i < N; i++) {
       const x = cx(i), y = GY, ap = ss(t, .2 + i * .08, .8 + i * .08); if (ap <= 0) continue;
@@ -275,16 +312,151 @@ if (S === "bank") {
   };
 }
 
+if (S === "cars") {
+  /* 31,869 cars: Slide Image over dense floors, the count rolling in on the odometer */
+  DUR = 7.2;
+  const IT = [["k01", "Al Shifa"], ["k02", "Al Shifa"], ["k03", "After dark"], ["k04", "Floor by floor"], ["k05", "Every forecourt"]];
+  const go = slider(IT.map(([n, title]) => ({ src: `slides/${n}.jpg`, title })), { t0: .9, step: 1.25, pillW: 520, noThumbs: true });
+  el(`<div class="scrim" style="left:0;top:0;width:1300px;height:1080px;background:linear-gradient(90deg,rgba(7,2,0,.86) 30%,rgba(7,2,0,.35) 70%,rgba(7,2,0,0));z-index:3"></div>`);
+  const box = el(`<div class="abs" style="left:96px;top:250px;width:980px;z-index:4"></div>`);
+  el(`<p class="kick" style="margin-bottom:22px">The work</p>`, box);
+  const odo = odometer(box, "31,869"); const lead = el(`<p class="lead">cars on the floor, counted</p>`, box);
+  const ft = el(`<p class="foot" style="max-width:820px">Inside each showroom and out on the forecourt, on 512 floors. Nobody had added them up before.<span class="tag">OBSERVED · N=512</span></p>`, box);
+  render = (t) => { go(t); fade(box.querySelector(".kick"), t, .3); odo.box.style.opacity = ss(t, .4, .8); odo.play(t, .4, 2.8, .12); fade(lead, t, 1.5); fade(ft, t, 2.2); };
+}
+if (S === "leak") {
+  /* SAR 1.4B: full-frame night floors with a focus-pull / zoom-through still motion, the figure on the odometer */
+  DUR = 7.6;
+  const P = ["l01", "l02", "l03"], seg = 2.4;
+  const imgs = P.map((n) => el(`<div class="abs" style="inset:0;overflow:hidden"><img src="slides/${n}.jpg" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></div>`));
+  const sweep = el(`<div class="abs" style="inset:0;pointer-events:none;mix-blend-mode:screen;background:linear-gradient(105deg,transparent 38%,rgba(255,214,170,.38) 50%,transparent 62%);background-size:260% 100%"></div>`);
+  el(`<div class="scrim" style="left:0;top:0;width:1920px;height:1080px;background:radial-gradient(70% 70% at 30% 60%,rgba(7,2,0,.82),rgba(7,2,0,.4) 60%,rgba(7,2,0,.15))"></div>`);
+  const box = el(`<div class="abs" style="left:96px;top:250px;width:1200px"></div>`);
+  el(`<p class="kick" style="margin-bottom:22px">The opportunity</p>`, box);
+  const odo = odometer(box, "SAR 1.4B");
+  const lead = el(`<p class="lead" style="max-width:1000px">a year of ready buyers walk out of <em style="font-family:var(--s);font-weight:400;font-style:italic;color:#ffd2ad">just 24 showrooms</em> we sat down in, because the financing was not there.</p>`, box);
+  const ft = el(`<p class="foot">The buyer is standing on the floor. <em style="font-family:var(--s);font-style:italic;color:#ffd2ad">The lender is not.</em></p>`, box);
+  const veil = el(`<div class="abs" style="inset:0;background:#070200;z-index:50"></div>`);
+  render = (t) => {
+    imgs.forEach((d, i) => {
+      const a = i * seg, u = clamp((t - a + (i ? .35 : 0)) / .9), out = i < P.length - 1 ? clamp((t - a - seg + .35) / .7) : 0, live = clamp((t - a) / (seg + .6));
+      const im = d.firstChild, sc = 1.18 - .12 * eo(u) - .05 * live + .28 * out * out;
+      im.style.transform = `scale(${sc.toFixed(4)})`; im.style.filter = `blur(${((1 - eo(u)) * 12 + out * 10).toFixed(2)}px) brightness(${(1 + (1 - eo(u)) * .5).toFixed(3)})`;
+      d.style.opacity = (i === 0 ? 1 - out : Math.min(1, u * 1.6) * (1 - out)).toFixed(3);
+    });
+    const ph = (t % seg) / seg; sweep.style.backgroundPosition = `${(130 - 160 * eo(ph * 2.2)).toFixed(1)}% 0`;
+    fade(box.querySelector(".kick"), t, .5); odo.box.style.opacity = ss(t, .5, .9); odo.play(t, .5, 2.4, .15); fade(lead, t, 1.6); fade(ft, t, 2.6);
+    veil.style.opacity = (1 - ss(t, 0, .5)).toFixed(3);
+  };
+}
+if (S === "brands") {
+  /* 83%: CommitGrid, one cell per floor with brand data (507); the 420 floors stocking Toyota or Hyundai show as photo tiles */
+  DUR = 8.0;
+  const N = 507, COLS = 29, ROWS = Math.ceil(N / COLS), CELL = 38, GAP = 6, R = 6, GX = 560, GY = 150;
+  const cv = el(`<canvas class="cg" width="${W}" height="${H}" style="left:0;top:0"></canvas>`), g = cv.getContext("2d");
+  el(`<div class="scrim" style="left:0;top:0;width:900px;height:1080px;background:linear-gradient(90deg,rgba(7,2,0,.92) 55%,rgba(7,2,0,0))"></div>`);
+  const call = el(`<div class="call" style="left:${GX + 4 * (CELL + GAP)}px;top:${GY - 64}px"><i style="background:var(--flame-lit);box-shadow:0 0 14px var(--flame)"></i><div><b>420 floors</b><span>carry Toyota or Hyundai</span></div></div>`);
+  const box = el(`<div class="abs" style="left:96px;top:330px;width:640px"></div>`);
+  el(`<p class="kick" style="margin-bottom:26px">Things no one knew</p>`, box);
+  const odo = odometer(box, "83%"); const lead = el(`<p class="lead">of floors stock<br>Toyota or Hyundai</p>`, box);
+  const ft = el(`<p class="foot">77% in Al Qadisiyah, 91% in Al Shifa. Multi-brand floors count once per brand.<span class="tag">CALCULATED · N=507</span></p>`, box);
+  const mat = MatterBG(root, { before: box, mx: -2.2, my: -.05, radius: 1.05, detail: 36, t0: 19 });
+  let T = [], lit = [];
+  boot = async () => { T = await tiles(N); let s = 3; const r = () => (s = (s * 16807) % 2147483647) / 2147483647; const idx = [...Array(N).keys()].sort(() => r() - .5); const on = new Set(idx.slice(0, 420)); lit = [...Array(N)].map((_, i) => on.has(i)); };
+  render = (t) => {
+    mat(t, .42 * ss(t, .1, 1.2));
+    g.clearRect(0, 0, W, H);
+    for (let i = 0; i < N; i++) {
+      const c = i % COLS, r = Math.floor(i / COLS), x = GX + c * (CELL + GAP), y = GY + r * (CELL + GAP);
+      const ap = ss(t, .2 + c * .035, .7 + c * .035); if (ap <= 0) continue;
+      const sep = ss(t, 2.8, 3.6);
+      if (lit[i]) { g.globalAlpha = ap * opacityOf(PAT.wave(c, r, 0, 0, t, 1), 1, 1, .62); drawCell(g, T[i], x, y, CELL, R);
+        g.globalAlpha = ap * sep * .9; g.strokeStyle = "#ff9a4a"; g.lineWidth = 1.5; g.beginPath(); g.roundRect(x + .75, y + .75, CELL - 1.5, CELL - 1.5, R); g.stroke(); }
+      else { g.globalAlpha = ap * (1 - .7 * sep) * .5; drawCell(g, T[i], x, y, CELL, R); }
+    }
+    g.globalAlpha = 1;
+    fade(box.querySelector(".kick"), t, .4); odo.box.style.opacity = ss(t, .5, .9); odo.play(t, .5); fade(lead, t, 1.6); fade(ft, t, 2.4); fade(call, t, 3.2, .8, 10);
+  };
+}
+if (S === "moat") {
+  /* The data advantage, over Aceternity's 3D Marquee: four columns of field shots, maps and the master sheet on a tilted
+     plane (rotateX 55, rotateZ -45), alternate columns drifting ±100px (10 s / 15 s, reversing), dashed grid lines. */
+  DUR = 11.0;
+  const LIST = `walk sheet gmapslide appslide ge1 ge2 ge3 earthq earths app gm1 gm2`.split(" ");
+  let imgs = [];
+  const outer = el(`<div class="mq-outer"><div class="mq-stage"><div class="mq-grid"></div></div></div>`), grid = outer.querySelector(".mq-grid");
+  el(`<div class="scrim" style="left:0;top:0;width:1920px;height:1080px;background:linear-gradient(90deg,rgba(7,2,0,.95) 0%,rgba(7,2,0,.88) 34%,rgba(7,2,0,.35) 58%,rgba(7,2,0,.1) 100%),linear-gradient(0deg,rgba(7,2,0,.6),rgba(7,2,0,0) 30%)"></div>`);
+  const box = el(`<div class="abs" style="left:96px;top:150px;width:860px"></div>`);
+  const kick = el(`<p class="kick" style="margin-bottom:22px">The data advantage</p>`, box);
+  const head = el(`<h2 class="moat-h">A map <em>no one else has.</em></h2>`, box);
+  const row = el(`<div style="display:flex;align-items:flex-end;margin-top:26px"></div>`, box);
+  const odo = odometer(row, "520"); odo.box.style.fontSize = "150px"; el(`<small style="font:700 56px/1 var(--d);letter-spacing:-.03em;margin:0 0 18px 6px;background:linear-gradient(180deg,#fff 30%,#ffb27a);-webkit-background-clip:text;background-clip:text;color:transparent">+ showrooms</small>`, row);
+  const ul = el(`<ul class="moat-list">
+    <li><i>01</i><span>Mapped to <b>one uniform standard</b>: the largest sub-dealer mapping of its kind, never attempted before.</span></li>
+    <li><i>02</i><span>Data <b>only AutoLink holds</b>, ahead of every established player.</span></li>
+    <li><i>03</i><span>Next: the deep dive into <b>showroom sales figures</b>.</span></li>
+    <li><i>04</i><span>The ground <b>next year's strategy</b> will be written on.</span></li></ul>`, box);
+  boot = async () => {
+    const names = (await (await fetch("marq/list.txt")).text()).trim().split("\n");
+    const chunk = Math.ceil(names.length / 4);
+    for (let c = 0; c < 4; c++) {
+      const col = el(`<div class="mq-col"><div class="gl-v"></div></div>`, grid);
+      names.slice(c * chunk, (c + 1) * chunk).forEach((n) => { const cell = el(`<div class="mq-cell"><div class="gl-h"></div><img src="marq/${n}.jpg"></div>`, col); imgs.push(cell); });
+    }
+  };
+  render = (t) => {
+    /* motion's tween: 0 -> ±100px, easeInOut, then reverse; scene starts mid-drift so the plane is already moving */
+    const tw = (u) => { u = ((u % 2) + 2) % 2; const v = u > 1 ? 2 - u : u; return v < .5 ? 2 * v * v : 1 - Math.pow(-2 * v + 2, 2) / 2; };
+    [...grid.children].forEach((col, c) => { const d = c % 2 === 0 ? 10 : 15, amp = c % 2 === 0 ? 100 : -100; col.style.transform = `translateY(${(amp * tw((t + 3) / d) * 2.2).toFixed(2)}px)`; });
+    /* camera: a slow push and drift across the plane */
+    outer.querySelector(".mq-stage").style.transform = `scale(${(1.18 + .06 * eo(t / DUR)).toFixed(4)}) translate(${(140 - 40 * t / DUR).toFixed(1)}px, ${(-30 + 20 * t / DUR).toFixed(1)}px)`;
+    imgs.forEach((im, i) => { im.style.opacity = ss(t, .1 + (i % 8) * .06, .7 + (i % 8) * .06).toFixed(3); });
+    fade(kick, t, .5); fade(head, t, .7, .9, 26);
+    row.style.opacity = ss(t, 1.4, 1.8); odo.play(t, 1.4, 2.4, .15); row.lastChild.style.opacity = ss(t, 2.6, 3.2);
+    ul.querySelectorAll("li").forEach((li, i) => fade(li, t, 3.2 + i * .9, .8, 16));
+  };
+}
+if (S === "card3d") {
+  /* Sample: the founder scene on Aceternity's 3D Card. CardContainer tilts with rotateY(x/25) rotateX(y/25) from the
+     pointer; here a smooth virtual pointer glides over the card. On "mouse enter" each CardItem eases (200 ms, linear in
+     the original; eased here) to its own translateZ / rotate, so title, text, photo and buttons float at different depths. */
+  DUR = 9.2;
+  el(`<div class="abs" style="inset:0;background:radial-gradient(60% 70% at 50% 55%,rgba(255,110,30,.16),transparent 70%)"></div>`);
+  const wrap = el(`<div class="c3-wrap"></div>`), cont = el(`<div class="c3-cont"></div>`, wrap);
+  const body = el(`<div class="c3-body"></div>`, cont);
+  const it = (html, cls, z, extra = {}) => { const e = el(`<div class="c3-it ${cls}">${html}</div>`, body); e._z = { tx: 0, ty: 0, tz: z, rx: 0, ry: 0, rz: 0, ...extra }; return e; };
+  const items = [
+    it(`<p class="kick" style="margin:0">The founder's vision</p>`, "", 40),
+    it(`“There was no map. <em>So we built one</em> — one showroom at a time.”`, "c3-title", 50),
+    it(`Our founder and CEO, Leon, set the task: understand Riyadh's sub-dealer market, showroom by showroom.`, "c3-sub", 60),
+    it(`<div class="ph"><img src="bp3/leon.png" alt="Leon, Founder and CEO of AutoLink"></div>`, "c3-img", 100, { rx: 20, rz: -10 }),
+  ];
+  const row = el(`<div class="c3-row"></div>`, body);
+  const b1 = el(`<div class="c3-it c3-btn a">Leon · Founder &amp; CEO</div>`, row); b1._z = { tx: -40, ty: 0, tz: 20, rx: 0, ry: 0, rz: 0 };
+  const b2 = el(`<div class="c3-it c3-btn b">AutoLink</div>`, row); b2._z = { tx: 40, ty: 0, tz: 20, rx: 0, ry: 0, rz: 0 };
+  items.push(b1, b2);
+  render = (t) => {
+    const enter = eo((t - .9) / .9);                     /* the card is "hovered" from 0.9 s on */
+    const W2 = 760, H2 = 900, px = Math.sin(t * .55 + .4) * W2 * .3, py = Math.cos(t * .42) * H2 * .24;   /* virtual pointer */
+    const k = enter * Math.min(1, t / 2);
+    cont.style.transform = `rotateY(${(px / 25 * k).toFixed(3)}deg) rotateX(${(py / 25 * k).toFixed(3)}deg)`;
+    items.forEach((e) => { const z = e._z, u = enter;
+      e.style.transform = `translateX(${z.tx * u}px) translateY(${z.ty * u}px) translateZ(${z.tz * u}px) rotateX(${z.rx * u}deg) rotateY(${z.ry * u}deg) rotateZ(${z.rz * u}deg)`; });
+    const inU = eo(t / .9); wrap.style.opacity = inU.toFixed(3); body.style.boxShadow = `0 ${30 + 30 * enter}px ${80 + 40 * enter}px -20px rgba(255,106,0,${(.18 * enter).toFixed(3)})`;
+    wrap.style.transform = `translateY(${((1 - inU) * 40).toFixed(1)}px) scale(${(.96 + .04 * inU).toFixed(3)})`;
+  };
+}
 /* ---------- KAFD: one shot, nothing laid over it ---------- */
 if (S === "kafd") {
   DUR = 9.0;
   document.querySelector(".brand").style.display = "none";
   const kw = el(`<div class="kw"><img></div>`), img = kw.querySelector("img");
   const tt = el(`<div class="ktitle"><p class="kick">Headquarters · King Abdullah Financial District</p><h2>From the showroom floor <em>to KAFD.</em></h2><p>Every record from the field was filed back to one roster, here at our Riyadh headquarters.</p></div>`);
+  const mat = MatterBG(root, { before: tt, my: .1, radius: 1.35, detail: 40, t0: 27 });   /* only on the black title beat; the footage itself stays clean */
   render = async (t) => {
     /* the title holds on black, leaves, and only then does the shot open from a horizontal slit */
     const tin = eo((t - .15) / .9), tout = ss(t, 1.9, 2.4);
-    tt.style.opacity = (tin * (1 - tout)).toFixed(3); tt.style.transform = `translateY(${((1 - tin) * 20 - tout * 30).toFixed(1)}px)`;
+    tt.style.opacity = (tin * (1 - tout)).toFixed(3); mat(t, .45 * tin * (1 - ss(t, 1.8, 2.3))); tt.style.transform = `translateY(${((1 - tin) * 20 - tout * 30).toFixed(1)}px)`;
     const open = eo((t - 2.3) / 1.1); kw.style.clipPath = `inset(${((1 - open) * 50).toFixed(2)}% 0 ${((1 - open) * 50).toFixed(2)}% 0)`;
     const f = Math.min(210, Math.max(1, 1 + Math.floor(Math.max(0, t - 2.3) * 30)));
     img.src = `kafdv/wide/f${String(f).padStart(4, "0")}.jpg`; img.style.transform = `scale(${(1.0 + .045 * clamp((t - 2.3) / 6.7)).toFixed(4)})`;

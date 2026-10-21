@@ -59,6 +59,11 @@ h2 { margin: 0; font: 700 92px/.98 var(--d); letter-spacing: -.042em; }
 .st-rail { position: absolute; right: 70px; top: 50%; display: grid; gap: 12px; transform: translateY(-50%); }
 .st-rail i { display: block; width: 3px; height: 46px; background: rgba(255,255,255,.25); border-radius: 2px; }
 .st-rail i.on { background: var(--flame-lit); box-shadow: 0 0 10px var(--flame); }
+.ph3 { position: absolute; width: 380px; height: 690px; border-radius: 52px; background: #0b0b0d; padding: 12px; box-sizing: border-box; box-shadow: 0 60px 120px -30px rgba(0,0,0,.95), inset 0 0 0 2px rgba(255,255,255,.16); will-change: transform; }
+.ph3 .scr { position: relative; width: 100%; height: 100%; border-radius: 41px; overflow: hidden; background: #000; }
+.ph3 img { position: absolute; left: 0; top: 44px; width: 100%; height: calc(100% - 44px); object-fit: cover; object-position: top; will-change: transform; }
+.ph3 .isl { position: absolute; left: 50%; top: 12px; width: 100px; height: 28px; margin-left: -50px; border-radius: 18px; background: #000; z-index: 2; }
+.ph3 .cap { position: absolute; left: 0; right: 0; bottom: -46px; text-align: center; font: 500 15px/1 var(--m); letter-spacing: .2em; text-transform: uppercase; color: var(--flame-lit); }
 </style></head><body>
 <div class="brand" id="brand"><img src="brand/autolink-lockup.png" alt="AutoLink AI Tech"></div>
 <div id="stage"></div>
@@ -82,6 +87,16 @@ function panel(par, x, y, w, h, src) {
 function seq(el, clip, n, t, rate = .75) {           /* drive a pan clip frame by frame; waits for decode before the frame is captured */
   const k = Math.min(n, 1 + Math.floor(t * 30 * rate)) ; const src = `bogpan2/${clip}/f${String(k).padStart(4, "0")}.jpg`;
   if (el._img.dataset.src !== src) { el._img.dataset.src = src; el._img.src = src; pend.push(el._img.decode()); }
+}
+function zt(vs, t, t0, seg, z0 = 1.2) {                      /* still motion for field photos: focus-pull in, slow drift, zoom-through out, light sweep */
+  vs.forEach((v, i) => {
+    const a = t0 + i * seg, u = clamp((t - a) / .9), out = i < vs.length - 1 ? clamp((t - a - seg + .45) / .7) : 0, live = clamp((t - a) / (seg + .5));
+    const sc = z0 - (z0 - 1.06) * eo(u) - .05 * live + .3 * out * out, bl = (1 - eo(u)) * 14 + out * 12, br = 1 + (1 - eo(u)) * .6;
+    v._img.style.transform = `translate(-50%, -50%) scale(${sc.toFixed(4)})`; v._img.style.filter = `blur(${bl.toFixed(2)}px) brightness(${br.toFixed(3)})`;
+    v.style.opacity = i === 0 ? (1 - out).toFixed(3) : (Math.min(1, u * 1.6) * (1 - out)).toFixed(3);
+    if (!v._sw) { v._sw = $(`<div style="position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;background:linear-gradient(105deg,transparent 38%,rgba(255,214,170,.55) 50%,transparent 62%);background-size:260% 100%"></div>`); v.appendChild(v._sw); }
+    v._sw.style.backgroundPosition = `${(130 - 160 * eo((t - a - .2) / 1.1)).toFixed(1)}% 0`; v._sw.style.opacity = (u > 0 && u < 1 ? 1 : 0) + "";
+  });
 }
 function words(h) {                                 /* wrap every word in a span; words inside <em> keep the italic */
   const sp = (txt) => txt.split(/(\s+)/).map((w) => w.trim() ? `<span class="w">${w}</span>` : w).join("");
@@ -137,10 +152,10 @@ scene(7.6, (r) => {
 /* S2: the founder's vision */
 scene(7.0, (r) => {
   /* field photos instead of the drive-by clip: three street shots crossfade with a slow push */
-  const vs = ["photos/q-street-ibtikar.jpg", "photos/q-street-binomaira.jpg", "photos/s-saber-street.jpg"].map((src) => panel(r, 1000, -60, 820, 1200, src));
+  const vs = ["field2/street.jpg", "field2/naseem.jpg", "field2/adwa.jpg"].map((src) => panel(r, 1000, -60, 820, 1200, src));
   const cp = $(`<div class="copy" style="top:200px;width:780px"><p class="kick">The founder's vision</p><h2>${words("Map a market <em>no one had mapped.</em>")}</h2>
     <p class="sub">Our founder and CEO, Leon, set the task: understand Riyadh's sub-dealer market, showroom by showroom.</p></div>`); r.appendChild(cp);
-  return (t) => { vs.forEach((v, i) => { enter(v, t, .1, 1.2, -1); v.style.opacity = i === 0 ? 1 : clamp((t - 1.9 * i) / .7); kb(v, t, 7, 1.04, 1.12, 0, -20); }); fade(cp.querySelector(".kick"), t, .2); rise(cp.querySelector("h2"), t, .35, .08); fade(cp.querySelector(".sub"), t, 1.8); };
+  return (t) => { vs.forEach((v) => enter(v, t, .1, 1.2, -1)); zt(vs, t, .05, 2.3); fade(cp.querySelector(".kick"), t, .2); rise(cp.querySelector("h2"), t, .35, .08); fade(cp.querySelector(".sub"), t, 1.8); };
 });
 /* S3: a small team, a critical mandate */
 scene(7.0, (r) => {
@@ -156,13 +171,17 @@ scene(7.0, (r) => {
 });
 /* S4: into the market */
 scene(7.4, (r) => {
-  const v = panel(r, 1220, -40, 560, 1160, "bogpan2/c2636/f0001.jpg"), a = panel(r, 760, 110, 470, 400, "bp3/saber.jpg"), b = panel(r, 700, 560, 480, 420, "bp3/wadi.jpg");
-  r.appendChild($(`<div class="shade-l" style="background:linear-gradient(90deg,rgba(7,2,0,.97) 0%,rgba(7,2,0,.9) 30%,rgba(7,2,0,0) 44%)"></div>`));
+  /* the field tools themselves, whole screens in phone frames: the survey app, the Google Earth pin map, Google Maps */
+  const PH3 = [["field2/ph_app.jpg", "Survey app", 760, 210, -7], ["field2/ph_earth.jpg", "Google Earth", 1130, 150, 0], ["field2/ph_gmaps.jpg", "Google Maps", 1500, 210, 7]].map(([src, cap, x, y, rz]) => {
+    const e = $(`<div class="ph3" style="left:${x}px;top:${y}px"><div class="scr"><div class="isl"></div><img src="${src}"></div><div class="cap">${cap}</div></div>`); r.appendChild(e); e._x = x; e._rz = rz; return e; });
+  r.appendChild($(`<div class="shade-l" style="background:linear-gradient(90deg,rgba(7,2,0,.97) 0%,rgba(7,2,0,.9) 30%,rgba(7,2,0,0) 40%)"></div>`));
   const cp = $(`<div class="copy" style="top:130px;width:560px"><p class="kick">On-field research</p><h2>${words("Into the <em>market.</em>")}</h2>
     <div class="verbs">${["Visit.", "Observe.", "Ask.", "Document.", "Repeat."].map((x) => `<div class="verb">${x}</div>`).join("")}</div>
     <p class="sub" style="font-size:24px">Ground truth had to be collected in person.</p></div>`); r.appendChild(cp);
   return (t) => {
-    seq(v, "c2636", 108, t, .55); enter(v, t, .05, 1.1); [a, b].forEach((p, i) => { enter(p, t, .35 + i * .25, 1.1, -1); kb(p, t, 7.4, 1.05, 1.15); });
+    PH3.forEach((e, i) => { const u = eo(ramp(t, .15 + i * .22, 1.2)), d = t - .15 - i * .22;
+      e.style.opacity = Math.min(1, u * 1.5); e.style.transform = `perspective(1800px) translateY(${((1 - u) * 260 - d * 6).toFixed(1)}px) rotateZ(${(e._rz * (.6 + .4 * u)).toFixed(2)}deg) rotateY(${((1 - u) * -24).toFixed(2)}deg) scale(${(.92 + .08 * u).toFixed(3)})`;
+      e.querySelector("img").style.transform = `translateY(${(-26 * clamp(d / 7)).toFixed(1)}px) scale(${(1 + .04 * clamp(d / 7)).toFixed(4)})`; });
     fade(cp.querySelector(".kick"), t, .1); rise(cp.querySelector("h2"), t, .2, .1);
     cp.querySelectorAll(".verb").forEach((x, i) => { const on = t > 1.4 + i * .62; x.classList.toggle("on", on); x.classList.toggle("now", on && t < 1.4 + (i + 1) * .62); x.style.transform = `translateX(${(1 - eo(ramp(t, 1.4 + i * .62, .5))) * -30}px)`; });
     fade(cp.querySelector(".sub"), t, 4.9);

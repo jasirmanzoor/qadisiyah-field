@@ -94,9 +94,10 @@ void main() {
 const COLS = 24, ROWS = 10, STRIDE = 5;
 
 /* ---- media: field photos and drone footage from the archive ---- */
-const PH = ["avenue2", "nightlot", "trucks", "ambul", "adini", "covered", "fullspeed", "dusk_prayer", "wadi", "saber", "avenue", "nightfloor"];
-const CLIPS = [["c2640", 160, 120], ["c2622", 20, 120], ["c2636", 0, 108], ["c2623", 10, 120]];   /* name, first frame, frame count */
-const ORDER = ["v0", "avenue2", "nightlot", "v1", "trucks", "ambul", "v2", "adini", "covered", "fullspeed", "v3", "dusk_prayer", "wadi", "saber", "avenue", "nightfloor"];
+/* field photos only (no drive-by video), none of them used full-size anywhere else in the film */
+const PH = ["s-sunset-row", "n-rayat", "s-qannas", "s-dosari", "s-glass", "n-imad-facade", "s-raad", "s-subaie", "s-shumukh", "s-otaibi", "s-qahtani", "s-kathiri", "s-nufai", "s-ajyal", "s-suwaidan", "s-odaini"];
+const CLIPS = [];
+const ORDER = PH;
 const W = 1920, H = 1080, cv = document.getElementById("gl");
 const gl = cv.getContext("webgl2", { premultipliedAlpha: true, antialias: true, alpha: true, preserveDrawingBuffer: true });
 const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
@@ -120,7 +121,7 @@ function upload(tex, src) {
 const load = (src) => new Promise((ok) => { const im = new Image(); im.onload = () => im.decode().then(() => ok(im), () => ok(im)); im.onerror = () => ok(null); im.src = src; });
 let TX = [];
 async function boot() {
-  const photos = Object.fromEntries(await Promise.all(PH.map(async (n) => [n, await load(`bp3/${n}.jpg`)])));
+  const photos = Object.fromEntries(await Promise.all(PH.map(async (n) => [n, await load(`photos/${n}.jpg`)])));
   const clips = await Promise.all(CLIPS.map(async ([n, f0, cnt]) => (await Promise.all([...Array(cnt)].map((_, i) => load(`bogpan2/${n}/f${String(f0 + i + 1).padStart(4, "0")}.jpg`)))).filter(Boolean)));
   TX = ORDER.map((k) => {
     const tex = gl.createTexture();
