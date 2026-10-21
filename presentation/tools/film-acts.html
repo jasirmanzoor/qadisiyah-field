@@ -154,7 +154,7 @@ scene(7.0, (r) => {
   /* field photos instead of the drive-by clip: three street shots crossfade with a slow push */
   const vs = ["field2/street.jpg", "field2/naseem.jpg", "field2/adwa.jpg"].map((src) => panel(r, 1000, -60, 820, 1200, src));
   const cp = $(`<div class="copy" style="top:200px;width:780px"><p class="kick">The founder's vision</p><h2>${words("Map a market <em>no one had mapped.</em>")}</h2>
-    <p class="sub">Our founder and CEO, Leon, set the task: understand Riyadh's sub-dealer market, showroom by showroom.</p></div>`); r.appendChild(cp);
+    <p class="sub">Our founder and CEO, Mr Leon, set the task: understand Riyadh's sub-dealer market, showroom by showroom.</p></div>`); r.appendChild(cp);
   return (t) => { vs.forEach((v) => enter(v, t, .1, 1.2, -1)); zt(vs, t, .05, 2.3); fade(cp.querySelector(".kick"), t, .2); rise(cp.querySelector("h2"), t, .35, .08); fade(cp.querySelector(".sub"), t, 1.8); };
 });
 /* S3: a small team, a critical mandate */

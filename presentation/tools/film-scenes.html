@@ -71,11 +71,11 @@ if (S === "founder") {
   const cards = RING.map((n) => el(`<div class="c"><img src="bp3/${n}.jpg"></div>`, rg));
   const scrim = el(`<div class="abs" style="inset:0;background:linear-gradient(90deg,rgba(7,2,0,0) 0%,rgba(7,2,0,.1) 44%,rgba(7,2,0,.82) 58%,rgba(7,2,0,.9) 100%)"></div>`);
   const arch = el(`<div id="arch"></div>`);
-  const por = el(`<div id="por"><img src="bp3/leon.png" alt="Leon, Founder and CEO of AutoLink"><div class="sweep"></div></div>`);
+  const por = el(`<div id="por"><img src="bp3/leon.png" alt="Mr Leon, Founder and CEO of AutoLink"><div class="sweep"></div></div>`);
   const box = el(`<div class="abs" style="left:1050px;top:330px;width:790px"></div>`);
   const kick = el(`<p class="kick" style="margin:0 0 40px">The founder's vision</p>`, box);
   const q = el(`<p class="q">${words("“There was no map. <em>So we built one</em> — one showroom at a time.”")}</p>`, box);
-  const cred = el(`<div class="cred" style="margin-top:54px"><i></i><div><b>Leon</b><span>Founder &amp; CEO, AutoLink</span></div></div>`, box);
+  const cred = el(`<div class="cred" style="margin-top:54px"><i></i><div><b>Mr Leon</b><span>Founder &amp; CEO, AutoLink</span></div></div>`, box);
   boot = async () => { await Promise.all([...document.images].map((i) => i.decode().catch(() => {}))); };
   render = (t) => {
     const n = cards.length, R = 820, spin = -18 - t * 7.5;
@@ -105,7 +105,7 @@ if (S === "pins") {
   const head = el(`<div class="abs" style="left:96px;top:120px;width:1500px"></div>`);
   const hk = el(`<p class="kick" style="margin:0 0 24px">Ground truth, pinned</p>`, head);
   const hh = el(`<h2>${words("Every showroom, <em>on the map.</em>")}</h2>`, head);
-  const foot = el(`<p class="abs sub" style="left:96px;bottom:44px;margin:0;font-size:24px">474 showrooms pinned at their real GPS coordinates · 449 verified on site, day and night</p>`);
+  const foot = el(`<p class="abs sub" style="left:96px;bottom:44px;margin:0;font-size:24px">516 showrooms pinned at their real GPS coordinates · 306 in Al Qadisiyah, 210 in Al Shifa</p>`);
   const mk = (x, cls, name) => { const p = el(`<div class="pan" style="left:${x}px;top:300px;width:844px;height:690px"><canvas width="844" height="690"></canvas><div class="tag"><small>${name}</small><b>0<span>pins</span></b></div></div>`); return { p, c: p.querySelector("canvas"), g: p.querySelector("canvas").getContext("2d"), b: p.querySelector("b") }; };
   const PQ = mk(96, "", "Al Qadisiyah"), PS = mk(980, "", "Al Shifa");
   /* beat two: the same pins, live on Google Earth */
@@ -151,8 +151,8 @@ if (S === "pins") {
       P.p.style.transform = `translate(${(-out * 900 * (1 + d * 2)).toFixed(1)}px, ${((1 - u) * 60).toFixed(1)}px) scale(${(1 - out * .1).toFixed(3)})`;
     });
     const zq = 15.75 + .3 * eio(t / 6), zs = 15.95 + .3 * eio(t / 6);
-    PQ.b.firstChild.nodeValue = sat(PQ, zq > 16.4 ? "q17" : "q16", 24.8236, 46.8247, zq, PIN.q, "#2236a8", t, 1.2) + "";
-    PS.b.firstChild.nodeValue = sat(PS, "s16", 24.5476, 46.6842, zs, PIN.s, "#e8590c", t, 1.4) + "";
+    PQ.b.firstChild.nodeValue = Math.round(sat(PQ, zq > 16.4 ? "q17" : "q16", 24.8236, 46.8247, zq, PIN.q, "#2236a8", t, 1.2) / PIN.q.length * 306) + "";   /* counts run to the Google Earth totals: 306 and 210 */
+    PS.b.firstChild.nodeValue = Math.round(sat(PS, "s16", 24.5476, 46.6842, zs, PIN.s, "#e8590c", t, 1.4) / PIN.s.length * 210) + "";
     /* beat two */
     fade(k2, t, 6.3); rise(t2, t, 6.45, .08); fade(p2, t, 7.2);
     phones.forEach((ph, i) => {
