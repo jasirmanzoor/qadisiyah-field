@@ -125,7 +125,7 @@
   (function () {
     const $ = (id) => document.getElementById(id);
     const RMk = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const S = [...document.querySelectorAll(".sc")].map((el, k) => {
+    const S = [...document.querySelectorAll(".sc:not([data-off])")].map((el, k) => {   /* chapters the film leaves out stay in the page, off the timeline */
       const durs = (el.dataset.dur || "8000").split(",").map(Number);
       return { el, k, id: el.id.slice(2), title: el.dataset.title, durs, n: durs.length, uni: el.dataset.uni ? el.dataset.uni.split(",") : null, parts: [...el.querySelectorAll("[data-b],[data-only]")] };
     });
@@ -165,6 +165,7 @@
         if (leaving) finishLeave();
         if (prev >= 0) { S[prev].el.classList.remove("is-on"); if (!RMk && Math.abs(k - prev) === 1 && T > 0) { leaving = S[prev]; leaving.el.classList.add("is-leaving"); } heads(S[prev].el).forEach((h) => h.__mh.rest()); S[prev].parts.forEach((el) => el.classList.remove("is-b"));   /* so its builds replay on the way back in */ hooks[S[prev].id] && hooks[S[prev].id].leave && hooks[S[prev].id].leave(); }
         i = k; S[i].el.classList.add("is-on");
+        $("kn").classList.toggle("is-film", S[i].el.classList.contains("sc--film"));   /* the film's own lockup is in the picture */
         GL.activate(S[i].el);
         [1, 2].forEach((d) => S[i + d] && S[i + d].el.dispatchEvent(new Event("scene:near")));
         S[i].el.dispatchEvent(new Event("scene:near"));
@@ -197,6 +198,7 @@
     };
     function kindOf(s) {
       if (VIS[s.id]) return VIS[s.id];
+      if (s.el.classList.contains("sc--film")) return { fixed: () => s.durs[0] / 1000 };
       if (s.el.classList.contains("sc--uni")) return VIS.uni;
       if (s.el.classList.contains("sc--count")) return VIS.count;
       return VIS.text;
@@ -338,7 +340,7 @@
       /* time-warp: the faster the tour is scrubbed, the more the scene streaks and leans along the motion */
       const v = (T - lastT) / Math.max(.008, dt); lastT = T; warp += (Math.max(-1, Math.min(1, v / 40)) - warp) * (1 - Math.exp(-dt / .09));
       stage.style.setProperty("--warp", warp.toFixed(3)); stage.classList.toggle("is-warp", Math.abs(warp) > .04);
-      stageFx(); paint();
+      stageFx(); paint(); filmSync();
       requestAnimationFrame(tick);
     }
     const stage = $("stage");
@@ -355,6 +357,24 @@
       if (S[i] && S[i].id === "work" && b === 2 && routeKm) { const k = UNI.ink ? UNI.ink() : 1, km = k * WALK; routeKm.textContent = km.toFixed(1); routeLeg.textContent = km < F.per[0].walk ? "Leg 1 / 2 · Al Qadisiyah · August" : "Leg 2 / 2 · Al Shifa · September"; }
       fills.forEach((f, n) => { f.style.transform = `scaleX(${chap[n] ? clamp01((T - chap[n].t0) / Math.max(.01, chap[n].d)).toFixed(4) : 0})`; });
       $("kTc").textContent = tc(T);
+    }
+    /* film chapters: the film's own cut of a scene, held on the keynote's clock so pause, scrub and jumps stay frame-true */
+    const filmV = (s) => s.el.querySelector("video");
+    const filmLoad = (s) => { const v = filmV(s); if (!v.getAttribute("src")) { v.src = s.el.dataset.film; v.preload = "auto"; } return v; };
+    S.filter((s) => s.el.classList.contains("sc--film")).forEach((s) => {
+      s.el.addEventListener("scene:near", () => filmLoad(s));
+      hooks[s.id] = {
+        enter: (p) => { const v = filmLoad(s); try { v.currentTime = Math.max(0, T - chap[s.k].t0); } catch (e) {} p ? v.play().catch(() => {}) : v.pause(); },
+        play: (p) => { const v = filmV(s); p ? v.play().catch(() => {}) : v.pause(); },
+        leave: () => filmV(s).pause(),
+      };
+    });
+    function filmSync() {
+      const s = S[i]; if (!s || !s.el.classList.contains("sc--film")) return;
+      const v = filmV(s), want = Math.max(0, T - chap[i].t0), moving = playing && !glide && TT === null;
+      if (moving && v.paused && v.readyState > 1 && want < chap[i].d - .1) v.play().catch(() => {});
+      if (!moving && !v.paused) v.pause();
+      if (v.readyState > 0 && Math.abs(v.currentTime - want) > (moving ? .35 : .04)) { try { v.currentTime = want; } catch (e) {} }
     }
     hooks.tour = {
       enter: (p) => { window.__fly && window.__fly.restart(); window.__fly && window.__fly.setPlay(p); },

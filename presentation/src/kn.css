@@ -864,3 +864,15 @@ body { background: #000; }
 /* Riyadh, mapped: a soft dark backing so the district copy reads over satellite imagery */
 .cmap__copy { isolation: isolate; }
 .cmap__copy::before { content: ""; position: absolute; inset: -40px -60px; z-index: -1; pointer-events: none; background: radial-gradient(closest-side, rgba(8,3,1,.86), rgba(8,3,1,.6) 55%, transparent); }
+
+/* film chapters: the film's cut of a scene, full bleed; chapters the film leaves out are off the timeline */
+.sc[data-off] { display: none !important; }
+.sc--film { background: #070200; }
+.film__v { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #070200; }
+@media (max-aspect-ratio: 4/3) { .film__v { object-fit: contain; } }
+/* the official AutoLink lockup, as in the film */
+.kbar .brand svg, .kbar .brand span { display: none !important; }
+.kbar .brand { display: block; width: 150px; height: 28px; background: url(brand/autolink-lockup.png) left center / contain no-repeat; }
+@media (max-width: 760px) { .kbar .brand { width: 118px; height: 22px; } }
+.kn.is-film .kbar .brand { opacity: 0; pointer-events: none; }
+.kbar .brand { transition: opacity .5s; }

@@ -15,16 +15,11 @@ h2 em, .q em { font-family: var(--s); font-weight: 400; font-style: italic; lett
 .w { display: inline-block; will-change: transform, opacity, filter; }
 .brand { position: absolute; z-index: 60; left: 64px; top: 52px; } .brand img { height: 30px; display: block; filter: drop-shadow(0 2px 10px rgba(0,0,0,.6)); }
 /* founder */
-#ring { position: absolute; inset: 0; perspective: 1400px; perspective-origin: 28% 30%; }
-#ring .rg { position: absolute; left: 28%; top: 50%; transform-style: preserve-3d; }
+#ring { position: absolute; inset: 0; perspective: 1400px; perspective-origin: 30% 30%; }
+#ring .rg { position: absolute; left: 30%; top: 44%; transform-style: preserve-3d; }
 #ring .c { position: absolute; width: 400px; height: 268px; left: -200px; top: -134px; border-radius: 14px; overflow: hidden; backface-visibility: hidden; box-shadow: 0 30px 60px -20px rgba(0,0,0,.8); }
 #ring .c img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .glow { position: absolute; border-radius: 50%; pointer-events: none; }
-#por { position: absolute; left: 150px; bottom: 0; width: 780px; height: 780px; }
-#por img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: bottom; }
-#por .sweep { position: absolute; inset: 0; -webkit-mask: url(bp3/leon.png) center bottom / contain no-repeat; mask: url(bp3/leon.png) center bottom / contain no-repeat;
-  background: linear-gradient(100deg, transparent 40%, rgba(255,220,180,.5) 50%, transparent 60%); background-size: 260% 100%; mix-blend-mode: screen; }
-#arch { position: absolute; left: 270px; bottom: 0; width: 540px; height: 860px; border: 2px solid rgba(255,154,74,.55); border-bottom: 0; border-radius: 270px 270px 0 0; }
 .q { margin: 0; font: 400 italic 72px/1.08 var(--s); color: #fff; letter-spacing: -.012em; }
 .cred { display: flex; align-items: center; gap: 22px; }
 .cred i { display: block; width: 60px; height: 2px; background: var(--flame); }
@@ -70,29 +65,22 @@ if (S === "founder") {
   const ring = el(`<div id="ring"><div class="rg"></div></div>`), rg = ring.firstChild;
   const cards = RING.map((n) => el(`<div class="c"><img src="bp3/${n}.jpg"></div>`, rg));
   const scrim = el(`<div class="abs" style="inset:0;background:linear-gradient(90deg,rgba(7,2,0,0) 0%,rgba(7,2,0,.1) 44%,rgba(7,2,0,.82) 58%,rgba(7,2,0,.9) 100%)"></div>`);
-  const arch = el(`<div id="arch"></div>`);
-  const por = el(`<div id="por"><img src="bp3/leon.png" alt="Mr Leon, Founder and CEO of AutoLink"><div class="sweep"></div></div>`);
-  const box = el(`<div class="abs" style="left:1050px;top:330px;width:790px"></div>`);
+  const box = el(`<div class="abs" style="left:1040px;top:300px;width:800px"></div>`);
   const kick = el(`<p class="kick" style="margin:0 0 40px">The founder's vision</p>`, box);
-  const q = el(`<p class="q">${words("“There was no map. <em>So we built one</em> — one showroom at a time.”")}</p>`, box);
-  const cred = el(`<div class="cred" style="margin-top:54px"><i></i><div><b>Mr Leon</b><span>Founder &amp; CEO, AutoLink</span></div></div>`, box);
+  const q = el(`<p class="q">${words("“We are not here to map a market. <em>We are here to move it</em> — for every dealer, every buyer, every lender.”")}</p>`, box);
+  const cred = el(`<div class="cred" style="margin-top:54px"><i></i><div><b>Founder &amp; CEO</b><span>AutoLink AI Tech</span></div></div>`, box);
   boot = async () => { await Promise.all([...document.images].map((i) => i.decode().catch(() => {}))); };
   render = (t) => {
     const n = cards.length, R = 820, spin = -18 - t * 7.5;
-    rg.style.transform = `translateZ(-520px) rotateX(-9deg) rotateY(${spin.toFixed(2)}deg)`;
+    rg.style.transform = `translateZ(-260px) rotateX(-7deg) rotateY(${spin.toFixed(2)}deg)`;
     cards.forEach((c, i) => {
       const a = i / n * 360, w = ((a + spin) % 360 + 360) % 360, front = Math.cos(w * D2R);    /* 1 facing the camera, -1 behind */
       c.style.transform = `rotateY(${a}deg) translateZ(${R}px)`;
       c.style.opacity = ((.25 + .75 * (front * .5 + .5)) * ss(t, .1 + i * .04, .9 + i * .04)).toFixed(3);
       c.style.filter = `brightness(${(.45 + .45 * (front * .5 + .5)).toFixed(2)}) blur(${((1 - (front * .5 + .5)) * 3).toFixed(1)}px)`;
     });
-    ring.style.opacity = ss(t, 1.0, 2.0).toFixed(3);
+    ring.style.opacity = ss(t, .2, 1.4).toFixed(3);
     scrim.style.opacity = ss(t, .3, 1.4).toFixed(3);
-    const pu = eo((t - .1) / 1.3);
-    por.style.opacity = pu.toFixed(3); por.style.filter = `blur(${((1 - pu) * 10).toFixed(1)}px) drop-shadow(0 0 40px rgba(255,140,60,${(.25 * pu).toFixed(2)}))`;
-    por.style.transform = `translateY(${((1 - pu) * 50).toFixed(1)}px) scale(${(1.03 - .03 * eo(t / 9)).toFixed(4)})`;
-    por.querySelector(".sweep").style.backgroundPosition = `${(120 - 140 * eio((t - 2.1) / 1.6)).toFixed(1)}% 0`;
-    const au = eio((t - .9) / 1.4); arch.style.opacity = (au * .9).toFixed(3); arch.style.clipPath = `inset(${((1 - au) * 100).toFixed(1)}% 0 0 0)`;
     fade(kick, t, 1.2); rise(q, t, 1.6, .11, 1.0); fade(cred, t, 4.9, 1.0, 14);
     cred.querySelector("i").style.width = (60 * eo((t - 5.0) / .9)).toFixed(1) + "px";
   };

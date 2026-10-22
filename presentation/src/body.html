@@ -1,6 +1,6 @@
 <div class="kn" id="kn">
 <header class="kbar">
-  <a class="brand" href="#open" aria-label="Riyadh Sub-Dealer Portfolio, back to the start">
+  <a class="brand" href="#f1" aria-label="Riyadh Sub-Dealer Portfolio, back to the start">
     <svg viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M14 1.6 20.3 8 14 14.4 7.7 8 14 1.6Z" fill="#FF6A00"/><path d="M6.4 9.3 12.7 15.7 6.4 22.1.1 15.7 6.4 9.3Z" fill="#FF3D00"/><path d="M21.6 9.3 27.9 15.7 21.6 22.1 15.3 15.7 21.6 9.3Z" fill="#FF9A2E"/></svg>
     <span>Sub-Dealer Portfolio<small>Riyadh · KSA field census</small></span>
   </a>
@@ -18,8 +18,18 @@
   <canvas class="uni" id="uni" aria-hidden="true"></canvas>
   <div class="uni__labs" id="uniLabs" aria-hidden="true"></div>
 
+  <!-- film: The founder's vision -->
+  <section class="sc sc--film" id="s-f1" data-title="The founder's vision" data-dur="31650" data-film="film/f1.mp4" aria-label="The founder's vision: field photos, a bigger goal than a map, and the founder's line">
+    <video class="film__v" muted playsinline preload="none" poster="film/f1.jpg" aria-hidden="true"></video>
+  </section>
+
+  <!-- film: Into the market -->
+  <section class="sc sc--film" id="s-f2" data-title="Into the market" data-dur="36200" data-film="film/f2.mp4" aria-label="A small team in the field, by day and after dark">
+    <video class="film__v" muted playsinline preload="none" poster="film/f2.jpg" aria-hidden="true"></video>
+  </section>
+
   <!-- 01 prologue -->
-  <section class="sc sc--open sc--uni" id="s-open" data-title="Prologue" data-dur="4200,7400" data-uni="cloud,none" aria-label="Prologue">
+  <section class="sc sc--open sc--uni" id="s-open" data-off data-title="Prologue" data-dur="4200,7400" data-uni="cloud,none" aria-label="Prologue">
     <div class="open__bg" data-b="1" aria-hidden="true">
       <img src="photos/n-rc-night.jpg" alt="" style="object-position:50% 62%"><img src="photos/q-safh-dark.jpg" alt="" style="object-position:50% 46%"><img src="photos/n-hexhall.jpg" alt="" style="object-position:50% 40%"><img src="photos/n-nojoom-facade.jpg" alt="" style="object-position:50% 35%"><img src="photos/s-odaini.jpg" alt="" style="object-position:40% 50%">
     </div>
@@ -44,8 +54,18 @@
     </div>
   </section>
 
+  <!-- film: Riyadh, from orbit -->
+  <section class="sc sc--film" id="s-f3" data-title="Riyadh, from orbit" data-dur="24450" data-film="film/f3.mp4" aria-label="From the globe down to the surveyed blocks">
+    <video class="film__v" muted playsinline preload="none" poster="film/f3.jpg" aria-hidden="true"></video>
+  </section>
+
+  <!-- film: Every showroom, pinned -->
+  <section class="sc sc--film" id="s-f4" data-title="Every showroom, pinned" data-dur="21110" data-film="film/f4.mp4" aria-label="516 showrooms pinned at their GPS coordinates, and the data advantage">
+    <video class="film__v" muted playsinline preload="none" poster="film/f4.jpg" aria-hidden="true"></video>
+  </section>
+
   <!-- 02 globe -->
-  <section class="sc sc--globe globe" id="s-globe" data-title="Where it happened" data-dur="11500" aria-label="Riyadh on the globe">
+  <section class="sc sc--globe globe" id="s-globe" data-off data-title="Where it happened" data-dur="11500" aria-label="Riyadh on the globe">
     <div class="globe__stage">
       <canvas id="globeCanvas" aria-label="Rotating 3D globe with a marker on Riyadh"></canvas>
       <div class="gm" id="globeMark" aria-hidden="true">
@@ -66,7 +86,7 @@
   </section>
 
   <!-- 02b Riyadh: satellite to data -->
-  <section class="sc sc--city city" id="s-city" data-title="Riyadh, mapped" data-dur="10500,10000,10500,8500" aria-label="Riyadh from satellite imagery to building data, then the two surveyed districts">
+  <section class="sc sc--city city" id="s-city" data-off data-title="Riyadh, mapped" data-dur="10500,10000,10500,8500" aria-label="Riyadh from satellite imagery to building data, then the two surveyed districts">
     <canvas id="cityCanvas" aria-hidden="true"></canvas>
     <div class="cmap__veil" aria-hidden="true"></div>
     <div class="sc__copy sc__copy--left cmap__copy">
@@ -88,7 +108,7 @@
   </section>
 
   <!-- 04 drone flight -->
-  <section class="sc sc--fly fly" id="s-tour" data-title="The flight" data-dur="0" aria-label="Drone flight over the surveyed showrooms">
+  <section class="sc sc--fly fly" id="s-tour" data-off data-title="The flight" data-dur="0" aria-label="Drone flight over the surveyed showrooms">
     <div class="fly__bd" id="flyBd" aria-hidden="true"><div class="fly__sky"><img alt=""><img alt=""></div><div class="fly__haze"></div></div>
     <p class="fly__skytag" id="flySkyTag" aria-live="polite"></p>
     <canvas id="flyCanvas" aria-hidden="true"></canvas>
@@ -133,7 +153,7 @@
   </section>
 
   <!-- 06 finance gap -->
-  <section class="sc sc--gap sc--uni" id="s-gap" data-title="The finance gap" data-dur="9000,9000" data-uni="river,riverLost" aria-label="The finance gap">
+  <section class="sc sc--gap sc--uni" id="s-gap" data-off data-title="The finance gap" data-dur="9000,9000" data-uni="river,riverLost" aria-label="The finance gap">
     <div class="uni__copy">
       <div data-only="0">
         <p class="kick">The finance gap</p>
@@ -159,8 +179,13 @@
     </div>
   </section>
 
+  <!-- film: The top end -->
+  <section class="sc sc--film" id="s-f5" data-title="The top end" data-dur="24935" data-film="film/f5.mp4" aria-label="Premium marques, independent floors and the missing bank">
+    <video class="film__v" muted playsinline preload="none" poster="film/f5.jpg" aria-hidden="true"></video>
+  </section>
+
   <!-- 08 price skyline -->
-  <section class="sc sc--sky sc--uni" id="s-sky" data-title="The price skyline" data-dur="9000,9000" data-uni="skyQ,skyS" aria-label="Price skyline">
+  <section class="sc sc--sky sc--uni" id="s-sky" data-off data-title="The price skyline" data-dur="9000,9000" data-uni="skyQ,skyS" aria-label="Price skyline">
     <div class="uni__copy">
       <p class="kick">The price skyline</p>
       <div data-only="0"><h2 class="say say--md">Al Qadisiyah, <em>one light per car</em>.</h2></div>
@@ -171,7 +196,7 @@
   </section>
 
   <!-- 09 exotic -->
-  <section class="sc sc--exo" id="s-exo" data-title="The exotic fringe" data-dur="9800" aria-label="The exotic fringe">
+  <section class="sc sc--exo" id="s-exo" data-off data-title="The exotic fringe" data-dur="9800" aria-label="The exotic fringe">
     <video class="exo__vid" id="exoVid" muted loop playsinline preload="none" poster="video/albarimi.jpg" aria-label="Footage of the ALBARIMI showroom floor"></video>
     <div class="exo__hud" aria-hidden="true"><p><span class="rec"></span>Live from the floor</p><p>ALBARIMI · Wadi Ar Rimah · Al Qadisiyah</p></div>
     <div class="exo__tiles" id="exoticMosaic" hidden></div><div class="exo__folio" id="exoFolio"></div>
@@ -183,13 +208,13 @@
   </section>
 
   <!-- 10 things no one knew -->
-  <section class="sc sc--count sc--uni" id="s-facts" data-title="Things no one knew" data-dur="6400,6800,7200,6400,6600" data-uni="indep,sales,brands,toyhy,bank" aria-label="Findings">
+  <section class="sc sc--count sc--uni" id="s-facts" data-off data-title="Things no one knew" data-dur="6400,6800,7200,6400,6600" data-uni="indep,sales,brands,toyhy,bank" aria-label="Findings">
     <p class="kick kick--top">Things no one knew</p>
     <div class="cntwrap" id="factCount"></div>
   </section>
 
   <!-- 10b the marques -->
-  <section class="sc sc--marques" id="s-marques" data-fx="drape" data-title="The marques" data-dur="__MQDUR__" aria-label="Car brands on the floors, and five legends">
+  <section class="sc sc--marques" id="s-marques" data-off data-fx="drape" data-title="The marques" data-dur="__MQDUR__" aria-label="Car brands on the floors, and five legends">
     <div class="mq">
       <div class="mq__copy"><p class="kick">The marques</p><h2 class="say say--md">Every badge on <em>the floors</em>.</h2><p class="sc__sub" id="mqSub"></p></div>
       <div class="mq__strata" id="mqStrata"></div>
@@ -198,7 +223,7 @@
   </section>
 
   <!-- 11 on the ground -->
-  <section class="sc sc--ground" id="s-ground" data-title="On the ground" data-dur="4700,4700,4700,4700,5000" aria-label="On the ground">
+  <section class="sc sc--ground" id="s-ground" data-off data-title="On the ground" data-dur="4700,4700,4700,4700,5000" aria-label="On the ground">
     <div class="ground__folio" id="groundFolio"></div>
     <div class="cw" id="kbShots" aria-roledescription="carousel"><div class="cw__amb" aria-hidden="true"><i></i><i></i></div><div class="cw__stage"><ol class="cw__ring" id="cwRing"></ol></div><div class="cw__cap" id="cwCap" aria-live="polite"></div></div>
     <div class="ground__copy">
@@ -208,7 +233,7 @@
   </section>
 
   <!-- 11b the virtual walk -->
-  <section class="sc sc--walk" id="s-walk" data-title="The walk" data-dur="11500,11500" aria-label="A virtual walk through both markets">
+  <section class="sc sc--walk" id="s-walk" data-off data-title="The walk" data-dur="11500,11500" aria-label="A virtual walk through both markets">
     <div class="walk__glow" aria-hidden="true"><i></i><i></i></div>
     <div class="walk__copy">
       <div data-only="0"><p class="kick">The virtual walk · 01 / 02</p><h2 class="say say--md">Floor by floor down <em>Al Qadisiyah</em>.</h2><p class="sc__sub">Real photographs from the walk: the seven largest floors we counted in this district.</p><p class="walk__mask" id="walkMask0" aria-hidden="true">Al<br>Qadisiyah</p></div>
@@ -240,8 +265,18 @@
     </div>
   </section>
 
+  <!-- film: From field to system -->
+  <section class="sc sc--film" id="s-f6" data-title="From field to system" data-dur="28040" data-film="film/f6.mp4" aria-label="The field work becomes AutoLink">
+    <video class="film__v" muted playsinline preload="none" poster="film/f6.jpg" aria-hidden="true"></video>
+  </section>
+
+  <!-- film: KAFD, Riyadh -->
+  <section class="sc sc--film" id="s-f7" data-title="KAFD, Riyadh" data-dur="13970" data-film="film/f7.mp4" aria-label="From the showroom floor to headquarters">
+    <video class="film__v" muted playsinline preload="none" poster="film/f7.jpg" aria-hidden="true"></video>
+  </section>
+
   <!-- 13 close -->
-  <section class="sc sc--close" id="s-close" data-fx="drape" data-title="KAFD, Riyadh" data-dur="0" aria-label="Headquarters">
+  <section class="sc sc--close" id="s-close" data-off data-fx="drape" data-title="KAFD, Riyadh" data-dur="0" aria-label="Headquarters">
     <div class="close__bg" aria-hidden="true"><img src="photos/hq-skyline.jpg" alt=""></div>
     <div class="close__in">
       <p class="kick">Headquarters · King Abdullah Financial District</p>
