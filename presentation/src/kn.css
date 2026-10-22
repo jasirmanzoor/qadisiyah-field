@@ -876,3 +876,5 @@ body { background: #000; }
 @media (max-width: 760px) { .kbar .brand { width: 118px; height: 22px; } }
 .kn.is-film .kbar .brand { opacity: 0; pointer-events: none; }
 .kbar .brand { transition: opacity .5s; }
+/* hands-off show: no controls on screen */
+.kctl, .fly__bar { display: none !important; }

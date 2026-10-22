@@ -1479,6 +1479,8 @@ body { background: #000; }
 @media (max-width: 760px) { .kbar .brand { width: 118px; height: 22px; } }
 .kn.is-film .kbar .brand { opacity: 0; pointer-events: none; }
 .kbar .brand { transition: opacity .5s; }
+/* hands-off show: no controls on screen */
+.kctl, .fly__bar { display: none !important; }
 .ghost-fibers-container {
   position: relative;
   width: 100%;
@@ -1718,7 +1720,7 @@ body { background: #000; }
   </section>
 
   <!-- 04 drone flight -->
-  <section class="sc sc--fly fly" id="s-tour" data-off data-title="The flight" data-dur="0" aria-label="Drone flight over the surveyed showrooms">
+  <section class="sc sc--fly fly" id="s-tour" data-title="The flight" data-dur="0" aria-label="Drone flight over the surveyed showrooms">
     <div class="fly__bd" id="flyBd" aria-hidden="true"><div class="fly__sky"><img alt=""><img alt=""></div><div class="fly__haze"></div></div>
     <p class="fly__skytag" id="flySkyTag" aria-live="polite"></p>
     <canvas id="flyCanvas" aria-hidden="true"></canvas>
@@ -8294,6 +8296,19 @@ window.RB = window.RB || {};
     room.querySelectorAll(".room__nav a").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); const tg = document.querySelector(a.getAttribute("href")); tg && $("roomScroll").scrollTo({ top: tg.offsetTop - 8, behavior: RMk ? "auto" : "smooth" }); }));
     document.querySelector(".kbar .brand").addEventListener("click", (e) => { e.preventDefault(); go(0); });
     const modal = () => !idx.hidden || !room.hidden || !document.getElementById("lb").hidden;
+    /* hands-off show: it plays by itself with no controls on screen; the first key, click, wheel, touch or mouse move
+       stops it on the chapter in view (that input does nothing else). After that, arrows and scroll step by hand and Space resumes. */
+    let moved = 0, mx = null, my = null, haltTouch = false;
+    const halt = () => { if (!playing) return false; setPlay(false); glide = null; TT = null; vel = 0; return true; };
+    window.addEventListener("keydown", (e) => { if (["Shift", "Control", "Alt", "Meta"].includes(e.key)) return; if (halt()) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
+    window.addEventListener("wheel", (e) => { if (halt()) { e.preventDefault(); e.stopImmediatePropagation(); } }, { capture: true, passive: false });
+    window.addEventListener("pointerdown", (e) => { if (halt() && e.pointerType !== "mouse") haltTouch = true; }, true);
+    window.addEventListener("touchstart", () => { if (halt()) haltTouch = true; }, { capture: true, passive: true });
+    window.addEventListener("pointermove", (e) => {
+      if (e.pointerType !== "mouse" || !playing) return;
+      if (mx !== null) moved += Math.abs(e.clientX - mx) + Math.abs(e.clientY - my); mx = e.clientX; my = e.clientY;
+      if (moved > 14) { moved = 0; halt(); }
+    }, true);
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") { if (!room.hidden) closePanel(room); else if (!idx.hidden) closePanel(idx); return; }
       if (modal() || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -8310,7 +8325,7 @@ window.RB = window.RB || {};
       TT = Math.max(0, Math.min(TOTAL - .05, (TT === null ? T : TT) + dy * .011)); holdUntil = performance.now() + 1600; lastScrub = performance.now();
     }, { passive: false });
     let ty = 0, tt0 = 0, tOk = false, tv = 0;
-    stage.addEventListener("touchstart", (e) => { tOk = scrubOk(e.target); ty = e.touches[0].clientY; tt0 = performance.now(); tv = 0; vel = 0; glide = null; }, { passive: true });
+    stage.addEventListener("touchstart", (e) => { tOk = scrubOk(e.target) && !haltTouch; haltTouch = false; ty = e.touches[0].clientY; tt0 = performance.now(); tv = 0; vel = 0; glide = null; }, { passive: true });
     stage.addEventListener("touchmove", (e) => {
       if (!tOk) return; const y = e.touches[0].clientY, dy = ty - y, now = performance.now(); ty = y;
       const ds = dy * .022; TT = Math.max(0, Math.min(TOTAL - .05, (TT === null ? T : TT) + ds)); tv = ds / Math.max(.008, (now - tt0) / 1000); tt0 = now; holdUntil = now + 1800; lastScrub = now;
@@ -8319,7 +8334,6 @@ window.RB = window.RB || {};
     /* exploring a 3D scene by hand pauses the show */
     document.querySelectorAll(".globe__stage").forEach((el) => el.addEventListener("pointerdown", () => playing && setPlay(false)));
     document.querySelectorAll("#flyTicks, #flyRestart").forEach((el) => el.addEventListener("click", () => { if (!playing) setPlay(true); }));
-    setTimeout(() => { $("kHint").style.opacity = 0; }, 12000);
 
     const start = S.findIndex((s) => s.id === location.hash.slice(1));
     /* the tour is a timed show: animations follow the wall clock, never stretched on a slow frame */
