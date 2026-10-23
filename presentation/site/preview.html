@@ -1482,6 +1482,64 @@ body { background: #000; }
 .kbar .brand { transition: opacity .5s; }
 /* hands-off show: no controls on screen */
 .kctl, .fly__bar { display: none !important; }
+
+/* ---------- native chapters that carry the film's story (responsive, no video) ---------- */
+.sc--vision, .sc--adv, .sc--sys { background: radial-gradient(70% 60% at 70% 40%, rgba(255,90,20,.12), transparent 70%), var(--ground-deep); }
+/* the founder's vision: three columns of field photos drifting in opposite directions, the line on the left */
+.vis__wall { position: absolute; inset: -10% -4% -10% 42%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; transform: rotate(-6deg); opacity: .9;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%, #000 85%, transparent); mask-image: linear-gradient(90deg, transparent, #000 22%, #000 85%, transparent); }
+.vis__col { display: grid; gap: 14px; align-content: start; animation: visUp 38s linear infinite alternate; }
+.vis__col:nth-child(2) { animation-name: visDown; animation-duration: 44s; }
+.vis__col:nth-child(3) { animation-duration: 50s; }
+.vis__col img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 16px; box-shadow: 0 30px 60px -20px rgba(0,0,0,.8); }
+@keyframes visUp { from { transform: translateY(0); } to { transform: translateY(-30%); } }
+@keyframes visDown { from { transform: translateY(-30%); } to { transform: translateY(0); } }
+.vis__copy { position: absolute; z-index: 2; left: max(24px, calc((100vw - 1240px) / 2 + 24px)); top: 50%; transform: translateY(-50%); width: min(560px, 46vw); }
+.vis__stack { display: grid; margin-top: 16px; } .vis__stack > * { grid-area: 1 / 1; }
+.vis__q p { font-family: var(--font-italic); font-size: clamp(1.7rem, 3.3vw, 3.2rem); line-height: 1.1; letter-spacing: -.01em; text-wrap: balance; }
+.vis__q em { color: #ffcf9e; }
+.vis__q footer { display: flex; align-items: center; gap: 14px; margin-top: 26px; font: 600 15px/1.2 var(--font-display); color: var(--ink-soft); }
+.vis__q footer i { width: 46px; height: 2px; background: var(--flame); }
+/* every showroom pinned: the count, split by district, then the data advantage */
+.adv, .sys { position: absolute; inset: calc(92px + env(safe-area-inset-top, 0px)) max(24px, calc((100vw - 1240px) / 2 + 24px)) calc(40px + env(safe-area-inset-bottom, 0px)); display: grid; align-content: center; gap: clamp(22px, 3.4vh, 40px); }
+.adv { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: clamp(28px, 5vw, 80px); }
+.adv__head { grid-column: 1 / -1; } .adv__head .say, .sys__head .say { margin-top: 12px; max-width: 20ch; }
+.adv__pins { display: grid; gap: 14px; align-content: start; }
+.adv__tot { padding: 22px 24px; border-radius: 20px; background: linear-gradient(140deg, var(--flame), #a92400 60%, #3d0d00); box-shadow: 0 30px 70px -30px rgba(255,61,0,.6); }
+.adv__tot b { display: block; font: 600 clamp(3.4rem, 7vw, 6rem)/.9 var(--font-display); letter-spacing: -.05em; }
+.adv__tot span { display: block; margin-top: 10px; font-size: 14px; color: rgba(255,255,255,.88); }
+.adv__d { position: relative; display: flex; align-items: baseline; gap: 12px; padding: 14px 18px 18px; border-radius: 16px; border: 1px solid var(--hair); background: var(--glass); overflow: hidden; }
+.adv__d b { font: 600 clamp(1.8rem, 3vw, 2.6rem)/1 var(--font-display); letter-spacing: -.03em; } .adv__d span { color: var(--ink-soft); font-size: 14px; }
+.adv__d i { position: absolute; left: 0; bottom: 0; height: 4px; width: var(--w); background: var(--qad); transform-origin: left; transform: scaleX(0); transition: transform 1.4s var(--ease-out) .4s; }
+.adv__d--s i { background: var(--shf); }
+.sc.is-on .adv__d i { transform: none; }
+.adv__moat { align-self: start; padding: clamp(18px, 2.4vw, 28px); border-radius: 20px; border: 1px solid var(--hair); background: rgba(16,4,0,.72); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.adv__h { margin-top: 10px; font: 600 clamp(1.6rem, 2.6vw, 2.4rem)/1 var(--font-display); letter-spacing: -.03em; } .adv__h em, .sys__q em { font-family: var(--font-italic); font-weight: 400; color: #ffd2ad; }
+.adv__list { margin-top: 16px; padding: 0; list-style: none; display: grid; gap: 12px; counter-reset: a; }
+.adv__list li { counter-increment: a; position: relative; padding-left: 30px; font-size: clamp(14px, 1.2vw, 16.5px); line-height: 1.45; color: var(--ink-soft); }
+.adv__list li::before { position: absolute; left: 0; top: .2em; content: "0" counter(a); font: 600 11px/1.9 ui-monospace, Menlo, monospace; color: var(--flame-lit); }
+.adv__list b { color: #fff; font-weight: 600; }
+/* from field to system: three steps, each with its photo, then the line it stands on */
+.sys__steps { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(12px, 1.6vw, 22px); }
+.sys__steps li { display: grid; gap: 8px; align-content: start; }
+.sys__steps figure { border-radius: 16px; overflow: hidden; border: 1px solid var(--hair-soft); aspect-ratio: 4 / 3; }
+.sys__steps img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.06); transition: transform 6s var(--ease-out); }
+.sc.is-on .sys__steps img { transform: none; }
+.sys__steps b { margin-top: 6px; font: 600 12px/1 ui-monospace, Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--flame-lit); }
+.sys__steps span { font-size: clamp(14px, 1.2vw, 16px); line-height: 1.5; color: var(--ink-soft); }
+.sys__q { max-width: 46ch; font: 400 clamp(1.15rem, 1.8vw, 1.6rem)/1.35 var(--font-display); letter-spacing: -.01em; }
+@media (max-width: 760px) {
+  .vis__wall { inset: -6% -20% auto -20%; height: 46%; grid-template-columns: repeat(3, 1fr); transform: rotate(-4deg); opacity: .55; -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent); mask-image: linear-gradient(180deg, #000 55%, transparent); }
+  .vis__copy { left: 20px; right: 20px; width: auto; top: auto; bottom: calc(48px + env(safe-area-inset-bottom, 0px)); transform: none; }
+  .adv { grid-template-columns: 1fr; align-content: start; inset: calc(84px + env(safe-area-inset-top, 0px)) 20px 24px; gap: 14px; overflow: hidden; }
+  .adv__pins { grid-template-columns: 1fr 1fr; } .adv__tot { grid-column: 1 / -1; padding: 16px 18px; }
+  .adv__moat { padding: 16px; } .adv__list { gap: 8px; margin-top: 10px; } .adv__list li { font-size: 13.5px; }
+  .sys { align-content: start; inset: calc(84px + env(safe-area-inset-top, 0px)) 20px 24px; gap: 16px; }
+  .sys__steps { grid-template-columns: 1fr; gap: 10px; }
+  .sys__steps li { grid-template-columns: 96px 1fr; column-gap: 12px; align-items: center; } .sys__steps figure { grid-row: span 2; aspect-ratio: 1; }
+  .sys__steps b { margin-top: 0; align-self: end; } .sys__steps span { align-self: start; font-size: 13.5px; }
+}
+@media (prefers-reduced-motion: reduce) { .vis__col { animation: none; } }
 .ghost-fibers-container {
   position: relative;
   width: 100%;
@@ -1613,7 +1671,7 @@ body { background: #000; }
 </style>
 <div class="kn" id="kn">
 <header class="kbar">
-  <a class="brand" href="#f1" aria-label="Riyadh Sub-Dealer Portfolio, back to the start">
+  <a class="brand" href="#open" aria-label="Riyadh Sub-Dealer Portfolio, back to the start">
     <svg viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M14 1.6 20.3 8 14 14.4 7.7 8 14 1.6Z" fill="#FF6A00"/><path d="M6.4 9.3 12.7 15.7 6.4 22.1.1 15.7 6.4 9.3Z" fill="#FF3D00"/><path d="M21.6 9.3 27.9 15.7 21.6 22.1 15.3 15.7 21.6 9.3Z" fill="#FF9A2E"/></svg>
     <span>Sub-Dealer Portfolio<small>Riyadh · KSA field census</small></span>
   </a>
@@ -1631,18 +1689,8 @@ body { background: #000; }
   <canvas class="uni" id="uni" aria-hidden="true"></canvas>
   <div class="uni__labs" id="uniLabs" aria-hidden="true"></div>
 
-  <!-- film: The founder's vision -->
-  <section class="sc sc--film" id="s-f1" data-title="The founder's vision" data-dur="31650" data-film="film/f1.mp4" aria-label="The founder's vision: field photos, a bigger goal than a map, and the founder's line">
-    <video class="film__v" muted playsinline preload="none" poster="film/f1.jpg" aria-hidden="true"></video>
-  </section>
-
-  <!-- film: Into the market -->
-  <section class="sc sc--film" id="s-f2" data-title="Into the market" data-dur="36200" data-film="film/f2.mp4" aria-label="A small team in the field, by day and after dark">
-    <video class="film__v" muted playsinline preload="none" poster="film/f2.jpg" aria-hidden="true"></video>
-  </section>
-
   <!-- 01 prologue -->
-  <section class="sc sc--open sc--uni" id="s-open" data-off data-title="Prologue" data-dur="4200,7400" data-uni="cloud,none" aria-label="Prologue">
+  <section class="sc sc--open sc--uni" id="s-open" data-title="Prologue" data-dur="4200,7400" data-uni="cloud,none" aria-label="Prologue">
     <div class="open__bg" data-b="1" aria-hidden="true">
       <img src="photos/n-rc-night.jpg" alt="" style="object-position:50% 62%"><img src="photos/q-safh-dark.jpg" alt="" style="object-position:50% 46%"><img src="photos/n-hexhall.jpg" alt="" style="object-position:50% 40%"><img src="photos/n-nojoom-facade.jpg" alt="" style="object-position:50% 35%"><img src="photos/s-odaini.jpg" alt="" style="object-position:40% 50%">
     </div>
@@ -1652,6 +1700,33 @@ body { background: #000; }
       <p class="kick">First door-to-door field census · Riyadh, Kingdom of Saudi Arabia</p>
       <h1 class="open__h">Riyadh’s independent car market. <em>Measured.</em></h1>
       <p class="open__sub"><b data-k="showrooms"></b> showrooms. Two districts. One field team, walking every door.</p>
+    </div>
+  </section>
+
+  <!-- 01b the founder's vision -->
+  <section class="sc sc--vision" id="s-vision" data-fx="fibers" data-title="The founder's vision" data-dur="6000,7600" aria-label="The founder's vision">
+    <div class="vis__wall" aria-hidden="true">
+      <div class="vis__col"><img src="photos/q-street-fullspeed.jpg" alt="" loading="lazy" style="object-position:50% 50%"><img src="photos/n-rc-night.jpg" alt="" loading="lazy" style="object-position:50% 50%"><img src="photos/s-sunset-row.jpg" alt="" loading="lazy" style="object-position:50% 50%"><img src="photos/q-safh-hall.jpg" alt="" loading="lazy" style="object-position:50% 50%"></div>
+      <div class="vis__col"><img src="photos/n-hexhall.jpg" alt="" loading="lazy" style="object-position:50% 50%"><img src="photos/s-odaini.jpg" alt="" loading="lazy" style="object-position:50% 50%"><img src="photos/q-riyadhcars-night.jpg" alt="" loading="lazy" style="object-position:50% 50%"><img src="photos/n-nojoom-facade.jpg" alt="" loading="lazy" style="object-position:50% 50%"></div>
+      <div class="vis__col"><img src="photos/s-street.jpg" alt="" loading="lazy" style="object-position:50% 50%"><img src="photos/q-luxhall.jpg" alt="" loading="lazy" style="object-position:50% 50%"><img src="photos/n-saber-facade.jpg" alt="" loading="lazy" style="object-position:50% 50%"><img src="photos/s-glass.jpg" alt="" loading="lazy" style="object-position:50% 50%"></div>
+    </div>
+    <div class="vis__copy">
+      <p class="kick">The founder's vision</p>
+      <div class="vis__stack">
+      <div data-only="0"><h2 class="say say--md">Build what the market <em>runs on</em>.</h2>
+      <p class="sc__sub">Our founder and CEO set a bigger goal than a map: the network that connects Riyadh's dealers, buyers and lenders.</p></div>
+      <blockquote class="vis__q" data-only="1"><p>“We are not here to map a market. <em>We are here to move it</em>, for every dealer, every buyer, every lender.”</p><footer><i></i>Founder &amp; CEO, AutoLink AI Tech</footer></blockquote>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 on the ground -->
+  <section class="sc sc--ground" id="s-ground" data-title="On the ground" data-dur="4700,4700,4700,4700,5000" aria-label="On the ground">
+    <div class="ground__folio" id="groundFolio"></div>
+    <div class="cw" id="kbShots" aria-roledescription="carousel"><div class="cw__amb" aria-hidden="true"><i></i><i></i></div><div class="cw__stage"><ol class="cw__ring" id="cwRing"></ol></div><div class="cw__cap" id="cwCap" aria-live="polite"></div></div>
+    <div class="ground__copy">
+      <p class="kick">On the ground</p>
+      <h2 class="say say--md">Every figure came from a door <em>we stood in front of</em>.</h2>
     </div>
   </section>
 
@@ -1667,18 +1742,8 @@ body { background: #000; }
     </div>
   </section>
 
-  <!-- film: Riyadh, from orbit -->
-  <section class="sc sc--film" id="s-f3" data-title="Riyadh, from orbit" data-dur="24450" data-film="film/f3.mp4" aria-label="From the globe down to the surveyed blocks">
-    <video class="film__v" muted playsinline preload="none" poster="film/f3.jpg" aria-hidden="true"></video>
-  </section>
-
-  <!-- film: Every showroom, pinned -->
-  <section class="sc sc--film" id="s-f4" data-title="Every showroom, pinned" data-dur="21110" data-film="film/f4.mp4" aria-label="516 showrooms pinned at their GPS coordinates, and the data advantage">
-    <video class="film__v" muted playsinline preload="none" poster="film/f4.jpg" aria-hidden="true"></video>
-  </section>
-
   <!-- 02 globe -->
-  <section class="sc sc--globe globe" id="s-globe" data-off data-title="Where it happened" data-dur="11500" aria-label="Riyadh on the globe">
+  <section class="sc sc--globe globe" id="s-globe" data-title="Where it happened" data-dur="11500" aria-label="Riyadh on the globe">
     <div class="globe__stage">
       <canvas id="globeCanvas" aria-label="Rotating 3D globe with a marker on Riyadh"></canvas>
       <div class="gm" id="globeMark" aria-hidden="true">
@@ -1699,7 +1764,7 @@ body { background: #000; }
   </section>
 
   <!-- 02b Riyadh: satellite to data -->
-  <section class="sc sc--city city" id="s-city" data-off data-title="Riyadh, mapped" data-dur="10500,10000,10500,8500" aria-label="Riyadh from satellite imagery to building data, then the two surveyed districts">
+  <section class="sc sc--city city" id="s-city" data-title="Riyadh, mapped" data-dur="10500,10000,10500,8500" aria-label="Riyadh from satellite imagery to building data, then the two surveyed districts">
     <canvas id="cityCanvas" aria-hidden="true"></canvas>
     <div class="cmap__veil" aria-hidden="true"></div>
     <div class="sc__copy sc__copy--left cmap__copy">
@@ -1711,6 +1776,31 @@ body { background: #000; }
     <div class="cmap__legend" data-b="1"><span><i class="lv"></i>Lit building: showroom door confirmed by GPS</span><span><i class="lr"></i>Ring: position from the survey sheet or a listing</span></div>
     <p class="cmap__foot" id="cityFoot"></p>
     <p class="cmap__off">This map needs WebGL, which this browser has turned off.</p>
+  </section>
+
+  <!-- 02c the data advantage -->
+  <section class="sc sc--adv" id="s-adv" data-fx="fibers" data-title="Every showroom, pinned" data-dur="6400,8000" aria-label="Every showroom pinned, and the data advantage">
+    <div class="adv">
+      <div class="adv__head">
+        <p class="kick">Ground truth, pinned · live on Google Earth</p>
+        <h2 class="say say--md">Every showroom, <em>on the map</em>.</h2>
+      </div>
+      <div class="adv__pins">
+        <div class="adv__tot"><b class="num" data-count>516</b><span>showrooms pinned at their GPS coordinates</span></div>
+        <div class="adv__d adv__d--q"><b class="num" data-count>306</b><span>Al Qadisiyah</span><i style="--w:59.3%"></i></div>
+        <div class="adv__d adv__d--s"><b class="num" data-count>210</b><span>Al Shifa</span><i style="--w:40.7%"></i></div>
+      </div>
+      <div class="adv__moat" data-b="1">
+        <p class="kick">The data advantage</p>
+        <h3 class="adv__h">A map <em>no one else has</em>.</h3>
+        <ol class="adv__list">
+          <li><b>One uniform standard</b> across 520+ showrooms: the largest sub-dealer mapping of its kind.</li>
+          <li><b>Data only AutoLink holds</b>, ahead of every established player.</li>
+          <li><b>Next:</b> the deep dive into showroom sales figures.</li>
+          <li>The ground <b>next year's strategy</b> will be written on.</li>
+        </ol>
+      </div>
+    </div>
   </section>
 
   <!-- 03 the work -->
@@ -1792,11 +1882,6 @@ body { background: #000; }
     </div>
   </section>
 
-  <!-- film: The top end -->
-  <section class="sc sc--film" id="s-f5" data-title="The top end" data-dur="24935" data-film="film/f5.mp4" aria-label="Premium marques, independent floors and the missing bank">
-    <video class="film__v" muted playsinline preload="none" poster="film/f5.jpg" aria-hidden="true"></video>
-  </section>
-
   <!-- 08 price skyline -->
   <section class="sc sc--sky sc--uni" id="s-sky" data-off data-title="The price skyline" data-dur="9000,9000" data-uni="skyQ,skyS" aria-label="Price skyline">
     <div class="uni__copy">
@@ -1809,7 +1894,7 @@ body { background: #000; }
   </section>
 
   <!-- 09 exotic -->
-  <section class="sc sc--exo" id="s-exo" data-off data-title="The exotic fringe" data-dur="9800" aria-label="The exotic fringe">
+  <section class="sc sc--exo" id="s-exo" data-title="The exotic fringe" data-dur="9800" aria-label="The exotic fringe">
     <video class="exo__vid" id="exoVid" muted loop playsinline preload="none" poster="video/albarimi.jpg" aria-label="Footage of the ALBARIMI showroom floor"></video>
     <div class="exo__hud" aria-hidden="true"><p><span class="rec"></span>Live from the floor</p><p>ALBARIMI · Wadi Ar Rimah · Al Qadisiyah</p></div>
     <div class="exo__tiles" id="exoticMosaic" hidden></div><div class="exo__folio" id="exoFolio"></div>
@@ -1821,7 +1906,7 @@ body { background: #000; }
   </section>
 
   <!-- 10 things no one knew -->
-  <section class="sc sc--count sc--uni" id="s-facts" data-off data-title="Things no one knew" data-dur="6400,6800,7200,6400,6600" data-uni="indep,sales,brands,toyhy,bank" aria-label="Findings">
+  <section class="sc sc--count sc--uni" id="s-facts" data-title="Things no one knew" data-dur="6400,6800,7200,6400,6600" data-uni="indep,sales,brands,toyhy,bank" aria-label="Findings">
     <p class="kick kick--top">Things no one knew</p>
     <div class="cntwrap" id="factCount"></div>
   </section>
@@ -1833,16 +1918,6 @@ body { background: #000; }
       <div class="mq__strata" id="mqStrata"></div>
     </div>
     <div class="lg" id="mqLegend"></div>
-  </section>
-
-  <!-- 11 on the ground -->
-  <section class="sc sc--ground" id="s-ground" data-off data-title="On the ground" data-dur="4700,4700,4700,4700,5000" aria-label="On the ground">
-    <div class="ground__folio" id="groundFolio"></div>
-    <div class="cw" id="kbShots" aria-roledescription="carousel"><div class="cw__amb" aria-hidden="true"><i></i><i></i></div><div class="cw__stage"><ol class="cw__ring" id="cwRing"></ol></div><div class="cw__cap" id="cwCap" aria-live="polite"></div></div>
-    <div class="ground__copy">
-      <p class="kick">On the ground</p>
-      <h2 class="say say--md">Every figure came from a door <em>we stood in front of</em>.</h2>
-    </div>
   </section>
 
   <!-- 11b the virtual walk -->
@@ -1878,18 +1953,24 @@ body { background: #000; }
     </div>
   </section>
 
-  <!-- film: From field to system -->
-  <section class="sc sc--film" id="s-f6" data-title="From field to system" data-dur="28040" data-film="film/f6.mp4" aria-label="The field work becomes AutoLink">
-    <video class="film__v" muted playsinline preload="none" poster="film/f6.jpg" aria-hidden="true"></video>
-  </section>
-
-  <!-- film: KAFD, Riyadh -->
-  <section class="sc sc--film" id="s-f7" data-title="KAFD, Riyadh" data-dur="13970" data-film="film/f7.mp4" aria-label="From the showroom floor to headquarters">
-    <video class="film__v" muted playsinline preload="none" poster="film/f7.jpg" aria-hidden="true"></video>
+  <!-- 12c from field to system -->
+  <section class="sc sc--sys" id="s-sys" data-fx="fibers" data-title="From field to system" data-dur="5600,7400" aria-label="From field knowledge to the AutoLink system">
+    <div class="sys">
+      <div class="sys__head">
+        <p class="kick">Then the field knowledge became a system</p>
+        <h2 class="say say--md">From a clipboard to <em>AutoLink</em>.</h2>
+      </div>
+      <ol class="sys__steps" data-b="1">
+        <li><figure><img src="photos/q-safh-hall.jpg" alt="" loading="lazy" style="object-position:50% 50%"></figure><b>01 · Walk</b><span>520 floors visited, door to door, by day and after dark.</span></li>
+        <li><figure><img src="photos/n-rc-hall.jpg" alt="" loading="lazy" style="object-position:50% 50%"></figure><b>02 · Record</b><span>One uniform sheet per showroom: stock, prices, finance, contacts.</span></li>
+        <li><figure><img src="photos/s-hall.jpg" alt="" loading="lazy" style="object-position:50% 50%"></figure><b>03 · Connect</b><span>Meetings with dealer groups, and training for their sales teams.</span></li>
+      </ol>
+      <p class="sys__q" data-b="1">The earliest contribution is not always the most visible. <em>Sometimes, it is the one everything else stands on.</em></p>
+    </div>
   </section>
 
   <!-- 13 close -->
-  <section class="sc sc--close" id="s-close" data-off data-fx="drape" data-title="KAFD, Riyadh" data-dur="0" aria-label="Headquarters">
+  <section class="sc sc--close" id="s-close" data-fx="drape" data-title="KAFD, Riyadh" data-dur="0" aria-label="Headquarters">
     <div class="close__bg" aria-hidden="true"><img src="photos/hq-skyline.jpg" alt=""></div>
     <div class="close__in">
       <p class="kick">Headquarters · King Abdullah Financial District</p>
@@ -7929,7 +8010,7 @@ window.RB = window.RB || {};
     /* exotic: the headline is measured, not written: the nearest priced floor to the SAR 1M showroom, by GPS */
     const xbar = R.find((x) => x.sd === "D0164"), mdist = (a, b) => Math.hypot((a.lng - b.lng) * 101200, (a.lat - b.lat) * 111320);
     const xnear = xbar && R.filter((x) => x !== xbar && x.mk === 0 && x.lat != null && x.asp && x.loc === "verified").sort((a, b) => mdist(a, xbar) - mdist(b, xbar))[0];
-    if (xnear) $("exoSay").innerHTML = `Rolls-Royce, <em>${Math.round(mdist(xnear, xbar))} metres</em> from a SAR ${sar(xnear.asp)} floor.`;
+    $("exoSay").innerHTML = `Rolls-Royce, Lamborghini, McLaren, <em>all on independent floors</em>.`;   /* the top end, as in the film */
     const exoFolio = window.DepthFlow ? window.DepthFlow.mount($("exoFolio"), { hold: 2300 }) : (window.Folio ? window.Folio.mount($("exoFolio"), { hold: 2300 }) : null);
     const EXO = [["n-rolls", "Rolls-Royce Spectre · Aston Martin DBX · Bentley"], ["q-barimi-rolls", "Rolls-Royce Cullinan"], ["q-barimi-urus", "Lamborghini Urus"], ["q-barimi-mclaren", "McLaren"]];
     /* on the ground: five glass folders, four photographs each, alternating districts */

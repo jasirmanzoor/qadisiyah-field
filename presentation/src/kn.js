@@ -62,7 +62,7 @@
     /* exotic: the headline is measured, not written: the nearest priced floor to the SAR 1M showroom, by GPS */
     const xbar = R.find((x) => x.sd === "D0164"), mdist = (a, b) => Math.hypot((a.lng - b.lng) * 101200, (a.lat - b.lat) * 111320);
     const xnear = xbar && R.filter((x) => x !== xbar && x.mk === 0 && x.lat != null && x.asp && x.loc === "verified").sort((a, b) => mdist(a, xbar) - mdist(b, xbar))[0];
-    if (xnear) $("exoSay").innerHTML = `Rolls-Royce, <em>${Math.round(mdist(xnear, xbar))} metres</em> from a SAR ${sar(xnear.asp)} floor.`;
+    $("exoSay").innerHTML = `Rolls-Royce, Lamborghini, McLaren, <em>all on independent floors</em>.`;   /* the top end, as in the film */
     const exoFolio = window.DepthFlow ? window.DepthFlow.mount($("exoFolio"), { hold: 2300 }) : (window.Folio ? window.Folio.mount($("exoFolio"), { hold: 2300 }) : null);
     const EXO = [["n-rolls", "Rolls-Royce Spectre · Aston Martin DBX · Bentley"], ["q-barimi-rolls", "Rolls-Royce Cullinan"], ["q-barimi-urus", "Lamborghini Urus"], ["q-barimi-mclaren", "McLaren"]];
     /* on the ground: five glass folders, four photographs each, alternating districts */
