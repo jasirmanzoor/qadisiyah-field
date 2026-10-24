@@ -1,0 +1,225 @@
+<title>Sub-Dealer Keynote Film</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700&family=Inter:wght@400;500&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* layout: one quiet column — the film's Skiper67 reel on top, two download rows under it, a short note on sharing */
+:root {
+  --bg: #fbf7f3; --surface: #ffffff; --fg: #1d130d; --muted: #6d5c51; --hair: #eadfd6; --accent: #e3560d; --accent-ink: #ffffff; --good: #1d7a55;
+  --display: "Inter Tight", "Helvetica Neue", Arial, sans-serif; --body: Inter, "Helvetica Neue", Arial, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #0d0805; --surface: #1a110c; --fg: #f6eee8; --muted: #b19f93; --hair: #33241b; --accent: #ff7a2e; --accent-ink: #1a0b03; --good: #5fd3a2; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #0d0805; --surface: #1a110c; --fg: #f6eee8; --muted: #b19f93; --hair: #33241b; --accent: #ff7a2e; --accent-ink: #1a0b03; --good: #5fd3a2; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font: 400 15px/1.55 var(--body); margin: 0 }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px }
+.brand { display: flex; align-items: center; gap: 10px; font: 600 15px/1.2 var(--display); letter-spacing: -.01em }
+.brand .mark { flex: none; background: #0b0d14; border-radius: 10px; padding: 9px 12px; line-height: 0 }
+.brand .mark img { height: 26px; width: auto; display: block }
+.brand small { display: block; font: 500 12px/1.3 var(--body); color: var(--muted); letter-spacing: 0 }
+h1 { margin: 0; font: 700 clamp(28px, 6vw, 44px)/1.04 var(--display); letter-spacing: -.035em; text-wrap: balance }
+.lede { margin: 0; color: var(--muted); max-width: 60ch }
+.poster { position: relative; border-radius: 14px; overflow: hidden; background: #000; aspect-ratio: 16 / 9; max-width: 100% }
+.poster img, .poster video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block }
+.poster video { background: #000 }
+.spec { position: absolute; left: 12px; bottom: 12px; display: flex; gap: 6px; flex-wrap: wrap }
+.spec span { font: 500 11px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: #fff; background: rgba(0,0,0,.55); padding: 6px 8px; border-radius: 6px }
+.list { display: grid; gap: 12px }
+.item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: center; padding: 16px; background: var(--surface); border: 1px solid var(--hair); border-radius: 12px }
+.item h2 { margin: 0; font: 600 17px/1.25 var(--display); letter-spacing: -.01em }
+.item p { margin: 2px 0 0; color: var(--muted); font-size: 13.5px }
+.tag { display: inline-block; margin-left: 6px; font: 500 10.5px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); vertical-align: 2px }
+button { font: 600 14px/1 var(--body); border: 0; border-radius: 999px; padding: 12px 18px; cursor: pointer; background: var(--accent); color: var(--accent-ink); white-space: nowrap }
+button.ghost { background: transparent; color: var(--fg); border: 1px solid var(--hair) }
+button:disabled { opacity: .55; cursor: default }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px }
+.bar { grid-column: 1 / -1; height: 4px; border-radius: 4px; background: var(--hair); overflow: hidden }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s ease }
+.status { grid-column: 1 / -1; font: 500 12.5px/1.4 var(--mono); color: var(--muted); min-height: 1.4em; font-variant-numeric: tabular-nums }
+.status.ok { color: var(--good) }
+.note { color: var(--muted); font-size: 13.5px; border-top: 1px solid var(--hair); padding-top: 16px; display: grid; gap: 6px }
+.note b { color: var(--fg); font-weight: 500 }
+.reel { position: relative; display: grid; justify-items: center; gap: 14px; padding: 8px 0 4px }
+.reel__hint { position: relative; font: 500 11px/1.25 var(--mono); letter-spacing: .1em; text-transform: uppercase; opacity: .45; text-align: center; max-width: 16ch; padding-bottom: 46px }
+.reel__hint::after { content: ""; position: absolute; left: 50%; bottom: 0; width: 1px; height: 40px; background: linear-gradient(to bottom, transparent, var(--fg)) }
+.reel__card { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: #000; cursor: none; border: 0; padding: 0; display: block }
+.reel__card video, .reel__card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block }
+.reel__cue { position: absolute; left: 0; top: 0; z-index: 2; display: flex; align-items: center; gap: 8px; padding: 8px; font: 500 14px/1 var(--body); color: #fff; mix-blend-mode: exclusion; pointer-events: none; opacity: 0; will-change: transform, opacity }
+.reel__cue svg { width: 16px; height: 16px; fill: #fff }
+.reel__card .spec { z-index: 1 }
+@media (hover: none) { .reel__card { cursor: pointer } .reel__cue { opacity: 1 !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; padding: 12px 18px; border-radius: 999px; background: rgba(0,0,0,.45); mix-blend-mode: normal; backdrop-filter: blur(6px) } }
+.pop { position: fixed; inset: 0; z-index: 101; display: grid; place-items: center; padding: 0 max(12px, env(safe-area-inset-left, 0px)) }
+.pop[hidden] { display: none }
+.pop__bg { position: absolute; inset: 0; background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); opacity: 0; transition: opacity .2s }
+.pop.on .pop__bg { opacity: 1 }
+.pop__box { position: relative; width: min(1280px, 100%, calc((100vh - 48px) * 16 / 9)); aspect-ratio: 16 / 9; background: #000; will-change: clip-path }
+.pop__x { position: absolute; right: 8px; top: 8px; z-index: 10; padding: 6px; border-radius: 999px; background: transparent; color: #fff; line-height: 0 }
+.pop__x svg { width: 20px; height: 20px; stroke: #fff; stroke-width: 2; transform: rotate(45deg) }
+media-controller { width: 100%; height: 100%; display: block; --media-control-background: transparent; --media-control-hover-background: transparent; --media-primary-color: #fff; --media-icon-color: #fff;
+  --media-range-thumb-opacity: 0; --media-range-track-height: 2px; --media-range-track-background: rgba(255,255,255,.3); --media-time-range-buffered-color: rgba(255,255,255,.45); --media-range-bar-color: #fff; --media-font-family: var(--body) }
+media-controller video { width: 100%; height: 100%; object-fit: cover; margin: 0 }
+.pop media-control-bar { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: 100%; max-width: 1280px; display: flex; align-items: center; justify-content: center; padding: 0 20px; mix-blend-mode: exclusion }
+.pop media-play-button, .pop media-mute-button { height: 40px; width: 40px; padding: 12px; background: transparent }
+.pop media-time-range { flex: 1; background: transparent; height: 40px }
+@media (min-width: 768px) { .pop media-control-bar { padding: 20px 40px } }
+@media (max-width: 520px) { .item { grid-template-columns: minmax(0, 1fr) } .item button { justify-self: start } }
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none } }
+</style>
+
+<div class="wrap">
+  <div class="brand"><span class="mark"><img src="autolink-lockup.png" alt="AutoLink AI Tech"></span><div>Riyadh Sub-Dealer Portfolio<small>Al Qadisiyah &amp; Al Shifa field census</small></div></div>
+  <h1>Built on the Ground</h1>
+  <p class="lede">4 min 20 s. The director's cut: the field story behind the census, from a two-person retail team walking Riyadh's car markets, down from orbit to the Al Qadisiyah and Al Shifa blocks, a drone flight over both districts, to what they found there. Choose a version and download the MP4.</p>
+  <div class="reel">
+    <span class="reel__hint">Click the video to play</span>
+    <button type="button" class="reel__card" id="reel" aria-label="Play the film, 4 minutes 20 seconds, narrated">
+      <video src="loop14.mp4" poster="poster14.jpg" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
+      <span class="reel__cue" id="cue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg>Play</span>
+      <span class="spec"><span>1920 × 1080</span><span>24 fps</span><span>4:20</span><span>−14 LUFS</span></span>
+    </button>
+  </div>
+
+  <div class="list">
+    <div class="item" id="it-narrated">
+      <div><h2>Narrated<span class="tag">Send this one</span></h2><p>Voice-over, score and sound effects. For people watching on their own. 126 MB.</p></div>
+      <button type="button" id="b-narrated">Download MP4</button>
+      <div class="bar"><i id="p-narrated"></i></div><div class="status" id="s-narrated"></div>
+    </div>
+    <div class="item" id="it-music">
+      <div><h2>Music and effects only</h2><p>No voice-over. For playing behind a live presentation. 126 MB.</p></div>
+      <button type="button" class="ghost" id="b-music">Download MP4</button>
+      <div class="bar"><i id="p-music"></i></div><div class="status" id="s-music"></div>
+    </div>
+  </div>
+
+  <div class="pop" id="pop" hidden role="dialog" aria-modal="true" aria-label="Built on the Ground, the film">
+    <div class="pop__bg" data-close></div>
+    <div class="pop__box" id="box">
+      <media-controller id="mc" autohide="2">
+        <video slot="media" id="film" playsinline preload="metadata" poster="poster14.jpg"></video>
+        <button type="button" class="pop__x" data-close aria-label="Close the film"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+        <media-control-bar>
+          <media-play-button></media-play-button>
+          <media-time-range></media-time-range>
+          <media-mute-button></media-mute-button>
+        </media-control-bar>
+      </media-controller>
+    </div>
+  </div>
+
+  <div class="note">
+    <div><b>On iPhone</b>, the save opens the share sheet: choose Save Video to put it in Photos, or Save to Files.</div>
+    <div><b>For WhatsApp</b>, the file is large for chat. Share it from Photos, and WhatsApp compresses it, or send it as a document to keep full quality.</div>
+    <div>Every figure in the film comes from the census and matches the live deck. Dealer phone numbers seen in the field photos are blurred.</div>
+  </div>
+</div>
+
+<script type="module" src="https://cdn.jsdelivr.net/npm/media-chrome@4.19.3/+esm"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js"></script>
+<script>
+const FILMS = {
+  narrated: { file: "AutoLink-Built-on-the-Ground-narrated.mp4", hls: "hls14/film.txt", size: 125692554, sha: "24e4e24537daf87a" },
+  music: { file: "AutoLink-Built-on-the-Ground-music.mp4", parts: 9, size: 125669452, sha: "54fd74a3bbaac87f", stem: "v14-music", dir: "parts14" },
+};
+const MB = (n) => (n / 1e6).toFixed(0) + " MB";
+const built = {};
+let downloads = null;
+(async () => { try { downloads = await window.claude?.use?.("downloads"); } catch (e) { downloads = null; } })();
+
+async function assemble(key) {
+  if (built[key]) return built[key];
+  const f = FILMS[key], bar = document.getElementById("p-" + key), st = document.getElementById("s-" + key);
+  const chunks = []; let got = 0;
+  /* the narrated film is stored once, as the player's stream: its init segment plus media segments join into one MP4 */
+  const urls = f.hls ? await (async () => { const base = f.hls.replace(/[^/]+$/, ""), m = await (await fetch(f.hls)).text();
+    return [base + m.match(/URI="([^"]+)"/)[1], ...m.split("\n").filter((l) => l && !l.startsWith("#")).map((l) => base + l)]; })()
+    : [...Array(f.parts)].map((_, i) => `${f.dir}/${f.stem}.p${String(i).padStart(2, "0")}.mp4`);
+  for (let i = 0; i < urls.length; i++) {
+    const r = await fetch(urls[i]);
+    if (!r.ok) throw new Error(`Part ${i + 1} of ${urls.length} did not load (${r.status}).`);
+    const reader = r.body ? r.body.getReader() : null;
+    if (reader) {
+      for (;;) { const { done, value } = await reader.read(); if (done) break; chunks.push(value); got += value.length; bar.style.width = (got / f.size * 100).toFixed(1) + "%"; st.textContent = `Fetching ${MB(got)} of ${MB(f.size)}`; }
+    } else { const b = new Uint8Array(await r.arrayBuffer()); chunks.push(b); got += b.length; bar.style.width = (got / f.size * 100).toFixed(1) + "%"; }
+  }
+  if (got !== f.size) throw new Error(`Got ${MB(got)}, expected ${MB(f.size)}. Try again.`);
+  const blob = new Blob(chunks, { type: "video/mp4" });
+  try {                                           /* integrity: the joined file must match the original */
+    st.textContent = "Checking the file…";
+    const h = await crypto.subtle.digest("SHA-256", await blob.arrayBuffer());
+    const hex = [...new Uint8Array(h)].slice(0, 8).map((b) => b.toString(16).padStart(2, "0")).join("");
+    if (hex !== f.sha) throw new Error("The file did not match the original. Try again.");
+  } catch (e) { if (e.message.startsWith("The file")) throw e; }
+  built[key] = blob; return blob;
+}
+
+async function go(key) {
+  const btn = document.getElementById("b-" + key), st = document.getElementById("s-" + key), f = FILMS[key];
+  btn.disabled = true; st.className = "status";
+  try {
+    const blob = await assemble(key);
+    if (!downloads) { st.textContent = "Ready to play above. Saving isn't available in this view: open the link in the Claude app or in a browser on claude.ai."; return; }
+    st.textContent = "Confirm the save…";
+    await downloads.save({ filename: f.file, data: blob });
+    st.textContent = "Saved: " + f.file; st.className = "status ok";
+  } catch (e) {
+    const code = e && e.code;
+    st.textContent = code === "declined" ? "Save cancelled. Tap Download again when you're ready."
+      : code === "rate_limited" ? "A save prompt is already open. Finish it, then try again."
+      : code === "too_large" ? "This app can't save a file this size. Open the link in a browser on claude.ai."
+      : code ? "Saving isn't available in this view. Open the link in a browser on claude.ai."
+      : (e && e.message) || "Something went wrong. Try again.";
+  } finally { btn.disabled = false; }
+}
+/* Skiper67 (skiper-ui), ported from React and framer-motion to plain JS around media-chrome:
+   a muted loop with a "Play" cue that follows the pointer on a light spring (mass .1), and a click that opens the film in a
+   popover whose clip-path springs open from the cue's corner (stiffness 100, damping 20) and springs back shut on close. */
+(() => {
+  const reel = document.getElementById("reel"), cue = document.getElementById("cue"), pop = document.getElementById("pop"), box = document.getElementById("box"), film = document.getElementById("film");
+  const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let cx = 0, cy = 0, tx = 0, ty = 0, vx = 0, vy = 0, op = 0, to = 0, vo = 0, raf = 0, last = 0;
+  const step = (now) => {
+    const dt = Math.min(.032, (now - (last || now)) / 1000) || .016; last = now;
+    const k = 100, c = 10, m = .1;                                   /* framer-motion's useSpring defaults with mass .1 */
+    for (let i = 0; i < 4; i++) { const h = dt / 4;
+      vx += ((-k * (cx - tx) - c * vx) / m) * h; cx += vx * h; vy += ((-k * (cy - ty) - c * vy) / m) * h; cy += vy * h; vo += ((-k * (op - to) - c * vo) / m) * h; op += vo * h; }
+    cue.style.transform = `translate(${cx.toFixed(1)}px, ${cy.toFixed(1)}px)`; cue.style.opacity = Math.max(0, Math.min(1, op)).toFixed(3);
+    raf = Math.abs(cx - tx) + Math.abs(cy - ty) + Math.abs(op - to) + Math.abs(vx) + Math.abs(vo) > .05 ? requestAnimationFrame(step) : 0; if (!raf) last = 0;
+  };
+  const kick = () => { if (!raf) raf = requestAnimationFrame(step); };
+  reel.addEventListener("pointermove", (e) => { if (e.pointerType !== "mouse") return; const b = reel.getBoundingClientRect(); tx = e.clientX - b.left; ty = e.clientY - b.top; to = 1; kick(); });
+  reel.addEventListener("pointerleave", () => { to = 0; kick(); });
+  /* the stream: native HLS on Safari and iOS, hls.js elsewhere */
+  let hls = null;
+  const attach = () => {
+    if (film.src || hls) return;
+    /* the playlist is stored as .txt (artifacts don't serve .m3u8); hls.js reads it by content, including on iOS 17.1+ */
+    if (window.Hls && window.Hls.isSupported()) { hls = new window.Hls({ maxBufferLength: 30 }); hls.loadSource(FILMS.narrated.hls); hls.attachMedia(film); }
+    else fetch(FILMS.narrated.hls).then((r) => r.text()).then((m) => {   /* older Safari: native HLS from a playlist with absolute segment URLs */
+      const base = new URL(FILMS.narrated.hls, location.href).href.replace(/[^/]+$/, "");
+      const abs = m.replace(/URI="([^"]+)"/, (x, u) => `URI="${base + u}"`).split("\n").map((l) => l && !l.startsWith("#") ? base + l : l).join("\n");
+      film.src = "data:application/vnd.apple.mpegurl;base64," + btoa(abs); if (!pop.hidden) film.play().catch(() => {});
+    });
+  };
+  /* the popover's clip: inset(43.5% 43.5% 33.5% 43.5%) springs to inset(0) */
+  let p = 0, pv = 0, pt = 0, praf = 0, plast = 0, closing = false;
+  const paint = () => { const q = 1 - p, a = (43.5 * q).toFixed(2), b = (33.5 * q).toFixed(2); box.style.clipPath = `inset(${a}% ${a}% ${b}% ${a}%)`; box.style.opacity = closing ? Math.min(1, p / .25).toFixed(3) : Math.min(1, p * 4).toFixed(3); };
+  const pstep = (now) => {
+    const dt = Math.min(.032, (now - (plast || now)) / 1000) || .016; plast = now;
+    for (let i = 0; i < 4; i++) { const h = dt / 4; pv += (-100 * (p - pt) - 20 * pv) * h; p += pv * h; }
+    paint();
+    if (Math.abs(p - pt) + Math.abs(pv) > .002) praf = requestAnimationFrame(pstep);
+    else { p = pt; paint(); praf = 0; plast = 0; if (closing) { pop.hidden = true; closing = false; reel.focus(); } }
+  };
+  const anim = (target) => { pt = target; if (RM) { p = target; pv = 0; paint(); if (closing) { pop.hidden = true; closing = false; reel.focus(); } return; } if (!praf) praf = requestAnimationFrame(pstep); };
+  const open = () => { attach(); closing = false; pop.hidden = false; requestAnimationFrame(() => pop.classList.add("on")); anim(1); film.play().catch(() => {}); setTimeout(() => pop.querySelector(".pop__x").focus(), 50); };
+  const close = () => { if (pop.hidden || closing) return; closing = true; pop.classList.remove("on"); film.pause(); anim(0); };
+  reel.addEventListener("click", open);
+  pop.addEventListener("click", (e) => { if (e.target.closest("[data-close]")) close(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+  paint();
+})();
+document.getElementById("b-narrated").addEventListener("click", () => go("narrated"));
+document.getElementById("b-music").addEventListener("click", () => go("music"));
+</script>
