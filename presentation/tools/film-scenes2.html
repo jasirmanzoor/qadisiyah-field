@@ -46,6 +46,11 @@ html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; backgro
 /* KAFD */
 .kw { position: absolute; inset: 0; overflow: hidden; background: #000; }
 .kw img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; will-change: transform; }
+.ks { position: absolute; overflow: hidden; border-radius: 22px; background: #000; box-shadow: 0 50px 100px -40px rgba(0,0,0,.9), inset 0 0 0 1px rgba(255,255,255,.12); will-change: transform, clip-path; }
+.ks img { position: absolute; left: 50%; top: 50%; width: 100%; height: 100%; object-fit: cover; transform: translate(-50%, -50%); will-change: transform; }
+.kcap { position: absolute; z-index: 6; left: 96px; bottom: 80px; }
+.kcap p { margin: 0; font: 500 18px/1 var(--m); letter-spacing: .3em; text-transform: uppercase; color: #fff; text-shadow: 0 2px 18px rgba(0,0,0,.8); }
+.kcap b { display: block; margin-top: 16px; font: 700 64px/1 var(--d); letter-spacing: -.04em; color: #fff; text-shadow: 0 6px 40px rgba(0,0,0,.7); }
 .ktitle { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
 .ktitle h2 { margin: 26px 0 0; font: 700 96px/1 var(--d); letter-spacing: -.045em; }
 .ktitle h2 em { font-family: var(--s); font-weight: 400; font-style: italic; color: #ffd2ad; }
@@ -461,6 +466,45 @@ if (S === "kafd") {
     const f = Math.min(210, Math.max(1, 1 + Math.floor(Math.max(0, t - 2.3) * 30)));
     img.src = `kafdv/wide/f${String(f).padStart(4, "0")}.jpg`; img.style.transform = `scale(${(1.0 + .045 * clamp((t - 2.3) / 6.7)).toFixed(4)})`;
     await img.decode().catch(() => {});
+  };
+}
+/* ================= KAFD from stills =================
+   The outro without footage: four photographs of KAFD. After the title on black, they spring up into a portrait strip
+   (staggered, bottom-up reveal, a slight tilt that settles with an overshoot, each picture drifting inside its frame);
+   then the skyline panel takes over the frame as a shared-layout expansion while the others slide away, and holds. */
+if (S === "kafdstill") {
+  DUR = 9.0;
+  document.querySelector(".brand").style.display = "none";
+  const eio = (u) => (u = clamp(u), u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
+  const spring = (u, k = 120, c = 14) => {            /* a damped spring from 0 to 1, as framer-motion's type: "spring" */
+    if (u <= 0) return 0; const w = Math.sqrt(k), z = c / (2 * w), wd = w * Math.sqrt(1 - z * z);
+    return 1 - Math.exp(-z * w * u) * (Math.cos(wd * u) + (z * w / wd) * Math.sin(wd * u));
+  };
+  const SRC = [["kafdv/p2.jpg", "50% 40%"], ["kafdv/p1.jpg", "50% 18%"], ["kafdv/p3.jpg", "50% 45%"], ["photos/hq-skyline.jpg", "50% 42%"]];
+  const PW = 432, PH = 860, GAP = 24, X0 = (W - (4 * PW + 3 * GAP)) / 2, Y0 = (H - PH) / 2, HERO = 1;
+  const P = SRC.map(([src, pos]) => { const p = el(`<div class="ks"><img src="${src}" style="object-position:${pos}"></div>`); return p; });
+  const tt = el(`<div class="ktitle"><p class="kick">Headquarters · King Abdullah Financial District</p><h2>From the showroom floor <em>to KAFD.</em></h2><p>Every record from the field was filed back to one roster, here at our Riyadh headquarters.</p></div>`);
+  const cap = el(`<div class="kcap"><p>King Abdullah Financial District</p><b>Riyadh</b></div>`);
+  const mat = MatterBG(root, { before: P[0], my: .1, radius: 1.35, detail: 40, t0: 27 });
+  boot = async () => { await Promise.all([...document.images].map((i) => i.decode().catch(() => {}))); };
+  render = (t) => {
+    const tin = eo((t - .15) / .9), tout = ss(t, 1.9, 2.4);
+    tt.style.opacity = (tin * (1 - tout)).toFixed(3); tt.style.transform = `translateY(${((1 - tin) * 20 - tout * 30).toFixed(1)}px)`;
+    mat(t, .45 * tin * (1 - ss(t, 1.8, 2.3)));
+    const ex = eio((t - 5.6) / 1.4);                   /* the hero's layout expansion, 0 strip -> 1 full frame */
+    P.forEach((p, i) => {
+      const t0 = 2.3 + i * .14, sp = spring(t - t0), rv = eo((t - t0) / .9);
+      let x = X0 + i * (PW + GAP), y = Y0 + (1 - sp) * 160, w = PW, h = PH, r = 22, rot = (1 - sp) * (i % 2 ? -4 : 4), op = clamp(rv * 1.6);
+      if (i === HERO) { x = mix(x, 0, ex); y = mix(y, 0, ex); w = mix(PW, W, ex); h = mix(PH, H, ex); r = 22 * (1 - ex); }
+      else { const dir = i < HERO ? -1 : 1, out = eio((t - 5.5 - Math.abs(i - HERO) * .06) / 1.1); x += dir * out * 900; op *= 1 - out; }
+      p.style.left = x.toFixed(1) + "px"; p.style.top = y.toFixed(1) + "px"; p.style.width = w.toFixed(1) + "px"; p.style.height = h.toFixed(1) + "px";
+      p.style.borderRadius = r.toFixed(1) + "px"; p.style.opacity = op.toFixed(3); p.style.zIndex = i === HERO ? 3 : 2;
+      p.style.transform = `rotate(${rot.toFixed(2)}deg)`; p.style.clipPath = `inset(${((1 - rv) * 100).toFixed(2)}% 0 0 0 round ${r.toFixed(1)}px)`;
+      /* inside each frame the picture drifts: a slow Ken Burns push, and a counter-parallax against the panel's rise */
+      const kb = 1.14 - .1 * clamp((t - t0) / 6.5) + (i === HERO ? .05 * eio((t - 6.4) / 2.6) : 0);
+      p.firstChild.style.transform = `translate(-50%, calc(-50% + ${((1 - sp) * -60).toFixed(1)}px)) scale(${kb.toFixed(4)})`;
+    });
+    const cu = eo((t - 6.6) / .9); cap.style.opacity = cu.toFixed(3); cap.style.transform = `translateY(${((1 - cu) * 24).toFixed(1)}px)`;
   };
 }
 window.__dur = DUR; window.__render = (t) => render(t);

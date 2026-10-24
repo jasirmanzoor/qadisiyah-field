@@ -936,3 +936,26 @@ body { background: #000; }
   .sys__steps b { margin-top: 0; align-self: end; } .sys__steps span { align-self: start; font-size: 13.5px; }
 }
 @media (prefers-reduced-motion: reduce) { .vis__col { animation: none; } }
+
+/* KAFD close from stills, as in the film: four photographs spring up into a staggered strip (bottom-up reveal,
+   a tilt that settles with an overshoot), each drifting inside its frame; the copy sits on the left */
+.close__strip { position: absolute; top: 50%; right: max(24px, calc((100vw - 1240px) / 2 + 24px)); width: min(46vw, 660px); display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; transform: translateY(-50%); }
+.close__strip figure { margin: 0; aspect-ratio: 9 / 17; border-radius: 18px; overflow: hidden; box-shadow: 0 40px 80px -30px rgba(0,0,0,.85), inset 0 0 0 1px rgba(255,255,255,.12);
+  opacity: 0; transform: translateY(140px) rotate(var(--r, 4deg)); clip-path: inset(100% 0 0 0 round 18px); }
+.close__strip figure:nth-child(even) { --r: -4deg; margin-top: 36px; }
+.close__strip img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.14); }
+.sc--close.is-on .close__strip figure { animation: ksIn 1.3s cubic-bezier(.34, 1.45, .64, 1) both, ksClip .9s cubic-bezier(.16, 1, .3, 1) both; }
+.sc--close.is-on .close__strip figure:nth-child(2) { animation-delay: .14s; } .sc--close.is-on .close__strip figure:nth-child(3) { animation-delay: .28s; } .sc--close.is-on .close__strip figure:nth-child(4) { animation-delay: .42s; }
+.sc--close.is-on .close__strip img { animation: ksDrift 9s ease-out both; }
+@keyframes ksIn { from { opacity: 0; transform: translateY(140px) rotate(var(--r, 4deg)); } 30% { opacity: 1; } to { opacity: 1; transform: none; } }
+@keyframes ksClip { from { clip-path: inset(100% 0 0 0 round 18px); } to { clip-path: inset(0 0 0 0 round 18px); } }
+@keyframes ksDrift { from { transform: translateY(-30px) scale(1.14); } to { transform: none; } }
+.close__in { width: min(520px, 40vw); right: auto; }
+.close__in .say { font-size: clamp(2.1rem, 4.2vw, 4.4rem); max-width: 11ch; }
+@media (max-width: 760px) {
+  .close__strip { top: calc(84px + env(safe-area-inset-top, 0px)); left: 20px; right: 20px; width: auto; transform: none; gap: 8px; }
+  .close__strip figure { border-radius: 12px; } .close__strip figure:nth-child(even) { margin-top: 18px; }
+  .close__in .say { font-size: clamp(1.7rem, 8vw, 2.4rem); max-width: none; }
+  .close__in { width: auto; right: 20px; top: auto; bottom: calc(40px + env(safe-area-inset-bottom, 0px)); transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .sc--close.is-on .close__strip figure, .sc--close.is-on .close__strip img { animation: none; opacity: 1; transform: none; clip-path: none; } }
