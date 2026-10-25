@@ -1576,11 +1576,6 @@ body { background: #000; }
 .trail__n b { color: var(--flame-lit); font-weight: 600; }
 .t-tap { display: none; } @media (hover: none) { .t-hov { display: none; } .t-tap { display: inline; } }
 
-/* Skiper19 line path: one stroke across the whole show, above the chapters, below the bar, never in the way */
-.lp { position: absolute; inset: 0; z-index: 30; overflow: hidden; pointer-events: none; mix-blend-mode: screen; opacity: .55; }
-.lp__svg { position: absolute; top: 0; right: -14vw; width: max(820px, 78vw); max-width: none; height: auto; overflow: visible; will-change: transform; }
-@media (max-width: 760px) { .lp { opacity: .45; } .lp__svg { right: -46vw; width: 150vw; } }
-@media (prefers-reduced-motion: reduce) { .lp__svg { transition: none; } }
 .ghost-fibers-container {
   position: relative;
   width: 100%;
@@ -1723,11 +1718,6 @@ body { background: #000; }
   </div>
 </header>
 
-<!-- Skiper19 (skiper-ui): the stroke that follows the scroll; here the scroll is the show's own clock -->
-<div class="lp" aria-hidden="true"><svg class="lp__svg" id="lpSvg" viewBox="0 0 1278 2319" fill="none" overflow="visible" preserveAspectRatio="xMidYMin meet">
-  <defs><linearGradient id="lpG" x1="0" y1="0" x2="0" y2="2669" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffb26b"/><stop offset=".5" stop-color="#ff6a00"/><stop offset="1" stop-color="#ff3d00"/></linearGradient></defs>
-  <path id="lpPath" d="M876.605 394.131C788.982 335.917 696.198 358.139 691.836 416.303C685.453 501.424 853.722 498.43 941.95 409.714C1016.1 335.156 1008.64 186.907 906.167 142.846C807.014 100.212 712.699 198.494 789.049 245.127C889.053 306.207 986.062 116.979 840.548 43.3233C743.932 -5.58141 678.027 57.1682 672.279 112.188C666.53 167.208 712.538 172.943 736.353 163.088C760.167 153.234 764.14 120.924 746.651 93.3868C717.461 47.4252 638.894 77.8642 601.018 116.979C568.164 150.908 557 201.079 576.467 246.924C593.342 286.664 630.24 310.55 671.68 302.614C756.114 286.446 729.747 206.546 681.86 186.442C630.54 164.898 492 209.318 495.026 287.644C496.837 334.494 518.402 366.466 582.455 367.287C680.013 368.538 771.538 299.456 898.634 292.434C1007.02 286.446 1192.67 309.384 1242.36 382.258C1266.99 418.39 1273.65 443.108 1247.75 474.477C1217.32 511.33 1149.4 511.259 1096.84 466.093C1044.29 420.928 1029.14 380.576 1033.97 324.172C1038.31 273.428 1069.55 228.986 1117.2 216.384C1152.2 207.128 1188.29 213.629 1194.45 245.127C1201.49 281.062 1132.22 280.104 1100.44 272.673C1065.32 264.464 1044.22 234.837 1032.77 201.413C1019.29 162.061 1029.71 131.126 1056.44 100.965C1086.19 67.4032 1143.96 54.5526 1175.78 86.1513C1207.02 117.17 1186.81 143.379 1156.22 166.691C1112.57 199.959 1052.57 186.238 999.784 155.164C957.312 130.164 899.171 63.7054 931.284 26.3214C952.068 2.12513 996.288 3.87363 1007.22 43.58C1018.15 83.2749 1003.56 122.644 975.969 163.376C948.377 204.107 907.272 255.122 913.558 321.045C919.727 385.734 990.968 497.068 1063.84 503.35C1111.46 507.456 1166.79 511.984 1175.68 464.527C1191.52 379.956 1101.26 334.985 1030.29 377.017C971.109 412.064 956.297 483.647 953.797 561.655C947.587 755.413 1197.56 941.828 936.039 1140.66C745.771 1285.32 321.926 950.737 134.536 1202.19C-6.68295 1391.68 -53.4837 1655.38 131.935 1760.5C478.381 1956.91 1124.19 1515 1201.28 1997.83C1273.66 2451.23 100.805 1864.7 303.794 2668.89" stroke="url(#lpG)" stroke-width="20" stroke-linecap="round"/>
-</svg></div>
 <main class="stage" id="stage">
   <div class="tx-light" id="txLight" aria-hidden="true"></div>
   <p class="kup" id="kUp" aria-hidden="true"></p>
@@ -8410,21 +8400,11 @@ window.RB = window.RB || {};
     }
     const routeKm = $("routeKm"), routeLeg = $("routeLeg"), WALK = F.per[0].walk + F.per[1].walk;
     const tele = $("teleClock"), T0 = performance.now(); let teleS = -1;
-    /* Skiper19's LinePath on the show's clock: pathLength = map(progress, [0, 1], [0.5, 1]), drawn with the same
-       dash-offset trick; the tall drawing scrolls up the screen as the show advances, as it would on a long page */
-    const lpSvg = $("lpSvg"), lpPath = $("lpPath"), LPL = lpPath ? lpPath.getTotalLength() : 0; let lpLast = -1;
-    function linePath() {
-      if (!LPL || !TOTAL) return; const pr = clamp01(T / TOTAL); if (Math.abs(pr - lpLast) < .0004) return; lpLast = pr;
-      const pl = .5 + .5 * pr; lpPath.style.strokeDasharray = `${LPL} ${LPL}`; lpPath.style.strokeDashoffset = (LPL * (1 - pl)).toFixed(2);
-      const w = lpSvg.getBoundingClientRect().width, h = w * 2669 / 1278, vh = innerHeight;   /* the stroke runs to y 2669 */
-      lpSvg.style.transform = `translate3d(0, ${(-pr * Math.max(0, h - vh * .85)).toFixed(1)}px, 0)`;
-    }
     function paint() {
       if (S[i] && S[i].id === "open") { const s = Math.floor((performance.now() - T0) / 1000); if (s !== teleS) { teleS = s; tele.textContent = `T+ ${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor(s / 60) % 60).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; } }
       if (S[i] && S[i].id === "work" && b === 2 && routeKm) { const k = UNI.ink ? UNI.ink() : 1, km = k * WALK; routeKm.textContent = km.toFixed(1); routeLeg.textContent = km < F.per[0].walk ? "Leg 1 / 2 · Al Qadisiyah · August" : "Leg 2 / 2 · Al Shifa · September"; }
       fills.forEach((f, n) => { f.style.transform = `scaleX(${chap[n] ? clamp01((T - chap[n].t0) / Math.max(.01, chap[n].d)).toFixed(4) : 0})`; });
       $("kTc").textContent = tc(T);
-      linePath();
     }
     /* film chapters: the film's own cut of a scene, held on the keynote's clock so pause, scrub and jumps stay frame-true */
     const filmV = (s) => s.el.querySelector("video");

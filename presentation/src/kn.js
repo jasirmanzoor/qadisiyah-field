@@ -352,21 +352,11 @@
     }
     const routeKm = $("routeKm"), routeLeg = $("routeLeg"), WALK = F.per[0].walk + F.per[1].walk;
     const tele = $("teleClock"), T0 = performance.now(); let teleS = -1;
-    /* Skiper19's LinePath on the show's clock: pathLength = map(progress, [0, 1], [0.5, 1]), drawn with the same
-       dash-offset trick; the tall drawing scrolls up the screen as the show advances, as it would on a long page */
-    const lpSvg = $("lpSvg"), lpPath = $("lpPath"), LPL = lpPath ? lpPath.getTotalLength() : 0; let lpLast = -1;
-    function linePath() {
-      if (!LPL || !TOTAL) return; const pr = clamp01(T / TOTAL); if (Math.abs(pr - lpLast) < .0004) return; lpLast = pr;
-      const pl = .5 + .5 * pr; lpPath.style.strokeDasharray = `${LPL} ${LPL}`; lpPath.style.strokeDashoffset = (LPL * (1 - pl)).toFixed(2);
-      const w = lpSvg.getBoundingClientRect().width, h = w * 2669 / 1278, vh = innerHeight;   /* the stroke runs to y 2669 */
-      lpSvg.style.transform = `translate3d(0, ${(-pr * Math.max(0, h - vh * .85)).toFixed(1)}px, 0)`;
-    }
     function paint() {
       if (S[i] && S[i].id === "open") { const s = Math.floor((performance.now() - T0) / 1000); if (s !== teleS) { teleS = s; tele.textContent = `T+ ${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor(s / 60) % 60).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; } }
       if (S[i] && S[i].id === "work" && b === 2 && routeKm) { const k = UNI.ink ? UNI.ink() : 1, km = k * WALK; routeKm.textContent = km.toFixed(1); routeLeg.textContent = km < F.per[0].walk ? "Leg 1 / 2 · Al Qadisiyah · August" : "Leg 2 / 2 · Al Shifa · September"; }
       fills.forEach((f, n) => { f.style.transform = `scaleX(${chap[n] ? clamp01((T - chap[n].t0) / Math.max(.01, chap[n].d)).toFixed(4) : 0})`; });
       $("kTc").textContent = tc(T);
-      linePath();
     }
     /* film chapters: the film's own cut of a scene, held on the keynote's clock so pause, scrub and jumps stay frame-true */
     const filmV = (s) => s.el.querySelector("video");
