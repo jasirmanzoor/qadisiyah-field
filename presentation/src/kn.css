@@ -971,3 +971,9 @@ body { background: #000; }
 .trail__n { position: absolute; z-index: 3; right: max(24px, calc((100vw - 1240px) / 2 + 24px)); bottom: calc(32px + env(safe-area-inset-bottom, 0px)); font: 500 12px/1 ui-monospace, Menlo, monospace; letter-spacing: .14em; color: var(--ink-faint); }
 .trail__n b { color: var(--flame-lit); font-weight: 600; }
 .t-tap { display: none; } @media (hover: none) { .t-hov { display: none; } .t-tap { display: inline; } }
+
+/* Skiper19 line path: one stroke across the whole show, above the chapters, below the bar, never in the way */
+.lp { position: absolute; inset: 0; z-index: 30; overflow: hidden; pointer-events: none; mix-blend-mode: screen; opacity: .55; }
+.lp__svg { position: absolute; top: 0; right: -14vw; width: max(820px, 78vw); max-width: none; height: auto; overflow: visible; will-change: transform; }
+@media (max-width: 760px) { .lp { opacity: .45; } .lp__svg { right: -46vw; width: 150vw; } }
+@media (prefers-reduced-motion: reduce) { .lp__svg { transition: none; } }
