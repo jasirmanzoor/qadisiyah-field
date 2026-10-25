@@ -1563,6 +1563,18 @@ body { background: #000; }
   .close__in { width: auto; right: 20px; top: auto; bottom: calc(40px + env(safe-area-inset-bottom, 0px)); transform: none; }
 }
 @media (prefers-reduced-motion: reduce) { .sc--close.is-on .close__strip figure, .sc--close.is-on .close__strip img { animation: none; opacity: 1; transform: none; clip-path: none; } }
+
+/* the photo trail (SmoothImageCursor): photos drop along the pointer's path, shrink and fade; the copy sits beneath them */
+.sc--trail { background: radial-gradient(60% 60% at 50% 55%, rgba(255,90,20,.10), transparent 70%), var(--ground-deep); }
+.trail { position: absolute; inset: 0; overflow: hidden; z-index: 2; pointer-events: none; }
+.trail__s { position: absolute; will-change: transform, opacity; box-shadow: 0 24px 50px -18px rgba(0,0,0,.85); overflow: hidden; transform: translate(-50%, -50%); }
+.trail__s img { width: 100%; height: 100%; object-fit: cover; display: block; user-select: none; -webkit-user-drag: none; }
+.trail__copy { position: absolute; z-index: 1; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(760px, calc(100vw - 40px)); text-align: center; display: grid; justify-items: center; }
+.trail__copy .say { margin-top: 14px; max-width: 14ch; font-size: clamp(2.4rem, 6.4vw, 6rem); }
+.trail__copy .sc__sub { max-width: 40ch; margin-inline: auto; }
+.trail__n { position: absolute; z-index: 3; right: max(24px, calc((100vw - 1240px) / 2 + 24px)); bottom: calc(32px + env(safe-area-inset-bottom, 0px)); font: 500 12px/1 ui-monospace, Menlo, monospace; letter-spacing: .14em; color: var(--ink-faint); }
+.trail__n b { color: var(--flame-lit); font-weight: 600; }
+.t-tap { display: none; } @media (hover: none) { .t-hov { display: none; } .t-tap { display: inline; } }
 .ghost-fibers-container {
   position: relative;
   width: 100%;
@@ -1751,6 +1763,17 @@ body { background: #000; }
       <p class="kick">On the ground</p>
       <h2 class="say say--md">Every figure came from a door <em>we stood in front of</em>.</h2>
     </div>
+  </section>
+
+  <!-- 01c the photo trail -->
+  <section class="sc sc--trail" id="s-trail" data-title="Every door, in photos" data-dur="10500" aria-label="A trail of showroom photographs that follows the cursor">
+    <div class="trail" id="trailBox" data-list="d0141-1.jpg,d0258-1.jpg,d0261-1.jpg,d0261-2.jpg,n-gclass-front.jpg,n-gclass-rear.jpg,n-hexhall.jpg,n-imad-facade.jpg,n-mezzanine.jpg,n-nojoom-facade.jpg,n-pickups.jpg,n-porsche-row.jpg,n-rayat.jpg,n-rc-ar.jpg,n-rc-facade.jpg,n-rc-hall.jpg,n-rc-merc2.jpg,n-rc-mercedes.jpg,n-rc-night.jpg,n-redcarpet.jpg,n-rolls.jpg,n-saber-facade.jpg,n-saber-smart.jpg,n-soum.jpg,n-tank.jpg,q-barimi-g.jpg,q-barimi-mclaren.jpg,q-barimi-rolls.jpg,q-barimi-urus.jpg,q-gclass.jpg,q-luxhall.jpg,q-nojoom.jpg,q-pickups.jpg,q-porsche.jpg,q-redcarpet.jpg,q-riyadhcars-night.jpg,q-riyadhcars.jpg,q-safh-dark.jpg,q-safh-hall.jpg,q-street-binomaira.jpg,q-street-fullspeed.jpg,q-street-ibtikar.jpg,q-tank.jpg,s-ajyal.jpg,s-autopark.jpg,s-dosari.jpg,s-future.jpg,s-ghost.jpg,s-glass.jpg,s-hall.jpg,s-imtiyaz.jpg,s-jariwi.jpg,s-jeeps.jpg,s-kathiri.jpg,s-lc300.jpg,s-mawj.jpg,s-najoom.jpg,s-nufai.jpg,s-odaini-p.jpg,s-odaini-s.jpg,s-odaini.jpg,s-otaibi.jpg,s-qahtani.jpg,s-qannas.jpg,s-raad.jpg,s-ramz.jpg,s-saber-street.jpg,s-shumukh.jpg,s-street.jpg,s-subaie.jpg,s-sunset-row.jpg,s-suwaidan.jpg,s-uruba.jpg,s-ustul.jpg,s-wafi.jpg,s0036-3.jpg,s0053-1.jpg,s0095-1.jpg,s13ads-2.jpg,s13nb2-3.jpg,s14sbr-2.jpg,s14wrd-1.jpg,s15aqd-1.jpg,s15byr-4.jpg,s15nsm-1.jpg,s16asm-1.jpg,s16nfy-1.jpg" aria-hidden="true"></div>
+    <div class="trail__copy">
+      <p class="kick">The field archive</p>
+      <h2 class="say say--md">Every door, <em>in photos</em>.</h2>
+      <p class="sc__sub">87 showroom floors, photographed on the walk. <span class="t-hov">Move across the screen</span><span class="t-tap">Drag across the screen</span> to walk through them.</p>
+    </div>
+    <p class="trail__n" aria-hidden="true"><b id="trailN">01</b> / 87</p>
   </section>
 
   <!-- 01b at a glance -->
@@ -7974,6 +7997,54 @@ window.RB = window.RB || {};
     new ResizeObserver(() => { size(); paint(); }).observe(root);
     window.__walk = { build, sets };
   })();
+  /* ==================== the photo trail: SmoothImageCursor (Framer), ported ====================
+     As the pointer moves, a showroom photo drops every `spacing` px of travel, sized and tilted at random, then shrinks to
+     55% and fades out (the component's own rules). Extended for the keynote: the whole vetted set rotates through it, fast
+     moves are filled in along the path so the trail never gaps, a finger drag works like the mouse, and while the show
+     plays hands-off an unseen cursor traces a slow figure-eight so the chapter performs on its own. */
+  (function () {
+    const sec = document.getElementById("s-trail"), box = document.getElementById("trailBox"); if (!sec || !box) return;
+    const LIST = (box.dataset.list || "").split(",").filter(Boolean);
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const POOL = LIST.map((f) => [f, rnd()]).sort((a, b) => a[1] - b[1]).map((x) => "photos/t/" + x[0]);   /* shuffled once, the same every visit */
+    const O = { spacing: 46, sizeRand: .2, rot: 16, life: 1.15, max: 22, opacity: 1, radius: 14 };
+    const size = () => Math.round(Math.min(260, Math.max(130, innerWidth * .15)));
+    let live = [], idx = 0, last = null, raf = 0, on = false, ghostT = 0, ghostOn = true, lastReal = 0, prevNow = 0;
+    const count = document.getElementById("trailN"), b0 = () => box.clientWidth || innerWidth;
+    const pre = []; const warm = () => { if (pre.length) return; POOL.forEach((src) => { const im = new Image(); im.decoding = "async"; im.src = src; pre.push(im); }); };
+    function spawn(x, y) {
+      const el = document.createElement("div"), s = Math.max(1, size() * (1 + (rnd() * 2 - 1) * O.sizeRand)), r = (rnd() * 2 - 1) * O.rot;
+      el.className = "trail__s"; el.style.cssText = `left:${x}px;top:${y}px;width:${s}px;height:${s}px;border-radius:${O.radius}px`;
+      el.innerHTML = `<img src="${POOL[idx % POOL.length]}" alt="" draggable="false">`;
+      box.appendChild(el); live.push({ el, t: performance.now(), r }); idx++;
+      if (count) count.textContent = String((idx - 1) % POOL.length + 1).padStart(2, "0");
+      while (live.length > O.max) live.shift().el.remove();
+    }
+    function moveTo(x, y) {                                   /* spawn along the path at a fixed spacing: no gaps on a fast flick */
+      if (!last) { last = { x, y }; spawn(x, y); return; }
+      let dx = x - last.x, dy = y - last.y, d = Math.hypot(dx, dy);
+      while (d >= O.spacing) { const k = O.spacing / d; last = { x: last.x + dx * k, y: last.y + dy * k }; spawn(last.x, last.y); dx = x - last.x; dy = y - last.y; d = Math.hypot(dx, dy); }
+    }
+    function tick(now) {
+      const dt = prevNow ? Math.min(.05, (now - prevNow) / 1000) : .016; prevNow = now;
+      if (ghostOn && now - lastReal > 2600) {                /* the unseen cursor: a lemniscate across the stage */
+        ghostT += dt * Math.max(.7, 1.05 * 900 / Math.max(600, b0()));   /* a steady ~900 px/s on screen, whatever its width */ const b = box.getBoundingClientRect(), a = ghostT, s = Math.sin(a), c = Math.cos(a), den = 1 + s * s;
+        moveTo(b.width * (.5 + .36 * c / den), b.height * (.52 + .3 * s * c / den));
+      }
+      const life = O.life * 1000;
+      live = live.filter((it) => { const p = (now - it.t) / life; if (p >= 1) { it.el.remove(); return false; }
+        it.el.style.opacity = (O.opacity * (1 - p)).toFixed(3); it.el.style.transform = `translate(-50%, -50%) rotate(${it.r.toFixed(1)}deg) scale(${(1 - p * .45).toFixed(3)})`; return true; });
+      raf = on || live.length ? requestAnimationFrame(tick) : 0; if (!raf) prevNow = 0;
+    }
+    const start = () => { if (!raf) raf = requestAnimationFrame(tick); };
+    const local = (e) => { const b = box.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top, e.clientX >= b.left && e.clientX <= b.right && e.clientY >= b.top && e.clientY <= b.bottom]; };
+    const real = (e) => { if (!on) return; const [x, y, inside] = local(e); if (!inside) { last = null; return; } if (ghostOn && performance.now() - lastReal > 2600) last = null; lastReal = performance.now(); moveTo(x, y); start(); };
+    window.addEventListener("pointermove", real, { passive: true });
+    window.addEventListener("touchmove", (e) => e.touches[0] && real(e.touches[0]), { passive: true });
+    sec.addEventListener("scene:near", warm);
+    new MutationObserver(() => { const now = sec.classList.contains("is-on"); if (now === on) return; on = now; if (on) { warm(); ghostT = 0; last = null; start(); } }).observe(sec, { attributes: true, attributeFilter: ["class"] });
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { ghostOn = false; O.life = .6; }
+  })();
   /* ==================== keynote: scene content ==================== */
   (function () {
     const $ = (id) => document.getElementById(id);
@@ -8170,7 +8241,7 @@ window.RB = window.RB || {};
     const VIS = {
       uni: { land: 2.2, min: 4.2, max: 6.2 }, opp: { fixed: () => 9.5 }, glance: { fixed: (s, bb) => bb === 0 ? 3.2 : 8.2 }, count: { land: 1.2, min: 3.4, max: 6 }, globe: { land: 3.4, min: 6.4, max: 8 }, city: { land: 3, min: 5.8, max: 7.4 },
       size: { land: 1.8, min: 4.5, max: 7.5 }, ground: { land: 1.4, fixed: () => 1.4 + 4 * .95 + .4 }, exo: { land: 1, min: 6, max: 7.5 },
-      walk: { fixed: () => 11.5 }, marques: { land: 0, fixed: (s, bb) => bb === 0 ? 8.5 : 5.4 }, text: { land: .5, min: 3, max: 6.5 },
+      walk: { fixed: () => 11.5 }, trail: { fixed: () => 11 }, marques: { land: 0, fixed: (s, bb) => bb === 0 ? 8.5 : 5.4 }, text: { land: .5, min: 3, max: 6.5 },
     };
     function kindOf(s) {
       if (VIS[s.id]) return VIS[s.id];

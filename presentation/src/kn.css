@@ -959,3 +959,15 @@ body { background: #000; }
   .close__in { width: auto; right: 20px; top: auto; bottom: calc(40px + env(safe-area-inset-bottom, 0px)); transform: none; }
 }
 @media (prefers-reduced-motion: reduce) { .sc--close.is-on .close__strip figure, .sc--close.is-on .close__strip img { animation: none; opacity: 1; transform: none; clip-path: none; } }
+
+/* the photo trail (SmoothImageCursor): photos drop along the pointer's path, shrink and fade; the copy sits beneath them */
+.sc--trail { background: radial-gradient(60% 60% at 50% 55%, rgba(255,90,20,.10), transparent 70%), var(--ground-deep); }
+.trail { position: absolute; inset: 0; overflow: hidden; z-index: 2; pointer-events: none; }
+.trail__s { position: absolute; will-change: transform, opacity; box-shadow: 0 24px 50px -18px rgba(0,0,0,.85); overflow: hidden; transform: translate(-50%, -50%); }
+.trail__s img { width: 100%; height: 100%; object-fit: cover; display: block; user-select: none; -webkit-user-drag: none; }
+.trail__copy { position: absolute; z-index: 1; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(760px, calc(100vw - 40px)); text-align: center; display: grid; justify-items: center; }
+.trail__copy .say { margin-top: 14px; max-width: 14ch; font-size: clamp(2.4rem, 6.4vw, 6rem); }
+.trail__copy .sc__sub { max-width: 40ch; margin-inline: auto; }
+.trail__n { position: absolute; z-index: 3; right: max(24px, calc((100vw - 1240px) / 2 + 24px)); bottom: calc(32px + env(safe-area-inset-bottom, 0px)); font: 500 12px/1 ui-monospace, Menlo, monospace; letter-spacing: .14em; color: var(--ink-faint); }
+.trail__n b { color: var(--flame-lit); font-weight: 600; }
+.t-tap { display: none; } @media (hover: none) { .t-hov { display: none; } .t-tap { display: inline; } }

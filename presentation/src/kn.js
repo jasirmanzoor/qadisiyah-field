@@ -194,7 +194,7 @@
     const VIS = {
       uni: { land: 2.2, min: 4.2, max: 6.2 }, opp: { fixed: () => 9.5 }, glance: { fixed: (s, bb) => bb === 0 ? 3.2 : 8.2 }, count: { land: 1.2, min: 3.4, max: 6 }, globe: { land: 3.4, min: 6.4, max: 8 }, city: { land: 3, min: 5.8, max: 7.4 },
       size: { land: 1.8, min: 4.5, max: 7.5 }, ground: { land: 1.4, fixed: () => 1.4 + 4 * .95 + .4 }, exo: { land: 1, min: 6, max: 7.5 },
-      walk: { fixed: () => 11.5 }, marques: { land: 0, fixed: (s, bb) => bb === 0 ? 8.5 : 5.4 }, text: { land: .5, min: 3, max: 6.5 },
+      walk: { fixed: () => 11.5 }, trail: { fixed: () => 11 }, marques: { land: 0, fixed: (s, bb) => bb === 0 ? 8.5 : 5.4 }, text: { land: .5, min: 3, max: 6.5 },
     };
     function kindOf(s) {
       if (VIS[s.id]) return VIS[s.id];
