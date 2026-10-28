@@ -1,0 +1,509 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Sub-Dealer Portfolio Launch</title>
+<style>
+@font-face{font-family:IT;src:url(f/it400.ttf);font-weight:400}
+@font-face{font-family:IT;src:url(f/it500.ttf);font-weight:500}
+@font-face{font-family:IT;src:url(f/it600.ttf);font-weight:600}
+@font-face{font-family:IT;src:url(f/it700.ttf);font-weight:700}
+:root{--bg:#070200;--ink:#f3ede7;--dim:rgba(243,237,231,.52);--faint:rgba(243,237,231,.14);--line:rgba(243,237,231,.12);--card:#0d0603;--ac:#32dae6}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:var(--bg)}
+body{font-family:IT,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;font-feature-settings:"tnum" 1}
+#vp{position:absolute;inset:0;overflow:hidden;background:var(--bg)}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
+.a{position:absolute}
+.m{display:inline-block;overflow:hidden;vertical-align:top;padding:0 .03em .16em;margin:0 -.03em -.16em}
+.mi{display:inline-block}
+.ac{color:var(--ac)}
+.cap{font-size:15px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px}
+.chip{display:inline-flex;align-items:center;gap:12px;border:1px solid rgba(243,237,231,.22);border-radius:999px;white-space:nowrap}
+.cd{display:inline-block;border-radius:50%;flex:none}
+#hook{left:0;top:0;width:1920px;height:1080px;display:flex;align-items:center;justify-content:center}
+#hook h1{font-size:176px;font-weight:600;letter-spacing:-.055em;line-height:1;white-space:nowrap}
+#period{display:inline-block;width:34px;height:34px;margin-left:8px}
+/* header */
+#hdr{left:0;top:0;width:1920px;height:84px}
+#hlogo{left:40px;top:26px;width:131px;height:34px;background:url(lockup.png) 0 0/131px auto no-repeat;filter:grayscale(1) brightness(1.6)}
+#hlbl{left:0;width:1920px;top:32px;text-align:center}
+.pill{top:22px;height:40px;border-radius:999px;font-size:16px;font-weight:500;display:flex;align-items:center;padding:0 20px;gap:10px}
+#pch{left:1612px;border:1px solid rgba(243,237,231,.2)}
+#pch i{display:inline-block;width:12px;height:12px;background:linear-gradient(var(--ink),var(--ink)) 0 0/5px 5px no-repeat,linear-gradient(var(--ink),var(--ink)) 7px 0/5px 5px no-repeat,linear-gradient(var(--ink),var(--ink)) 0 7px/5px 5px no-repeat,linear-gradient(var(--ink),var(--ink)) 7px 7px/5px 5px no-repeat}
+#pdr{left:1752px;background:#fff;color:#070200}
+/* map */
+#mapEy{left:160px;top:150px}
+#mapH{left:160px;top:184px;font-size:76px;font-weight:600;letter-spacing:-.045em;line-height:1}
+#mapP{left:160px;top:300px;width:1080px;height:640px}
+#pinC{left:0;top:0}
+.dl{font-size:20px;font-weight:500;color:var(--dim)}
+.dl b{color:var(--ink);font-weight:600}
+#cardA{left:1300px;top:300px;width:460px;height:640px;padding:44px}
+#nA{font-size:150px;font-weight:600;letter-spacing:-.06em;line-height:.9}
+.rowA{margin-top:44px}
+.rowA .n{font-size:58px;font-weight:600;letter-spacing:-.04em;line-height:1}
+.rowA .l{font-size:20px;color:var(--dim);margin-left:12px}
+.trk{height:3px;background:var(--faint);margin-top:16px;border-radius:2px;overflow:hidden}
+.trk i{display:block;height:100%;background:var(--ink);transform-origin:0 0}
+/* count */
+#cardB{left:160px;top:250px;width:1600px;height:700px}
+#bHead{left:56px;top:48px;display:flex;align-items:center;gap:18px}
+#nB{left:56px;top:150px;font-size:180px;font-weight:600;letter-spacing:-.06em;line-height:1}
+#nBu{left:60px;top:338px;font-size:44px;font-weight:500;color:var(--dim)}
+#bH{left:56px;top:440px;font-size:66px;font-weight:600;letter-spacing:-.045em;line-height:1}
+#bS{left:58px;top:544px;font-size:26px;color:var(--dim);line-height:1.45}
+#gridC{left:740px;top:130px}
+#sel{border:1.5px solid rgba(243,237,231,.75);background:rgba(243,237,231,.05)}
+/* sources */
+#dT{left:160px;top:300px;font-size:120px;font-weight:600;letter-spacing:-.055em;line-height:1}
+#dChips{left:160px;top:520px;display:flex;gap:22px}
+#dChips .chip{height:64px;padding:0 28px 0 22px;font-size:24px;font-weight:500;letter-spacing:.12em}
+#dChips .cd{width:14px;height:14px;background:var(--faint)}
+#dL{left:162px;top:640px;font-size:44px;font-weight:500;letter-spacing:-.025em;color:var(--ink);height:70px;width:1600px}
+/* payoff */
+#eN{left:160px;top:250px;font-size:170px;font-weight:600;letter-spacing:-.06em;line-height:1;white-space:nowrap}
+#eL{left:160px;top:470px;font-size:66px;font-weight:600;letter-spacing:-.045em;line-height:1}
+#eS{left:162px;top:566px;font-size:26px;color:var(--dim)}
+#bar{left:160px;top:744px;width:1600px;height:2px;background:rgba(243,237,231,.28);transform-origin:0 50%}
+.tk{top:736px;width:2px;height:18px;background:rgba(243,237,231,.5)}
+.tl{top:772px;font-size:20px;font-weight:500;color:var(--dim);white-space:nowrap}
+.tl b{color:var(--ink);font-weight:600}
+/* end */
+#wm{left:523px;top:268px;width:873px;height:104px;background:url(lockup.png) 0 0/873px auto no-repeat}
+#ait{left:828px;top:433px;width:328px;height:56px;background:url(lockup.png) -305px -165px/873px auto no-repeat}
+#fT{left:0;width:1920px;top:578px;text-align:center;font-size:30px;font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:var(--dim)}
+#fM{left:0;width:1920px;top:640px;text-align:center;font-size:64px;font-weight:600;letter-spacing:-.04em}
+#fS{left:0;width:1920px;top:734px;text-align:center;font-size:28px;color:var(--dim)}
+#fU{left:0;width:1920px;top:912px;text-align:center;font-size:24px;font-weight:500;letter-spacing:.02em;color:var(--dim)}
+#fY{left:0;width:1920px;top:836px;text-align:center;font-size:40px;font-weight:500;letter-spacing:-.02em}
+/* through-line */
+.obj{left:0;top:0;background:var(--ac)}
+#cur{left:0;top:0;width:34px;height:40px;transform-origin:3px 3px}
+</style></head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<filter id="mb0" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur id="mb0g" stdDeviation="0 0"/></filter>
+<filter id="mb1" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur id="mb1g" stdDeviation="0 0"/></filter>
+<filter id="mb2" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur id="mb2g" stdDeviation="0 0"/></filter>
+</defs></svg>
+<div id="vp"><div id="stage">
+
+<div id="hook" class="a"><h1><span class="m"><span class="mi" id="w0">The</span></span> <span class="m"><span class="mi" id="w1">data</span></span> <span class="m"><span class="mi" id="w2">didn’t</span></span> <span class="m"><span class="mi" id="w3">exist</span></span><span id="period"></span></h1></div>
+
+<div id="hdr" class="a">
+  <div class="a" style="left:0;top:0;width:1920px;height:84px;overflow:hidden"><div id="hin" class="a" style="left:0;top:0;width:1920px;height:84px">
+    <div id="hlogo" class="a"></div>
+    <div id="hlbl" class="a cap"><span class="m"><span class="mi" id="hl0">08 &nbsp;Every showroom, pinned</span></span></div>
+    <div id="hlbl2" class="a cap" style="left:0;width:1920px;top:32px;text-align:center"><span class="m"><span class="mi" id="hl1">05 &nbsp;At a glance</span></span></div>
+    <div id="hlbl3" class="a cap" style="left:0;width:1920px;top:32px;text-align:center"><span class="m"><span class="mi" id="hl2">11 &nbsp;Market size</span></span></div>
+    <div id="pch" class="a pill"><i></i>Chapters</div>
+    <div id="pdr" class="a pill">Data room</div>
+  </div></div>
+</div>
+
+<div id="mapEy" class="a cap"><span class="m"><span class="mi" id="mE">— Ground truth, pinned</span></span></div>
+<div id="mapH" class="a"><span class="m"><span class="mi" id="mh0">Surveyed</span></span> <span class="m"><span class="mi" id="mh1">and</span></span> <span class="m"><span class="mi ac" id="mh2">mapped,</span></span> <span class="m"><span class="mi" id="mh3">door</span></span> <span class="m"><span class="mi" id="mh4">to</span></span> <span class="m"><span class="mi" id="mh5">door.</span></span></div>
+<div id="mapP" class="a card">
+  <canvas id="pinC" class="a" width="1080" height="640"></canvas>
+  <div id="lq" class="a dl" style="left:44px;top:584px"><span class="m"><span class="mi" id="lq0"><b>Al Qadisiyah</b> &nbsp;309</span></span></div>
+  <div id="ls" class="a dl" style="left:770px;top:584px"><span class="m"><span class="mi" id="ls0"><b>Al Shifa</b> &nbsp;211</span></span></div>
+</div>
+<div id="cardA" class="a card">
+  <div class="cap"><span class="m"><span class="mi" id="aE">The census</span></span></div>
+  <div style="margin-top:34px"><span class="m"><span class="mi" id="nA">0</span></span></div>
+  <div style="font-size:26px;color:var(--dim);margin-top:14px"><span class="m"><span class="mi" id="aU">showrooms surveyed</span></span></div>
+  <div class="rowA"><span class="m"><span class="mi" id="aq"><span class="n">309</span><span class="l">Al Qadisiyah</span></span></span><div class="trk"><i id="tq"></i></div></div>
+  <div class="rowA" style="margin-top:34px"><span class="m"><span class="mi" id="as"><span class="n">211</span><span class="l">Al Shifa</span></span></span><div class="trk"><i id="ts"></i></div></div>
+</div>
+
+<div id="cardB" class="a card">
+  <div id="bHead" class="a"><span class="cap"><span class="m"><span class="mi" id="bE">Counted stock</span></span></span>
+    <span class="chip" id="bChip" style="height:30px;padding:0 14px 0 12px;font-size:13px;font-weight:500;letter-spacing:.12em;color:var(--dim)"><span class="cd" style="width:8px;height:8px;background:var(--faint)"></span>OBSERVED · N=512</span></div>
+  <div id="nB" class="a"><span class="m"><span class="mi" id="nBi">0</span></span></div>
+  <div id="nBu" class="a"><span class="m"><span class="mi" id="nBui">cars on the floor</span></span></div>
+  <div id="bH" class="a"><span class="m"><span class="mi" id="bh0">Every</span></span> <span class="m"><span class="mi" id="bh1">car,</span></span> <span class="m"><span class="mi ac" id="bh2">counted.</span></span></div>
+  <div id="bS" class="a"><span class="m"><span class="mi" id="bs0">SAR 3.6B on display at stated prices</span></span><br><span class="m"><span class="mi" id="bs1">on 512 floors, door to door</span></span></div>
+  <canvas id="gridC" class="a" width="806" height="488"></canvas>
+  <div id="sel" class="a"></div>
+</div>
+
+<div id="dT" class="a"><span class="m"><span class="mi" id="dt0">Every</span></span> <span class="m"><span class="mi" id="dt1">number,</span></span> <span class="m"><span class="mi ac" id="dt2">sourced.</span></span></div>
+<div id="dChips" class="a">
+  <span class="chip" id="c0"><span class="cd" id="cd0"></span>OBSERVED · N=520</span>
+  <span class="chip" id="c1"><span class="cd" id="cd1"></span>CALCULATED · N=21</span>
+  <span class="chip" id="c2"><span class="cd" id="cd2"></span>ESTIMATED · N=21</span>
+</div>
+<div id="dL" class="a">
+  <div class="a" style="left:0;top:0"><span class="m"><span class="mi" id="dl0">520 independent floors, recorded door to door.</span></span></div>
+  <div class="a" style="left:0;top:0"><span class="m"><span class="mi" id="dl1">56% of interviewed owners’ sales are financed.</span></span></div>
+  <div class="a" style="left:0;top:0"><span class="m"><span class="mi" id="dl2">A range scaled from 21 owner interviews.</span></span></div>
+</div>
+
+<div id="eN" class="a"><span class="m"><span class="mi" id="eNi">SAR <span class="ac" id="eNv">0.0B</span></span></span></div>
+<div id="eL" class="a"><span class="m"><span class="mi" id="el0">a year</span></span> <span class="m"><span class="mi" id="el1">in sub-dealer</span></span> <span class="m"><span class="mi" id="el2">sales.</span></span></div>
+<div id="eS" class="a"><span class="m"><span class="mi" id="es0">Al Qadisiyah alone · conservative estimate</span></span></div>
+<div id="bar" class="a"></div>
+<div id="tk1" class="a tk" style="left:997px"></div>
+<div id="tk2" class="a tk" style="left:1680px"></div>
+<div id="tl1" class="a tl" style="left:997px"><span class="m"><span class="mi" id="tl1i"><b>Conservative</b> · 15.7B</span></span></div>
+<div id="tl2" class="a tl" style="left:1680px"><span class="m"><span class="mi" id="tl2i"><b>Full pace</b> · 28.5B</span></span></div>
+
+<div id="wm" class="a"></div>
+<div id="ait" class="a"></div>
+<div id="fT" class="a"><span class="m"><span class="mi" id="ft0">Riyadh Sub-Dealer Portfolio</span></span></div>
+<div id="fM" class="a"><span class="m"><span class="mi" id="fm0">520 showrooms</span></span> <span class="m"><span class="mi" id="fm1">surveyed and mapped.</span></span></div>
+<div id="fS" class="a"><span class="m"><span class="mi" id="fs0">31,869 cars counted · SAR 15.7B a year in sub-dealer sales</span></span></div>
+<div id="fY" class="a"><span class="m"><span class="mi" id="fy0">Thank you.</span></span></div>
+<div id="fU" class="a"><span class="m"><span class="mi" id="fu0">autolinkdealerportfolio.vercel.app</span></span></div>
+
+<div id="obj2" class="a obj"></div>
+<div id="obj" class="a obj"></div>
+<svg id="cur" class="a" viewBox="0 0 34 40"><path d="M3 3 L3 31 L10.5 24.5 L15.5 36 L20.5 33.8 L15.6 22.6 L25.5 22.6 Z" fill="#fff" stroke="#070200" stroke-width="2" stroke-linejoin="round"/></svg>
+</div></div>
+<script src="pins.js"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const BEAT = .5, DUR = 40;
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, p) => a + (b - a) * p;
+// damped spring step response, small overshoot
+function spr(x, f = 1.7, z = .78) {
+  if (x <= 0) return 0;
+  const w = 2 * Math.PI * f, wd = w * Math.sqrt(1 - z * z);
+  return 1 - Math.exp(-z * w * x) * (Math.cos(wd * x) + (z * w / wd) * Math.sin(wd * x));
+}
+const sprC = (x, f = 1, z = .95) => spr(x, f, z);
+const ex = (x, k = 9) => x <= 0 ? 0 : x >= 6 ? 1 : 1 - Math.pow(2, -k * x);
+const exd = (x, d, k = 9) => x <= 0 ? 0 : x >= d ? 1 : (1 - Math.pow(2, -k * x / d)) / (1 - Math.pow(2, -k));
+const fmt = n => Math.round(n).toLocaleString("en-US");
+
+// layout in stage coordinates (ignores transforms)
+function L(el) { let x = 0, y = 0, e = el; while (e && e.id !== "stage") { x += e.offsetLeft; y += e.offsetTop; e = e.offsetParent; } return { x, y, w: el.offsetWidth, h: el.offsetHeight, cx: x + el.offsetWidth / 2, cy: y + el.offsetHeight / 2 }; }
+
+// mask: in at tin, out at tout (separate timing for incoming/outgoing)
+function mask(id, tin, tout, t, dIn = .55, dOut = .4) {
+  const el = typeof id === "string" ? $(id) : id;
+  let y;
+  if (t < tin) y = 108;
+  else if (tout == null || t < tout) y = 108 * (1 - spr(t - tin, 1.6, .86));
+  else y = -108 * exd(t - tout, dOut, 8);
+  el.style.transform = `translateY(${y.toFixed(2)}%)`;
+  return y;
+}
+const vis = (id, on) => { $(id).style.visibility = on ? "visible" : "hidden"; };
+// clip-path unfold from a point (px,py local) to full rect, collapse at tout
+function unfold(id, px, py, tin, tout, t, dIn = .7, outDir = "up") {
+  const el = $(id), w = el.offsetWidth, h = el.offsetHeight;
+  if (t < tin) { el.style.visibility = "hidden"; return; }
+  el.style.visibility = "visible";
+  let p = spr(t - tin, 1.25, .9);
+  let top = py * (1 - p), left = px * (1 - p), right = (w - px) * (1 - p), bottom = (h - py) * (1 - p);
+  if (tout != null && t >= tout) {
+    const q = exd(t - tout, .42, 8);
+    if (outDir === "up") bottom = h * q; else top = h * q;
+    if (q >= 1) { el.style.visibility = "hidden"; return; }
+  }
+  el.style.clipPath = `inset(${top.toFixed(1)}px ${right.toFixed(1)}px ${bottom.toFixed(1)}px ${left.toFixed(1)}px round 20px)`;
+}
+
+// ---------- pins ----------
+const PQ = [], PS = [];
+(function () {
+  const cosL = Math.cos(24.7 * Math.PI / 180);
+  function fit(list, box) {
+    const xs = list.map(p => p[2] * cosL).sort((a, b) => a - b), ys = list.map(p => p[1]).sort((a, b) => a - b);
+    const q = (a, f) => a[Math.floor(f * (a.length - 1))];
+    const x0 = q(xs, .02), x1 = q(xs, .98), y0 = q(ys, .02), y1 = q(ys, .98);
+    const s = Math.min(box.w / (x1 - x0), box.h / (y1 - y0));
+    const ox = box.x + (box.w - (x1 - x0) * s) / 2, oy = box.y + (box.h - (y1 - y0) * s) / 2;
+    return list.map(p => ({ x: clamp(ox + (p[2] * cosL - x0) * s, box.x - 20, box.x + box.w + 20), y: clamp(oy + (y1 - p[1]) * s, box.y - 20, box.y + box.h + 20) }));
+  }
+  fit(PINS.filter(p => p[0] === 0), { x: 60, y: 60, w: 620, h: 480 }).forEach(p => PQ.push(p));
+  fit(PINS.filter(p => p[0] === 1), { x: 790, y: 190, w: 240, h: 240 }).forEach(p => PS.push(p));
+})();
+const ALL = PQ.concat(PS);
+// through-line pin: the Qadisiyah pin closest to the cluster's centre
+let HERO = 0;
+{ const mx = PQ.reduce((a, p) => a + p.x, 0) / PQ.length, my = PQ.reduce((a, p) => a + p.y, 0) / PQ.length; let best = 1e9; PQ.forEach((p, i) => { const d = (p.x - mx) ** 2 + (p.y - my) ** 2; if (d < best) { best = d; HERO = i; } }); }
+const HP = ALL[HERO];
+const maxD = Math.max(...ALL.map(p => Math.hypot(p.x - HP.x, p.y - HP.y)));
+const T_SPREAD = 3.05;
+ALL.forEach((p, i) => { p.t0 = T_SPREAD + .06 + 2.25 * Math.pow(Math.hypot(p.x - HP.x, p.y - HP.y) / maxD, .8) + ((i * 37) % 11) * .008; });
+
+// ---------- grid ----------
+const GC = 230, GN = 31869, GP = 3.5, GR = Math.ceil(GN / GC);
+const rowLen = r => r < GR - 1 ? GC : GN - GC * (GR - 1);
+
+// ---------- measured anchors ----------
+let A = {};
+function measure() {
+  const mp = L($("mapP"));
+  A.pin = { x: mp.x + HP.x, y: mp.y + HP.y };
+  A.period = L($("period"));
+  const g = L($("gridC")); A.grid = g; A.g0 = { x: g.x + 1, y: g.y + 1 };
+  A.cd = [0, 1, 2].map(i => L($("cd" + i)));
+  A.chip = [0, 1, 2].map(i => L($("c" + i)));
+  const b = L($("bar")); A.bar = b;
+  A.xv = v => b.x + b.w * v / 30;
+  A.wm = L($("wm")); A.ait = L($("ait"));
+  A.nA = L($("cardA")); A.eN = L($("eN"));
+}
+
+// ---------- timelines (cumulative springs; targets may be functions of t) ----------
+function track(keys, t, f, z) {
+  const val = k => typeof k.v === "function" ? k.v(t) : k.v;
+  let out = Object.assign({}, val(keys[0]));
+  for (let i = 1; i < keys.length; i++) {
+    const p = spr(t - keys[i].t, keys[i].f || f, keys[i].z || z);
+    if (p === 0) continue;
+    const a = val(keys[i - 1]), b = val(keys[i]);
+    for (const k in b) out[k] += (b[k] - a[k]) * p;
+  }
+  return out;
+}
+
+let CUR, OBJ, CAM;
+const SC = [0, 2, 10, 18, 24, 34, 40];
+function push(t) { // 1.0 -> 1.04 across each scene, carried into the next
+  let u = 0; for (let i = 0; i < SC.length - 1; i++) u += clamp((t - SC[i]) / (SC[i + 1] - SC[i]));
+  return Math.pow(1.04, u);
+}
+
+function build() {
+  measure();
+  const pin = A.pin, g0 = A.g0;
+  const gx = A.grid.x, gy = A.grid.y, gw = 230 * GP, gh = GR * GP;
+  // cursor path
+  const dragPts = [];
+  for (let k = 0; k <= 7; k++) dragPts.push({ x: gx + gw * (k / 7) * 1.0 + 6, y: gy + gh * Math.pow(k / 7, .85) + 6 });
+  const cd = A.cd, cx = i => cd[i].cx, cy = i => cd[i].cy;
+  const xC = A.xv(15.7);
+  CUR = [
+    { t: 0, v: { x: 2080, y: 1180, s: 1 } },
+    { t: 2.3, v: { x: pin.x + 210, y: pin.y + 150, s: 1 } },
+    { t: 2.65, v: { x: pin.x + 2, y: pin.y + 2, s: 1 } },
+    { t: 3.9, v: { x: pin.x + 150, y: pin.y + 210, s: 1 } },
+    { t: 6.0, v: { x: 1560, y: 760, s: 1 } },
+    { t: 9.6, v: { x: pin.x + 60, y: pin.y + 90, s: 1 } },
+    { t: 10.7, v: { x: g0.x + 120, y: g0.y + 90, s: 1 } },
+    { t: 11.25, v: { x: g0.x - 1, y: g0.y - 1, s: 1 } },
+    ...dragPts.slice(1).map((p, k) => ({ t: 12 + k * .5, v: { x: p.x, y: p.y, s: 1 } })),
+    { t: 16.0, v: { x: gx + gw + 80, y: gy + gh + 60, s: 1 } },
+    { t: 19.0, v: { x: cx(0) + 70, y: cy(0) + 40, s: 1 } },
+    { t: 19.35, v: { x: cx(0) + 2, y: cy(0) + 2, s: 1 } },
+    { t: 20.55, v: { x: cx(1) + 30, y: cy(1) + 4, s: 1 } },
+    { t: 22.05, v: { x: cx(2) + 30, y: cy(2) + 4, s: 1 } },
+    { t: 23.3, v: { x: cx(2) + 120, y: cy(2) + 130, s: 1 } },
+    { t: 24.6, v: { x: A.bar.x + 1, y: A.bar.y + 1, s: 1 } },
+    ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map(k => ({ t: 25.0 + k * .5, v: { x: lerp(A.bar.x + 1, xC + 1, Math.pow(k / 9, .9)), y: A.bar.y + 1, s: 1 } })),
+    { t: 30.1, v: { x: xC + 160, y: A.bar.y + 260, s: 1 } },
+    { t: 30.9, v: { x: 2100, y: 1240, s: 1 } },
+  ];
+  CUR.clicks = [2.95, 11.5, 19.6, 21.0, 22.5, 25.0];
+  CUR.holds = [[11.5, 15.6], [25.0, 29.9]];
+
+  const dot = (x, y, d, ring = 0) => ({ x, y, w: d, h: d, r: d / 2, ring });
+  const per = A.period;
+  OBJ = [
+    { t: 0, v: dot(per.cx, per.cy, 0) },
+    { t: 1.06, v: dot(per.cx, per.cy, 34) },
+    { t: 1.5, v: dot(per.cx, per.cy, 26, 1) },
+    { t: 2.0, v: dot(pin.x, pin.y, 16, 1), f: 1.3, z: .86 },
+    { t: 2.98, v: dot(pin.x, pin.y, 12, 1) },
+    { t: 9.0, v: dot(pin.x, pin.y, 22, 1) },
+    { t: 10.0, v: dot(g0.x + 1, g0.y + 1, 9, 0), f: 1.2, z: .88 },
+    { t: 18.0, v: dot(cx(0), cy(0), 14, 0), f: 1.15, z: .88 },
+    { t: 21.0, v: dot(cx(1), cy(1), 14, 0) },
+    { t: 22.5, v: dot(cx(2), cy(2), 14, 0) },
+    { t: 24.0, v: dot(A.bar.x, A.bar.y + 1, 26, 0), f: 1.25, z: .88 },
+    { t: 25.0, v: t => { const c = curAt(t); return dot(clamp(c.x - 1, A.bar.x, xC), A.bar.y + 1, 26, 0); } },
+    { t: 30.0, v: dot(xC, A.bar.y + 1, 26, 0) },
+    { t: 32.5, v: dot(960, A.ait.cy - 2, 26, 0), f: 1.1, z: .9 },
+    { t: 33.5, v: { x: 960, y: A.ait.cy - 2, w: 870, h: 14, r: 7, ring: 0 } },
+  ];
+  // camera, desired effective scale D, stored as D/push
+  const ck = (t, x, y, D, f, z) => ({ t, v: { x, y, s: D / push(t) }, f, z });
+  CAM = [
+    ck(0, 960, 540, 1.0),
+    ck(1.1, per.cx - 120, 540, 1.12),
+    ck(2.0, pin.x + 120, pin.y + 40, 1.85, 1.1, .92),
+    ck(3.4, A.nA.x - 200, 620, 1.0, .8),
+    ck(5.9, A.nA.cx, A.nA.cy + 10, 1.42, .9),
+    ck(7.1, 960, 560, 1.0, 1.0),
+    ck(9.3, pin.x + 60, pin.y, 1.6, 1.0),
+    ck(10.0, 720, 450, 1.3, 1.1, .92),
+    ck(12.6, 960, 600, 1.02, .5),
+    ck(15.8, 600, 520, 1.32, .9),
+    ck(17.0, 820, 580, 1.12, .9),
+    ck(18.0, cx(0) + 500, cy(0) - 120, 1.4, 1.0, .92),
+    ck(18.7, 945, 520, 1.17, .9),
+    ck(22.4, 960, 540, 1.14, .9),
+    ck(24.0, A.bar.x + 420, 505, 1.32, 1.0),
+    ck(25.4, 880, 560, 1.06, .5),
+    ck(30.0, A.eN.x + 400, A.eN.cy + 4, 1.7, 1.5, .9),
+    ck(31.4, 960, 520, 1.02, .8),
+    ck(32.4, 960, 548, 1.12, .7),
+    ck(33.4, 960, 548, .98, .9),
+  ];
+}
+const curAt = t => track(CUR, t, 1.9, .86);
+const objAt = t => track(OBJ, t, 1.7, .82);
+const camAt = t => track(CAM, t, 1.0, .95);
+
+function press(t) { let s = 1; for (const c of CUR.clicks) { const d = t - c; if (d > -.06 && d < .22) s = Math.min(s, 1 - .16 * Math.sin(Math.PI * clamp((d + .06) / .28))); } for (const [a, b] of CUR.holds) if (t > a + .1 && t < b) s = Math.min(s, .86); return s; }
+
+function blurFor(id, vx, vy, k = .0042, cap = 14) { // px/s on screen → directional blur
+  const sx = Math.min(cap, Math.abs(vx) * k), sy = Math.min(cap, Math.abs(vy) * k);
+  $(id + "g").setAttribute("stdDeviation", `${sx < .25 ? 0 : sx.toFixed(2)} ${sy < .25 ? 0 : sy.toFixed(2)}`);
+  return sx >= .25 || sy >= .25;
+}
+
+const pctx = $("pinC").getContext("2d"), gctx = $("gridC").getContext("2d");
+
+window.seek = function (t) {
+  t = clamp(t, 0, DUR);
+  // camera
+  const c = camAt(t), s = c.s * push(t);
+  $("stage").style.transform = `translate(${960 - c.x * s}px, ${540 - c.y * s}px) scale(${s})`;
+  const toScr = (x, y, cc, ss) => ({ x: 960 + (x - cc.x) * ss, y: 540 + (y - cc.y) * ss });
+  const dt = 1 / 120, c2 = camAt(t - dt), s2 = c2.s * push(t - dt);
+
+  // ---- hook ----
+  vis("hook", t < 2.2);
+  mask("w0", 0.0, 1.55, t); mask("w1", .5, 1.62, t); mask("w2", .9, 1.69, t); mask("w3", 1.0, 1.76, t);
+
+  // ---- header ----
+  const hp = t < 2.4 ? 0 : t < 32.4 ? spr(t - 2.4, 1.4, .9) : 1 - exd(t - 32.4, .45);
+  $("hin").style.transform = `translateY(${(-100 * (1 - hp)).toFixed(2)}%)`;
+  mask("hl0", 2.6, 10.0, t); mask("hl1", 10.35, 24.0, t); mask("hl2", 24.35, 32.4, t);
+
+  // ---- map scene ----
+  mask("mE", 2.5, 10.0, t);
+  ["mh0", "mh1", "mh2", "mh3", "mh4", "mh5"].forEach((id, i) => mask(id, 7.75 + i * .25, 10.0 + i * .03, t));
+  const mp = L($("mapP"));
+  unfold("mapP", HP.x, HP.y, 2.1, 10.05, t);
+  unfold("cardA", 0, 320, 3.5, 10.1, t);
+  mask("aE", 3.75, 10.1, t); mask("nA", 3.85, 10.1, t); mask("aU", 4.05, 10.1, t);
+  mask("aq", 6.5, 10.1, t); mask("as", 7.0, 10.1, t);
+  $("tq").style.transform = `scaleX(${(309 / 520 * spr(t - 6.55, 1.2, .9)).toFixed(4)})`;
+  $("ts").style.transform = `scaleX(${(211 / 520 * spr(t - 7.05, 1.2, .9)).toFixed(4)})`;
+  mask("lq0", 4.5, 10.0, t); mask("ls0", 5.0, 10.0, t);
+  // pins
+  if (t > 2 && t < 10.6) {
+    pctx.clearRect(0, 0, 1080, 640);
+    let landed = 0;
+    for (let i = 0; i < ALL.length; i++) {
+      if (i === HERO) continue;
+      const p = ALL[i], q = spr(t - p.t0, 1.5, .84);
+      if (q <= 0) continue;
+      if (q > .9) landed++;
+      const x = lerp(HP.x, p.x, q), y = lerp(HP.y, p.y, q), r = 2.6 * clamp(q * 3);
+      pctx.fillStyle = "rgba(243,237,231,.62)";
+      pctx.beginPath(); pctx.arc(x, y, r, 0, 6.2832); pctx.fill();
+    }
+    const tq = Math.floor(t * 60) / 60, share = clamp((tq - (T_SPREAD + .06)) / 2.4);
+    $("nA").textContent = fmt(520 * (tq < 3.85 ? 0 : 1 - Math.pow(1 - share, 2.2)));
+  }
+
+  // ---- count scene ----
+  const g = A.grid;
+  unfold("cardB", A.g0.x - 160, A.g0.y - 250, 10.32, 18.0, t);
+  mask("bE", 10.9, 18.0, t);
+  vis("bChip", t > 10.9 && t < 18.42);
+  $("bChip").style.clipPath = `inset(0 ${(100 * (1 - spr(t - 11.0, 1.4, .9))).toFixed(1)}% 0 0 round 999px)`;
+  mask("nBi", 11.1, 18.0, t); mask("nBui", 11.3, 18.0, t);
+  mask("bh0", 15.9, 18.02, t); mask("bh1", 16.15, 18.05, t); mask("bh2", 16.4, 18.08, t);
+  mask("bs0", 16.9, 18.1, t); mask("bs1", 17.35, 18.12, t);
+  const cu = curAt(t);
+  let selW = 0, selH = 0;
+  if (t > 11.5) { const end = t < 15.6 ? cu : curAt(15.6); selW = clamp(end.x - A.g0.x + 1, 0, 230 * GP); selH = clamp(end.y - A.g0.y + 1, 0, GR * GP); }
+  const selOn = t > 11.55 && t < 18.0;
+  vis("sel", selOn && selW > 2);
+  if (selOn) { const sl = $("sel"); sl.style.left = (g.x - 160 - 1) + "px"; sl.style.top = (g.y - 250 - 1) + "px"; sl.style.width = (selW + 2) + "px"; sl.style.height = (selH + 2) + "px"; }
+  if (t > 10.2 && t < 18.6) {
+    gctx.clearRect(0, 0, 806, 488);
+    const R = (t - 10.62) * 1400 * Math.max(0, 1 - Math.pow(2, -(t - 10.62) * 1.2)) + 0;
+    const cs = Math.floor(selW / GP), rs = Math.floor(selH / GP);
+    for (let r = 0; r < GR; r++) {
+      const n = rowLen(r), y = r * GP;
+      for (let k = 0; k < n; k++) {
+        const x = k * GP;
+        if (Math.hypot(x, y) > R) { if (x > R) break; continue; }
+        const on = k < cs && r < rs;
+        gctx.fillStyle = on ? "rgba(243,237,231,.86)" : "rgba(243,237,231,.11)";
+        gctx.fillRect(x, y, 2, 2);
+      }
+    }
+    const eq = curAt(Math.floor(t * 60) / 60), qw = clamp(eq.x - A.g0.x + 1, 0, 230 * GP), qh = clamp(eq.y - A.g0.y + 1, 0, GR * GP);
+    const qc = t > 11.5 ? Math.floor(qw / GP) : 0, qr = t > 11.5 ? Math.floor(qh / GP) : 0;
+    let cnt = 0; for (let r = 0; r < Math.min(qr, GR); r++) cnt += Math.min(qc, rowLen(r));
+    if (t > 15.6) cnt = GN;
+    $("nBi").textContent = fmt(cnt);
+  }
+
+  // ---- sources scene ----
+  ["dt0", "dt1", "dt2"].forEach((id, i) => mask(id, 18.55 + i * .22, 23.6 + i * .03, t));
+  unfold("dChips", A.cd[0].cx - 160, A.cd[0].cy - 520, 18.35, 23.62, t);
+  [0, 1, 2].forEach(i => { const on = (i === 0 && t < 21.0) || (i === 1 && t >= 21.0 && t < 22.5) || (i === 2 && t >= 22.5); $("c" + i).style.color = on ? "var(--ink)" : "var(--dim)"; $("c" + i).style.borderColor = on ? "rgba(243,237,231,.5)" : "rgba(243,237,231,.18)"; });
+  mask("dl0", 19.65, 20.98, t); mask("dl1", 21.2, 22.48, t); mask("dl2", 22.7, 23.62, t);
+
+  // ---- payoff ----
+  mask("eNi", 24.55, 32.0, t);
+  const ob = objAt(t);
+  const obq = objAt(Math.floor(t * 60) / 60), v = clamp((obq.x - A.bar.x) / A.bar.w * 30, 0, 30);
+  $("eNv").textContent = (t >= 30 ? 15.7 : Math.round(v * 10) / 10).toFixed(1) + "B";
+  ["el0", "el1", "el2"].forEach((id, i) => mask(id, 30.12 + i * .18, 32.0 + i * .03, t));
+  mask("es0", 30.85, 32.06, t);
+  const bp = t < 24.25 ? 0 : t < 32.1 ? spr(t - 24.25, 1.1, .92) : 1 - exd(t - 32.1, .45);
+  $("bar").style.transform = `scaleX(${bp.toFixed(4)})`;
+  vis("bar", t > 24.2 && t < 32.6);
+  const tkp = (a, o) => t < a ? 0 : t < o ? spr(t - a, 1.6, .9) : 1 - exd(t - o, .35);
+  $("tk1").style.transform = `scaleY(${tkp(25.5, 32.05).toFixed(3)})`;
+  $("tk2").style.transform = `scaleY(${tkp(31.45, 32.05).toFixed(3)})`;
+  mask("tl1i", 25.65, 32.05, t); mask("tl2i", 31.6, 32.08, t);
+
+  // ---- end card ----
+  const wmp = t < 34.5 ? 0 : spr(t - 34.5, 1.2, .9);
+  $("wm").style.clipPath = `inset(${(104 * (1 - wmp)).toFixed(1)}px 0 0 0)`;
+  $("wm").style.transform = `translateY(${(26 * (1 - wmp)).toFixed(2)}px)`;
+  const aip = t < 34.3 ? 0 : spr(t - 34.3, 1.3, .9);
+  $("ait").style.clipPath = `inset(0 ${(50 * (1 - aip)).toFixed(2)}% 0 ${(50 * (1 - aip)).toFixed(2)}%)`;
+  mask("ft0", 35.0, null, t); mask("fm0", 35.5, null, t); mask("fm1", 35.8, null, t); mask("fs0", 36.5, null, t); mask("fy0", 37.5, null, t); mask("fu0", 38.5, null, t);
+
+  // ---- through-line object ----
+  let o = ob;
+  const split = t < 34.0 ? 0 : spr(t - 34.0, 1.3, .86);
+  const LB = { x: 523 + 2 * .9, w: (240 - 2) * .9 }, RB = { x: 523 + 747 * .9, w: (967 - 747) * .9 };
+  const by = A.ait.y + (209 - 184) * .9 - 1;
+  const drawObj = (id, oo) => {
+    const el = $(id);
+    const ring = oo.ring || 0;
+    el.style.width = oo.w + "px"; el.style.height = oo.h + "px"; el.style.borderRadius = oo.r + "px";
+    el.style.transform = `translate(${(oo.x - oo.w / 2).toFixed(2)}px, ${(oo.y - oo.h / 2).toFixed(2)}px)`;
+    el.style.boxShadow = ring > .01 ? `0 0 0 ${(4 * ring).toFixed(2)}px #070200, 0 0 0 ${(6.5 * ring).toFixed(2)}px rgba(50,218,230,${(.9 * ring).toFixed(3)})` : "none";
+    el.style.visibility = oo.w > .3 ? "visible" : "hidden";
+  };
+  if (split > 0) {
+    const L1 = { x: LB.x + LB.w / 2, y: by, w: LB.w, h: 14, r: 7 }, R1 = { x: RB.x + RB.w / 2, y: by, w: RB.w, h: 14, r: 7 };
+    const mix = (a, b, p) => ({ x: lerp(a.x, b.x, p), y: lerp(a.y, b.y, p), w: lerp(a.w, b.w, p), h: lerp(a.h, b.h, p), r: lerp(a.r, b.r, p), ring: 0 });
+    drawObj("obj", mix(o, L1, split)); drawObj("obj2", mix(o, R1, split));
+  } else { drawObj("obj", o); $("obj2").style.visibility = "hidden"; }
+  // obj motion blur
+  const o2 = objAt(t - dt), a1 = toScr(o.x, o.y, c, s), a2 = toScr(o2.x, o2.y, c2, s2);
+  const ob1 = blurFor("mb0", (a1.x - a2.x) / dt, (a1.y - a2.y) / dt) && split === 0;
+  $("obj").style.filter = ob1 ? "url(#mb0)" : "none";
+
+  // ---- cursor ----
+  const onC = t > 2.1 && t < 31.0;
+  vis("cur", onC);
+  if (onC) {
+    const k = press(t) / s; // constant on-screen size
+    $("cur").style.transform = `translate(${(cu.x - 3).toFixed(2)}px, ${(cu.y - 3).toFixed(2)}px) scale(${(k * 1.25).toFixed(4)})`;
+    const cp = curAt(t - dt), b1 = toScr(cu.x, cu.y, c, s), b2 = toScr(cp.x, cp.y, c2, s2);
+    $("cur").style.filter = blurFor("mb1", (b1.x - b2.x) / dt, (b1.y - b2.y) / dt, .0016, 4) ? "url(#mb1)" : "none";
+  }
+};
+
+window.ready = (async () => { await document.fonts.load("600 100px IT"); await document.fonts.load("500 20px IT"); await document.fonts.load("400 20px IT"); await document.fonts.ready; build(); window.seek(0); return true; })();
+</script>
+</body></html>
