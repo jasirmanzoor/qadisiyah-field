@@ -1,0 +1,571 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>One Door Becomes the Market</title>
+<style>
+@font-face{font-family:ID;src:url(f/InterDisplay-Medium.otf);font-weight:500}
+@font-face{font-family:ID;src:url(f/InterDisplay-SemiBold.otf);font-weight:600}
+@font-face{font-family:ID;src:url(f/InterDisplay-Bold.otf);font-weight:700}
+@font-face{font-family:ID;src:url(f/InterDisplay-ExtraBold.otf);font-weight:800}
+@font-face{font-family:ID;src:url(f/InterDisplay-Black.otf);font-weight:900}
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:#000}
+canvas{display:block}
+</style></head>
+<body><canvas id="c" width="1920" height="1080"></canvas>
+<script src="data.js"></script>
+<script>
+'use strict';
+// "One door becomes the market" — 15 s, 120 BPM, 30 beats. Every pixel is a pure function of t.
+const B = .5, DUR = 15;
+const cv = document.getElementById('c'), g = cv.getContext('2d');
+let T = 0;
+
+/* ---------- colour: Autolink oranges + black + warm white ---------- */
+const cO = [255, 106, 0], cR = [255, 61, 0], cA = [255, 154, 46], cW = [244, 239, 234], cK = [0, 0, 0];
+const css = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+const mixc = (a, b, p) => [a[0] + (b[0] - a[0]) * p, a[1] + (b[1] - a[1]) * p, a[2] + (b[2] - a[2]) * p];
+const shade = (c, k) => mixc(c, cK, k);
+
+/* ---------- time maths ---------- */
+const clamp = (x, a = 0, b = 1) => x < a ? a : x > b ? b : x;
+const lerp = (a, b, p) => a + (b - a) * p;
+const eo = x => x <= 0 ? 0 : x >= 1 ? 1 : 1 - Math.pow(2, -10 * x);
+const ei = x => x <= 0 ? 0 : x >= 1 ? 1 : Math.pow(2, 10 * (x - 1));
+const eio = x => x <= 0 ? 0 : x >= 1 ? 1 : x < .5 ? Math.pow(2, 20 * x - 10) / 2 : (2 - Math.pow(2, -20 * x + 10)) / 2;
+const eioInv = y => y <= 0 ? 0 : y >= 1 ? 1 : y < .5 ? (Math.log2(2 * y) + 10) / 20 : (10 - Math.log2(2 - 2 * y)) / 20;
+// Framer Motion's spring (stiffness k, damping c, mass m) solved in closed form for a unit step.
+function spring(t, k, c, m = 1) {
+  if (t <= 0) return 0;
+  const w0 = Math.sqrt(k / m), z = c / (2 * Math.sqrt(k * m));
+  if (Math.abs(z - 1) < 1e-3) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+  if (z < 1) { const wd = w0 * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + z * w0 / wd * Math.sin(wd * t)); }
+  const r = Math.sqrt(z * z - 1), s1 = -w0 * (z - r), s2 = -w0 * (z + r);
+  return 1 - (s2 * Math.exp(s1 * t) - s1 * Math.exp(s2 * t)) / (s2 - s1);
+}
+// critically damped (no overshoot, no bounce): damping = 2·sqrt(stiffness·mass)
+const S = (t, k = 520) => spring(t, k, 2 * Math.sqrt(k));
+const L = (beat, d = 0) => T - (beat * B + d);          // local time since a beat
+const DT = 1 / 240;                                     // velocity probe for motion blur
+const SH = 1 / 100;                                     // shutter length for the smear
+
+/* ---------- drawing helpers ---------- */
+function rectM(x, y, w, h, vx, vy, fill) {            // centred rect, smeared along its velocity
+  g.fillStyle = fill;
+  const dx = vx * SH, dy = vy * SH, len = Math.hypot(dx, dy);
+  if (len > 2) {
+    const n = Math.min(10, Math.ceil(len / 5)), a0 = g.globalAlpha;
+    for (let i = n; i >= 1; i--) { g.globalAlpha = a0 * (1 - i / (n + 1)) * .5; g.fillRect(x - w / 2 - dx * i / n, y - h / 2 - dy * i / n, w, h); }
+    g.globalAlpha = a0;
+  }
+  g.fillRect(x - w / 2, y - h / 2, w, h);
+}
+function polyPath(pts, ox = 0, oy = 0) { g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(p[0] + ox, p[1] + oy) : g.moveTo(p[0] + ox, p[1] + oy)); g.closePath(); }
+function polyM(pts, vx, vy, fill) {
+  g.fillStyle = fill;
+  const dx = vx * SH, dy = vy * SH, len = Math.hypot(dx, dy);
+  if (len > 2) {
+    const n = Math.min(10, Math.ceil(len / 6)), a0 = g.globalAlpha;
+    for (let i = n; i >= 1; i--) { g.globalAlpha = a0 * (1 - i / (n + 1)) * .5; polyPath(pts, -dx * i / n, -dy * i / n); g.fill(); }
+    g.globalAlpha = a0;
+  }
+  polyPath(pts); g.fill();
+}
+const font = (sz, wt) => { g.font = `${wt} ${sz}px ID`; };
+// Kinetic line: each glyph springs up out of a mask at tin and up out again at tout.
+function roll(str, o) {
+  const { x, y, size, wt = 900, col = css(cW), align = 'left', tin = -9, tout = 1e9, stag = .018, ls = 0, k = 520, tab = false, sq = null } = o;
+  font(size, wt); g.letterSpacing = ls + 'px';
+  const n = str.length, xs = [];
+  const dw = tab ? g.measureText('0').width + ls : 0;
+  let acc = 0;
+  for (let i = 0; i <= n; i++) {
+    if (tab) { xs.push(acc); if (i < n) acc += /[0-9]/.test(str[i]) ? dw : g.measureText(str[i]).width + ls; }
+    else xs.push(g.measureText(str.slice(0, i)).width);
+  }
+  const wT = xs[n] - (tab ? 0 : 0);
+  const x0 = align === 'left' ? x : align === 'center' ? x - wT / 2 : x - wT;
+  const info = { x0, w: wT };
+  if (T < tin || T > tout + stag * (n + 1) + .7) return info;
+  const ctr = i => tab && /[0-9]/.test(str[i]) ? (dw - ls - g.measureText(str[i]).width) / 2 : 0;
+  const D = size * 1.4;
+  const off = (tt, i) => (1 - S(tt - tin - i * stag, k)) * D - S(tt - tout - i * stag, k) * D;
+  g.save(); g.beginPath(); g.rect(x0 - size * .3, y - size * 1.0, wT + size * .9, size * 1.3); g.clip();
+  g.textBaseline = 'alphabetic'; g.textAlign = 'left';
+  for (let i = 0; i < n; i++) {
+    const dy = off(T, i); if (Math.abs(dy) >= D - .5) continue;
+    const vy = (dy - off(T - DT, i)) / DT, cx = x0 + xs[i];
+    g.fillStyle = col;
+    const len = Math.abs(vy * SH);
+    if (len > 2) { const m = Math.min(8, Math.ceil(len / 6)); for (let j = m; j >= 1; j--) { g.globalAlpha = (1 - j / (m + 1)) * .45; g.fillText(str[i], cx + ctr(i), y + dy - vy * SH * j / m); } g.globalAlpha = 1; }
+    g.fillText(str[i], cx + ctr(i), y + dy);
+  }
+  if (sq) { // the full stop is an orange square that rides with the last glyph
+    const dy = off(T, n) * (sq.stay ? 1 : 1), s = sq.s;
+    if (!(sq.leave && T >= tout)) g.fillStyle = sq.col, g.fillRect(x0 + wT + sq.gap, y - s + dy, s, s);
+  }
+  g.restore(); g.letterSpacing = '0px';
+  return info;
+}
+
+/* ---------- precomputed geometry (static lookups, no frame state) ---------- */
+const COLS = 26, ROWS = 20, PX = 64, PY = 52;
+const cx = c => 960 + (c - 12.5) * PX, cy = r => 540 + (r - 9.5) * PY;
+const OC = 12, OR = 9;                                   // the origin door / card cell
+let NUM = {};                                            // pixel numerals: 520, 2, 1
+function buildMasks() {
+  const oc = document.createElement('canvas'); oc.width = 1920; oc.height = 1080;
+  const o = oc.getContext('2d');
+  o.font = '900 100px ID'; const w100 = o.measureText('520').width;
+  const size = Math.min(800, 1560 / (w100 / 100));
+  o.font = `900 ${size}px ID`;
+  const w = o.measureText('520').width, cap = .727 * size, base = 540 + cap / 2, RX = 960 + w / 2;
+  const mk = (s) => {
+    o.clearRect(0, 0, 1920, 1080); o.fillStyle = '#fff'; o.textAlign = 'right'; o.textBaseline = 'alphabetic';
+    o.fillText(s, RX, base);
+    const d = o.getImageData(0, 0, 1920, 1080).data, cells = [];
+    for (let c = 0; c < COLS; c++) for (let r = 0; r < ROWS; r++) {
+      let n = 0;
+      for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
+        const X = Math.round(cx(c) + i * PX * .3), Y = Math.round(cy(r) + j * PY * .3);
+        if (d[(Y * 1920 + X) * 4 + 3] > 128) n++;
+      }
+      if (n >= 5) cells.push([c, r]);
+    }
+    return cells;
+  };
+  const A = mk('520'), set = new Set(A.map(([c, r]) => c + ',' + r));
+  NUM = { size, cap, base, RX, A, B2: mk('2'), C1: mk('1'), inA: set };
+}
+
+// polygons resampled to N points, starting at the top, clockwise
+const NP = 96;
+function resample(poly) {
+  let area = 0; for (let i = 0; i < poly.length; i++) { const a = poly[i], b = poly[(i + 1) % poly.length]; area += a[0] * b[1] - b[0] * a[1]; }
+  if (area < 0) poly = poly.slice().reverse();
+  const cxm = poly.reduce((s, p) => s + p[0], 0) / poly.length, cym = poly.reduce((s, p) => s + p[1], 0) / poly.length;
+  const seg = [], P = poly.length; let tot = 0;
+  for (let i = 0; i < P; i++) { const a = poly[i], b = poly[(i + 1) % P], l = Math.hypot(b[0] - a[0], b[1] - a[1]); seg.push([a, b, l]); tot += l; }
+  const out = [];
+  for (let k = 0; k < NP; k++) {
+    let d = tot * k / NP, i = 0; while (d > seg[i][2]) { d -= seg[i][2]; i++; }
+    const [a, b, l] = seg[i]; out.push([a[0] + (b[0] - a[0]) * d / l, a[1] + (b[1] - a[1]) * d / l]);
+  }
+  let best = 0, bv = 1e9;
+  out.forEach((p, i) => { const v = Math.abs(Math.atan2(p[1] - cym, p[0] - cxm) + Math.PI / 2) + (p[1] > cym ? 9 : 0); if (v < bv) { bv = v; best = i; } });
+  return out.slice(best).concat(out.slice(0, best));
+}
+const sqPoly = (x, y, s) => resample([[x - s / 2, y - s / 2], [x + s / 2, y - s / 2], [x + s / 2, y + s / 2], [x - s / 2, y + s / 2]]);
+const HQ = resample(D.h[0]), HS = resample(D.h[1]);
+const bbox = P => { const xs = P.map(p => p[0]), ys = P.map(p => p[1]); return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]; };
+const BQ = bbox(HQ), BS = bbox(HS);
+const lerpPoly = (a, b, p) => a.map((q, i) => [lerp(q[0], b[i][0], p), lerp(q[1], b[i][1], p)]);
+const centroid = P => [P.reduce((s, p) => s + p[0], 0) / P.length, P.reduce((s, p) => s + p[1], 0) / P.length];
+
+// showrooms: located pins + ranks for the chart
+const PINS = D.p.map(([x, y, dist, inv], i) => ({ x, y, dist, inv, i }));
+const RANKED = []; // all 512 showrooms with a car count
+PINS.forEach(p => { if (p.inv > 0) RANKED.push({ inv: p.inv, pin: p, dist: p.dist }); });
+const located = {}; PINS.forEach(p => { if (p.inv > 0) located[p.inv] = (located[p.inv] || 0) + 1; });
+const allCount = {}; D.inv.forEach(v => allCount[v] = (allCount[v] || 0) + 1);
+Object.keys(allCount).forEach(v => { for (let j = 0; j < allCount[v] - (located[v] || 0); j++) RANKED.push({ inv: +v, pin: null, dist: 1 }); });
+RANKED.sort((a, b) => b.inv - a.inv || (a.pin ? 0 : 1) - (b.pin ? 0 : 1));
+const NR = RANKED.length;
+RANKED.forEach((r, k) => { r.rank = k; if (r.pin) r.pin.rank = k; });
+const rnd = i => { const s = Math.sin(i * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const CH = { x0: 160, x1: 1760, base: 860, k: 2.6 };
+const rankX = k => CH.x0 + (k + .5) * (CH.x1 - CH.x0) / NR;
+
+/* ---------- camera (one language: locked straight-on, it only tilts and dollies) ---------- */
+const FOC = 1700;
+function cam(t) {
+  const th = (58 * S(t - 6.0, 170) + 32 * S(t - 8.0, 600)) * Math.PI / 180;
+  const Z = 1 + .26 * S(t - 7.5, 300) - .26 * S(t - 8.0, 600);
+  const ob = S(t - 8.0, 600);
+  return { th, Z, ob, cs: Math.cos(th), sn: Math.sin(th), py: 600 + 260 * ob };
+}
+function proj(C, x, y, z) {
+  const X = (x - 960) * C.Z, Y = (y - 600) * C.Z, Zh = z * C.Z;
+  const yp = Y * C.cs - Zh * C.sn, zp = Y * C.sn + Zh * C.cs;
+  const f = lerp(FOC / (FOC - zp), 1, C.ob);
+  return [960 + X * f, C.py + yp * f, zp];
+}
+
+/* ---------- the record card (Data room) ---------- */
+const ROWS_Q = [['Showrooms', '309'], ['Cars on the floor', '20,831'], ['Median stated price', 'SAR 100,000'], ['Toyota or Hyundai on the floor', '77%']];
+const ROWS_S = [['Showrooms', '211'], ['Cars on the floor', '11,038'], ['Median stated price', 'SAR 85,000'], ['Toyota or Hyundai on the floor', '91%']];
+const cardT = t => 220 - 32 * S(t - 11.5, 380);
+const cardH = t => 640 + 64 * S(t - 11.5, 380);
+function drawCardContent(t) {          // card space: (0,0) top-left, 1000 wide
+  const W = 1000, Hc = cardH(t);
+  // header
+  roll('DATA ROOM', { x: 56, y: 72, size: 22, wt: 600, col: css(cW, .5), ls: 6, tin: 10.15, stag: .012 });
+  // chip flips Al Qadisiyah -> Al Shifa
+  const fl = S(t - 11.0, 380), back = fl > .5, sy = Math.abs(Math.cos(Math.PI * fl));
+  const chipCol = back ? cA : cO, label = back ? 'AL SHIFA' : 'AL QADISIYAH';
+  const ci = S(t - 10.2, 520);
+  if (ci > 0) {
+    font(20, 700); g.letterSpacing = '4px';
+    const tw = g.measureText(label).width, cw = tw + 48, chx = W - 56 - cw, chy = 56;
+    g.save(); g.translate(chx + cw / 2, chy); g.scale(1, sy * ci);
+    g.strokeStyle = css(chipCol); g.lineWidth = 2; g.beginPath(); g.roundRect(-cw / 2, -21, cw, 42, 21); g.stroke();
+    g.fillStyle = css(chipCol); g.textBaseline = 'middle'; g.textAlign = 'center'; g.fillText(label, 0, 1);
+    g.restore(); g.letterSpacing = '0px';
+  }
+  // title
+  roll('Al Qadisiyah', { x: 56, y: 262, size: 76, wt: 800, tin: 10.5, tout: 11.0, stag: .014, ls: -2 });
+  roll('Al Shifa', { x: 56, y: 262, size: 76, wt: 800, tin: 11.0, stag: .014, ls: -2 });
+  // rows
+  const nrow = 5;
+  for (let i = 0; i < nrow; i++) {
+    const y0 = 300 + i * 64, tin = i < 4 ? 10.5 + .05 * i : 11.55;
+    const lw = S(t - tin + .02, 380);
+    if (lw > 0) { g.fillStyle = css(cW, .12); g.fillRect(56, y0, (W - 112) * lw, 1.5); }
+    if (i < 4) {
+      roll(ROWS_Q[i][0], { x: 56, y: y0 + 44, size: 26, wt: 500, col: css(cW, .55), tin, stag: .006 });
+      roll(ROWS_Q[i][1], { x: W - 56, y: y0 + 46, size: 34, wt: 700, align: 'right', tin, tout: 11.0 + .04 * i, stag: .012, tab: true });
+      roll(ROWS_S[i][1], { x: W - 56, y: y0 + 46, size: 34, wt: 700, align: 'right', tin: 11.0 + .04 * i, stag: .012, tab: true });
+    } else {
+      roll('Cash-only showrooms', { x: 56, y: y0 + 44, size: 26, wt: 500, col: css(cW, .55), tin, stag: .006 });
+      const hp = S(t - 11.62, 520);
+      if (hp > 0) { const bw = 132; g.fillStyle = css(cO); g.beginPath(); g.roundRect(W - 56 - bw * hp, y0 + 10, bw * hp, 48, 10); g.fill(); }
+      roll('92%', { x: W - 72, y: y0 + 47, size: 34, wt: 800, align: 'right', col: css(cK), tin: 11.62, stag: .02, tab: true });
+    }
+  }
+  return Hc;
+}
+
+/* ---------- the Autolink mark (three diamonds, from the brand SVG) ---------- */
+const DIA = [ // [centre x, centre y, half-width, half-height] in the 28-unit viewBox, with colour
+  { c: [14, 8], h: [6.3, 6.4], col: cO },
+  { c: [6.4, 15.7], h: [6.3, 6.4], col: cR },
+  { c: [21.6, 15.7], h: [6.3, 6.4], col: cA }];
+const MC = [14, 11.85];
+// frame of a diamond: point(u,v) = o + u*e1 + v*e2 ; (0,0) = left vertex, (1,0) = top vertex, (0,1) = bottom vertex
+function diaFrame(k, mx, my, u) {
+  const d = DIA[k], toS = (x, y) => [mx + (x - MC[0]) * u, my + (y - MC[1]) * u];
+  const Lv = toS(d.c[0] - d.h[0], d.c[1]), Tv = toS(d.c[0], d.c[1] - d.h[1]), Bv = toS(d.c[0], d.c[1] + d.h[1]);
+  return { o: Lv, e1: [Tv[0] - Lv[0], Tv[1] - Lv[1]], e2: [Bv[0] - Lv[0], Bv[1] - Lv[1]] };
+}
+const fpt = (F, u, v) => [F.o[0] + u * F.e1[0] + v * F.e2[0], F.o[1] + u * F.e1[1] + v * F.e2[1]];
+const lerpF = (a, b, p) => ({ o: [lerp(a.o[0], b.o[0], p), lerp(a.o[1], b.o[1], p)], e1: [lerp(a.e1[0], b.e1[0], p), lerp(a.e1[1], b.e1[1], p)], e2: [lerp(a.e2[0], b.e2[0], p), lerp(a.e2[1], b.e2[1], p)] });
+function markFrames(t) {
+  const p8 = S(t - 14.0, 380);
+  const mx = 960, my = lerp(650, 420, p8), u = lerp(19, 12, p8);
+  const F = [0, 1, 2].map(k => diaFrame(k, mx, my, u));
+  const p9 = S(t - 14.5, 600);
+  if (p9 <= 0) return F;
+  // top diamond turns into the opening square: rotate -45° -> 0°, shrink, recentre
+  const top = F[0], c0 = fpt(top, .5, .5), s0 = Math.hypot(top.e1[0], top.e1[1]);
+  const phi = lerp(-Math.PI / 4, 0, p9), s = lerp(s0, 96, p9), c = [lerp(c0[0], 960, p9), lerp(c0[1], 540, p9)];
+  const e1 = [s * Math.cos(phi), s * Math.sin(phi)], e2 = [-s * Math.sin(phi), s * Math.cos(phi)];
+  const Top = { o: [c[0] - (e1[0] + e2[0]) / 2, c[1] - (e1[1] + e2[1]) / 2], e1, e2 };
+  const pm = S(t - 14.5, 380);
+  return [Top, lerpF(F[1], Top, pm), lerpF(F[2], Top, pm)];
+}
+// tiles: the 520-record wall; each tile also owns a cell of one diamond
+const TILES = [];
+for (let c = 0; c < COLS; c++) for (let r = 0; r < ROWS; r++) TILES.push({ c, r, d: Math.hypot(c - OC, r - OR), q: TILES.length < 309 });
+(function assign() {
+  const order = TILES.map((tl, i) => i).sort((a, b) => (TILES[a].c - TILES[b].c) || (TILES[a].r - TILES[b].r));
+  const groups = [order.slice(0, 173), order.slice(173, 347), order.slice(347)];
+  const gk = [1, 0, 2];                                  // left third -> left diamond, centre -> top, right -> right
+  groups.forEach((gr, gi) => {
+    gr.sort((a, b) => (TILES[a].r - TILES[b].r) || (TILES[a].c - TILES[b].c));
+    gr.forEach((ti, j) => { const cell = j % 169; TILES[ti].k = gk[gi]; TILES[ti].cu = cell % 13; TILES[ti].cv = Math.floor(cell / 13); });
+  });
+})();
+const TW = 56, TH = 44;
+function tileCam(t) {
+  const pz = S(t - 12.0, 150), Z0 = 1000 / TW, Z = Math.exp(Math.log(Z0) * (1 - pz));
+  const ccx = lerp(cx(OC), 960, pz), ccy = lerp(cy(OR), 540, pz);
+  const th = 58 * S(t - 12.5, 300) * Math.PI / 180;
+  return { pz, Z, ccx, ccy, cs: Math.cos(th), sn: Math.sin(th) };
+}
+function tproj(C, wx, wy) {
+  const X = (wx - C.ccx) * C.Z, Y = (wy - C.ccy) * C.Z;
+  const yp = Y * C.cs, zp = Y * C.sn, f = FOC / (FOC - zp);
+  return [960 + X * f, 540 + yp * f];
+}
+function skeleton(q, a) {               // a record tile in tile space (56 x 44)
+  g.fillStyle = css(cW, .06 * a); g.beginPath(); g.roundRect(0, 0, TW, TH, 6); g.fill();
+  g.strokeStyle = css(cW, .16 * a); g.lineWidth = .5; g.stroke();
+  g.fillStyle = css(q ? cO : cA, a); g.fillRect(5, 5, 7, 7);
+  g.fillStyle = css(cW, .32 * a); g.fillRect(15, 6, 22, 4);
+  g.fillStyle = css(cW, .12 * a); for (let i = 0; i < 4; i++) g.fillRect(5, 18 + i * 6, 46, 1.6);
+}
+
+/* ---------- scenes ---------- */
+function hookDoor(c, r, t) {            // bar 1-2: the doors
+  let x, y, w = 34, h = 42, col = cO, a = 1;
+  const p0 = S(t, 420), q = S(t - .5, 520);
+  if (c === OC && r === OR) {
+    w = lerp(lerp(96, 200, p0), 34, q); h = lerp(lerp(96, 300, p0), 42, q);
+    x = lerp(960, cx(OC), q); y = lerp(540, cy(OR), q);
+  } else {
+    if (t < .5 + .006 * Math.abs(c - OC) && c !== OC) return null;
+    if (r !== OR && t < 1.0 + .008 * Math.abs(r - OR)) return null;
+    x = lerp(cx(OC), cx(c), S(t - .5 - .006 * Math.abs(c - OC), 600));
+    y = lerp(cy(OR), cy(r), S(t - 1.0 - .008 * Math.abs(r - OR), 600));
+  }
+  const inside = NUM.inA.has(c + ',' + r);
+  if (inside) { const s3 = S(t - 1.5, 900); w = lerp(w, 58, s3); h = lerp(h, 48, s3); }
+  else {
+    const k3 = eo(clamp((t - 1.5 - .008 * c) / .22));
+    col = mixc(cO, cW, k3); a = lerp(1, .13, k3);
+    const f = ei(clamp((t - 2.0 - .007 * c - .003 * (ROWS - r)) / .42));
+    y += f * 1300;
+  }
+  return { x, y, w, h, col, a };
+}
+function numG(t) {                       // group transform of the pixel numerals
+  const p = S(t - 2.5, 380), s = lerp(1, .5, p);
+  return { s, tx: lerp(NUM.RX, 880, p), ty: lerp(NUM.base, 640, p) };
+}
+const ROLL = 700;
+function numOff(set, t) {
+  if (set === 'A') return -ROLL * S(t - 3.0, 520);
+  if (set === 'B') return ROLL * (1 - S(t - 3.0, 520)) - ROLL * S(t - 3.5, 520);
+  return ROLL * (1 - S(t - 3.5, 520)) - ROLL * S(t - 4.0, 520);
+}
+function drawNumbers(t) {
+  if (t < 2.5) return;
+  const G = numG(t), Gp = numG(t - DT);
+  const toS = (G, wx, wy) => [(wx - NUM.RX) * G.s + G.tx, (wy - NUM.base) * G.s + G.ty];
+  const tl = toS(G, NUM.RX - 1700, NUM.base - NUM.cap - 40), br = toS(G, NUM.RX + 60, NUM.base + 36);
+  g.save(); g.beginPath(); g.rect(tl[0], tl[1], br[0] - tl[0], br[1] - tl[1]); g.clip();
+  [['A', NUM.A], ['B', NUM.B2], ['C', NUM.C1]].forEach(([k, cells]) => {
+    const o = numOff(k, t), op = numOff(k, t - DT);
+    if (Math.abs(o) >= ROLL - 1) return;
+    cells.forEach(([c, r]) => {
+      const p = toS(G, cx(c), cy(r) + o), pp = toS(Gp, cx(c), cy(r) + op);
+      rectM(p[0], p[1], 58 * G.s, 48 * G.s, (p[0] - pp[0]) / DT, (p[1] - pp[1]) / DT, css(cO));
+    });
+  });
+  g.restore();
+}
+function periodPos(t) {                   // where the full stop of "FIELD TEAM" sits
+  font(120, 900); g.letterSpacing = '-3px';
+  const w = g.measureText('FIELD TEAM').width; g.letterSpacing = '0px';
+  return [930 + w + 14 + 12, 640 - 12];
+}
+function polys(t) {                       // bar 3 shapes in map space
+  const m = S(t - 4.0, 300), pp = periodPos(t);
+  const q = lerpPoly(sqPoly(pp[0], pp[1], 24), HQ, m);
+  const m2 = S(t - 4.5, 300);
+  return { q, s: m2 > 0 ? lerpPoly(HQ, HS, m2) : null, m2 };
+}
+const wipe = (t, t0, b) => lerp(b[0] - 30, b[2] + 30, eio(clamp((t - t0) / .45)));
+const passT = (x, t0, b) => t0 + .45 * eioInv((x - (b[0] - 30)) / (b[2] - b[0] + 60));
+
+function scenePolys(t) {
+  if (t < 4.0 || t > 8.6) return;
+  const C = cam(t);
+  const P = polys(t), Pp = polys(t - DT);
+  const project = poly => poly.map(p => proj(C, p[0], p[1], 0));
+  const drawOne = (poly, polyPrev, col, t0, b) => {
+    const pr = project(poly), pp = project(polyPrev);
+    const c0 = centroid(pr), c1 = centroid(pp), vx = (c0[0] - c1[0]) / DT, vy = (c0[1] - c1[1]) / DT;
+    const wx = wipe(t, t0, b);
+    if (t < t0 + .5) { g.save(); g.beginPath(); g.rect(wx, -2000, 6000, 6000); g.clip(); polyM(pr, vx, vy, css(col)); g.restore(); }
+    if (t > t0) {
+      g.save(); g.beginPath(); g.rect(-2000, -2000, wx + 2000, 6000); g.clip();
+      polyPath(pr); g.strokeStyle = css(col); g.lineWidth = 2.5; g.lineJoin = 'round'; g.stroke(); g.restore();
+    }
+  };
+  if (t < 8.5) {
+    if (P.s) drawOne(P.s, Pp.s || P.s, mixc(cO, cA, P.m2), 5.5, BS);
+    drawOne(P.q, Pp.q, cO, 5.0, BQ);
+  }
+  // labels
+  roll('AL QADISIYAH · 309', { x: (BQ[0] + BQ[2]) / 2, y: BQ[3] + 64, size: 24, wt: 600, ls: 6, align: 'center', col: css(cW, .7), tin: 5.12, tout: 6.0, stag: .008 });
+  roll('AL SHIFA · 211', { x: (BS[0] + BS[2]) / 2, y: BS[3] + 64, size: 24, wt: 600, ls: 6, align: 'center', col: css(cW, .7), tin: 5.62, tout: 6.0, stag: .008 });
+}
+
+function sceneCity(t) {                    // bars 3-6: pins -> blocks -> chart -> sparkline
+  if (t < 5.0 || t > 12.6) return;
+  const C = cam(t);
+  const sortP = r => S(t - 8.5 - .1 * rnd(r.rank + 3), 380);
+  const fold = S(t - 10.0, 300);
+  const Tc = cardT(t);
+  const spark = { x0: 460 + 56, x1: 460 + 944, base: Tc + 168, k: 70 / (207 * CH.k) };
+  if (t < 8.5) {
+    // 3D blocks
+    const list = [];
+    PINS.forEach(p => {
+      const b = p.dist === 0 ? BQ : BS, t0 = p.dist === 0 ? 5.0 : 5.5;
+      const pt = passT(p.x, t0, b), pop = S(t - pt, 600);
+      if (pop <= 0) return;
+      const t1 = p.dist === 0 ? 6.5 : 7.0;
+      const hgt = p.inv * 1.5 * S(t - t1 - .25 * (p.x - b[0]) / (b[2] - b[0]), 380);
+      const zc = (p.y - 600) * C.Z * C.sn;
+      list.push({ p, pop, hgt, zc });
+    });
+    list.sort((a, b) => a.zc - b.zc);
+    list.forEach(({ p, pop, hgt }) => {
+      const hs = 5 * pop, top = p.dist === 0 ? cO : cA;
+      const P = (x, y, z) => proj(C, x, y, z);
+      const a = P(p.x - hs, p.y - hs, hgt), b = P(p.x + hs, p.y - hs, hgt), c = P(p.x + hs, p.y + hs, hgt), d = P(p.x - hs, p.y + hs, hgt);
+      if (hgt > .5) {
+        const e = P(p.x - hs, p.y + hs, 0), f = P(p.x + hs, p.y + hs, 0);
+        const sideR = (p.x - 960) < 0;
+        const s1 = sideR ? [b, c, f, P(p.x + hs, p.y - hs, 0)] : [a, d, e, P(p.x - hs, p.y - hs, 0)];
+        g.fillStyle = css(shade(top, .45)); polyPath(s1); g.fill();
+        g.fillStyle = css(shade(top, .18)); polyPath([d, c, f, e]); g.fill();
+      }
+      if (C.th < 1.55) { g.fillStyle = css(top); polyPath([a, b, c, d]); g.fill(); }
+    });
+    return;
+  }
+  // side-on: every block is a bar; it slides to its rank, then folds into the card's sparkline
+  const qDrop = r => r.dist === 0 ? S(t - 11.0 - .12 * r.rank / NR, 380) : 0;
+  RANKED.forEach(r => {
+    const sp = sortP(r);
+    let x, wd, h, base;
+    if (r.pin) {
+      const p = r.pin, pr = proj(C, p.x, p.y, 0);
+      x = lerp(pr[0], rankX(r.rank), sp); wd = lerp(10 * C.Z, 2.3, sp);
+      h = lerp(p.inv * 1.5 * C.Z, r.inv * CH.k, sp); base = lerp(pr[1], CH.base, sp);
+    } else {
+      x = rankX(r.rank); wd = 2.3; h = r.inv * CH.k * S(t - 8.6 - .1 * rnd(r.rank), 380); base = CH.base;
+      if (h <= 0) return;
+    }
+    const col = r.dist === 0 ? cO : cA;
+    const colNow = sp < 1 ? mixc(shade(col, .18), col, sp) : col;
+    if (fold > 0) {
+      x = lerp(x, lerp(spark.x0, spark.x1, (r.rank + .5) / NR), fold);
+      wd = lerp(wd, 1.5, fold); base = lerp(base, spark.base, fold);
+      h = lerp(h, r.inv * CH.k * spark.k, fold) * (1 - qDrop(r));
+    }
+    if (t > 12.0) return; // inside the card from here on (drawn by the card)
+    g.fillStyle = css(colNow); g.fillRect(x - wd / 2, base - h, wd, h);
+  });
+  // chart baseline grows out of the side-on district outlines
+  if (fold < 1) {
+    const sp = S(t - 8.5, 380);
+    const xa = lerp(proj(C, BQ[0], 600, 0)[0], CH.x0, sp), xb = lerp(proj(C, BS[2], 600, 0)[0], CH.x1, sp);
+    g.fillStyle = css(cW, .35); g.fillRect(lerp(xa, spark.x0, fold), lerp(CH.base, spark.base, fold), lerp(xb - xa, spark.x1 - spark.x0, fold), 1.5);
+  }
+}
+function sparkInCard(t, Tc) {               // the sparkline once the card owns it (card space)
+  const fold = S(t - 10.0, 300);
+  RANKED.forEach(r => {
+    const x = 56 + 888 * (r.rank + .5) / NR, base = 168;
+    const h = r.inv * 70 / 207 * (1 - (r.dist === 0 ? S(t - 11.0 - .12 * r.rank / NR, 380) : 0)) * fold;
+    if (h <= .2) return;
+    g.fillStyle = css(r.dist === 0 ? cO : cA); g.fillRect(x - .75, base - h, 1.5, h);
+  });
+  g.fillStyle = css(cW, .35); g.fillRect(56, 168, 888, 1.5);
+}
+
+function sceneCounters(t) {
+  if (t < 9.0 || t > 10.6) return;
+  const n = Math.round(31869 * eo(clamp((t - 9.0) / .42)));
+  roll('CARS ON THE FLOOR', { x: 1760, y: 292, size: 24, wt: 600, ls: 6, align: 'right', col: css(cW, .6), tin: 9.0, tout: 9.5, stag: .008 });
+  roll(n.toLocaleString('en-US'), { x: 1760, y: 430, size: 170, wt: 900, ls: -4, align: 'right', tin: 9.0, tout: 9.5, stag: .02, tab: true });
+  roll('STOCK ON DISPLAY, AT DEALER-STATED PRICES', { x: 1760, y: 292, size: 24, wt: 600, ls: 6, align: 'right', col: css(cW, .6), tin: 9.5, tout: 10.0, stag: .006 });
+  roll('SAR 3.6 BN', { x: 1760, y: 430, size: 170, wt: 900, ls: -4, align: 'right', tin: 9.5, tout: 10.0, stag: .02 });
+}
+
+function sceneCard(t) {
+  if (t < 10.0 || t > 14.0) return;
+  const fold = S(t - 10.0, 300);
+  const Tc = cardT(t), Hc0 = cardH(t);
+  if (t < 12.0) {
+    // frame grows out of the chart bounds
+    const x0 = lerp(140, 460, fold), y0 = lerp(250, Tc, fold), x1 = lerp(1780, 1460, fold), y1 = lerp(880, Tc + Hc0, fold);
+    g.fillStyle = css(cW, .055 * fold); g.strokeStyle = css(cW, .16 * fold); g.lineWidth = 1.5;
+    g.beginPath(); g.roundRect(x0, y0, x1 - x0, y1 - y0, 28 * fold); g.fill(); g.stroke();
+    g.save(); g.translate(460, Tc); drawCardContent(t); g.restore();
+  }
+}
+function sceneWall(t) {                     // bar 7 + end: the wall of 520 records, the floor, the mark
+  if (t < 12.0) return;
+  const C = tileCam(t), F = markFrames(t);
+  const fly = i => S(t - 13.5 - .08 * rnd(i + 11), 900);
+  const e = .012;
+  TILES.forEach((tl, i) => {
+    const isO = tl.c === OC && tl.r === OR;
+    const ap = isO ? 1 : S(t - 12.0 - .012 * tl.d, 380);
+    if (ap <= 0) return;
+    const fp = fly(i);
+    const wx = cx(tl.c) - TW / 2 * ap, wy = cy(tl.r) - TH / 2 * ap;
+    const P0 = tproj(C, wx, wy), P1 = tproj(C, wx + TW * ap, wy), P3 = tproj(C, wx, wy + TH * ap), P2 = tproj(C, wx + TW * ap, wy + TH * ap);
+    if (fp <= 0) {
+      if (isO) {
+        // the card itself, now one tile: card space -> tile space -> screen
+        const Hc = lerp(cardH(t), TH * 1000 / TW, C.pz), k = TW / 1000;
+        const a = (P1[0] - P0[0]) / TW, b = (P1[1] - P0[1]) / TW, c = (P3[0] - P0[0]) / TH, d = (P3[1] - P0[1]) / TH;
+        g.save(); g.transform(a, b, c, d, P0[0], P0[1]); g.translate(0, TH / 2); g.scale(k, k); g.translate(0, -Hc / 2);
+        g.fillStyle = css(cW, .055); g.strokeStyle = css(cW, .16); g.lineWidth = 1.5 / Math.max(.02, Math.hypot(a, b) * k);
+        g.beginPath(); g.roundRect(0, 0, 1000, Hc, lerp(28, 107, C.pz)); g.fill(); g.stroke();
+        g.beginPath(); g.rect(0, 0, 1000, Hc); g.clip();
+        sparkInCard(t, 0); drawCardContent(t);
+        g.restore();
+      } else {
+        const a = (P1[0] - P0[0]) / TW, b = (P1[1] - P0[1]) / TW, c = (P3[0] - P0[0]) / TH, d = (P3[1] - P0[1]) / TH;
+        g.save(); g.transform(a, b, c, d, P0[0], P0[1]); skeleton(tl.q, 1); g.restore();
+      }
+      return;
+    }
+    // in flight: the tile's four corners travel to its cell of a diamond
+    const Fk = F[tl.k];
+    const u0 = Math.max(0, tl.cu / 13 - e), u1 = Math.min(1, (tl.cu + 1) / 13 + e), v0 = Math.max(0, tl.cv / 13 - e), v1 = Math.min(1, (tl.cv + 1) / 13 + e);
+    const Q = [fpt(Fk, u0, v0), fpt(Fk, u1, v0), fpt(Fk, u1, v1), fpt(Fk, u0, v1)];
+    const src = [P0, P1, P2, P3];
+    const pts = src.map((s, j) => [lerp(s[0], Q[j][0], fp), lerp(s[1], Q[j][1], fp)]);
+    let col = DIA[tl.k].col;
+    const p9 = S(t - 14.5, 380); if (p9 > 0) col = mixc(col, cO, p9);
+    g.fillStyle = css(mixc(mixc(cK, cW, .06), col, clamp(fp * 1.6))); polyPath(pts); g.fill();
+  });
+  // as the mark closes into the opening square, seal the cell seams with the square itself
+  const seal = clamp((S(t - 14.5, 600) - .9) * 10);
+  if (seal > 0) { const Tp = F[0]; g.globalAlpha = seal; g.fillStyle = css(cO); polyPath([fpt(Tp, 0, 0), fpt(Tp, 1, 0), fpt(Tp, 1, 1), fpt(Tp, 0, 1)]); g.fill(); g.globalAlpha = 1; }
+}
+function sceneType(t) {
+  roll('RIYADH’S CAR MARKET.', { x: 960, y: 196, size: 116, wt: 900, ls: -3, align: 'center', tin: 13.0, tout: 14.0, stag: .016 });
+  roll('MEASURED.', { x: 960, y: 322, size: 116, wt: 900, ls: -3, align: 'center', col: css(cO), tin: 13.5, tout: 14.0, stag: .022 });
+  roll('AUTOLINK', { x: 960, y: 745, size: 124, wt: 900, ls: 10, align: 'center', tin: 14.0, tout: 14.5, stag: .02 });
+  roll('SUB-DEALER PORTFOLIO · RIYADH', { x: 960, y: 812, size: 24, wt: 600, ls: 8, align: 'center', col: css(cW, .6), tin: 14.08, tout: 14.5, stag: .006 });
+}
+function sceneNouns(t) {
+  if (t < 2.5 || t > 4.6) return;
+  const o = { x: 930, y: 640, size: 120, wt: 900, ls: -3, stag: .016 };
+  roll('SHOWROOMS', { ...o, tin: 2.56, tout: 3.0, sq: { s: 24, gap: 14, col: css(cO) } });
+  roll('DISTRICTS', { ...o, tin: 3.0, tout: 3.5, sq: { s: 24, gap: 14, col: css(cO) } });
+  roll('FIELD TEAM', { ...o, tin: 3.5, tout: 4.0, sq: t < 4.0 ? { s: 24, gap: 14, col: css(cO) } : null });
+}
+
+function draw() {
+  const t = T;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1;
+  g.fillStyle = '#000'; g.fillRect(0, 0, 1920, 1080);
+  // bars 1-2: doors and the pixel numerals
+  if (t < 2.9) {
+    const order = [];
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (!(c === OC && r === OR)) order.push([c, r]);
+    order.push([OC, OR]);
+    order.forEach(([c, r]) => {
+      if (t >= 2.5 && NUM.inA.has(c + ',' + r)) return;
+      const d = hookDoor(c, r, t); if (!d || d.y > 1200) return;
+      const dp = hookDoor(c, r, t - DT) || d;
+      g.globalAlpha = d.a; rectM(d.x, d.y, d.w, d.h, (d.x - dp.x) / DT, (d.y - dp.y) / DT, css(d.col));
+    });
+    g.globalAlpha = 1;
+  }
+  drawNumbers(t);
+  sceneNouns(t);
+  scenePolys(t);
+  sceneCity(t);
+  sceneCounters(t);
+  sceneCard(t);
+  sceneWall(t);
+  sceneType(t);
+}
+
+window.seek = t => { T = Math.max(0, Math.min(DUR, t)); draw(); };
+window.ready = (async () => {
+  await Promise.all([500, 600, 700, 800, 900].map(w => document.fonts.load(`${w} 100px ID`)));
+  buildMasks();
+  window.seek(0);
+  return true;
+})();
+</script>
+</body></html>

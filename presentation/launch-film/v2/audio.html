@@ -1,0 +1,83 @@
+<!doctype html><meta charset="utf-8"><title>score</title>
+<script>
+// 15 s at 120 BPM: a kick on every beat, a hit on every scene change, a riser into the last full bar (12 s).
+window.renderScore = async function () {
+  const SR = 48000, DUR = 15, B = .5, TAIL = 2.5;
+  const ctx = new OfflineAudioContext(2, Math.ceil(SR * (DUR + TAIL)), SR);
+  const master = ctx.createDynamicsCompressor();
+  master.threshold.value = -12; master.ratio.value = 3; master.attack.value = .004; master.release.value = .16;
+  master.connect(ctx.destination);
+  const music = ctx.createGain(); music.connect(master);
+  const noiseBuf = (() => { const b = ctx.createBuffer(1, SR * 2, SR), d = b.getChannelData(0); let s = 7; for (let i = 0; i < d.length; i++) { s = (s * 16807) % 2147483647; d[i] = s / 1073741823.5 - 1; } return b; })();
+  const noise = (t, dur, type, f, q, gn, pan = 0, attack = .002) => {
+    const n = ctx.createBufferSource(); n.buffer = noiseBuf;
+    const fl = ctx.createBiquadFilter(); fl.type = type; fl.frequency.value = f; fl.Q.value = q;
+    const a = ctx.createGain(); a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(gn, t + attack); a.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    const p = ctx.createStereoPanner(); p.pan.value = pan;
+    n.connect(fl); fl.connect(a); a.connect(p); p.connect(master); n.start(t); n.stop(t + dur + .05);
+  };
+  const kick = (t, gn = 1) => {
+    const o = ctx.createOscillator(), a = ctx.createGain();
+    o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(44, t + .1);
+    a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(gn, t + .003); a.gain.exponentialRampToValueAtTime(.001, t + .4);
+    o.connect(a); a.connect(master); o.start(t); o.stop(t + .45);
+    noise(t, .016, 'highpass', 3000, .7, .22 * gn);
+    music.gain.setValueAtTime(.4, t); music.gain.linearRampToValueAtTime(1, t + .2);
+  };
+  const hat = (t, gn = .06, pan = 0) => noise(t, .04, 'highpass', 9000, .6, gn, pan);
+  const clap = t => { noise(t, .14, 'bandpass', 1800, 1.1, .28); noise(t + .011, .11, 'bandpass', 1250, 1.3, .18); };
+  const tone = (t, f, dur, type, gn, cutoff = 2400, att = .005, dest = music) => {
+    const o = ctx.createOscillator(); o.type = type; o.frequency.value = f;
+    const fl = ctx.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.setValueAtTime(cutoff, t); fl.frequency.exponentialRampToValueAtTime(Math.max(100, cutoff * .2), t + dur);
+    const a = ctx.createGain(); a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(gn, t + att); a.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(fl); fl.connect(a); a.connect(dest); o.start(t); o.stop(t + dur + .05);
+  };
+  const hit = (t, big = false) => {
+    const o = ctx.createOscillator(), a = ctx.createGain();
+    o.frequency.setValueAtTime(big ? 95 : 80, t); o.frequency.exponentialRampToValueAtTime(30, t + (big ? 1.3 : .7));
+    a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(big ? 1 : .6, t + .004); a.gain.exponentialRampToValueAtTime(.001, t + (big ? 1.9 : 1.0));
+    o.connect(a); a.connect(master); o.start(t); o.stop(t + 2);
+    noise(t, big ? 1.6 : .7, 'lowpass', big ? 6000 : 4200, .5, big ? .45 : .26);
+    [440, 659.25, 880].forEach((f, i) => tone(t, f * (big ? 1 : .5), big ? 1.4 : .7, 'triangle', (big ? .1 : .06) / (i + 1), 5200, .002, master));
+  };
+  const riser = (t0, t1, gn = .24) => {
+    const n = ctx.createBufferSource(); n.buffer = noiseBuf; n.loop = true;
+    const fl = ctx.createBiquadFilter(); fl.type = 'bandpass'; fl.Q.value = 2.4;
+    fl.frequency.setValueAtTime(260, t0); fl.frequency.exponentialRampToValueAtTime(7000, t1);
+    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, t0); a.gain.exponentialRampToValueAtTime(gn, t1 - .02); a.gain.linearRampToValueAtTime(0, t1);
+    n.connect(fl); fl.connect(a); a.connect(master); n.start(t0); n.stop(t1 + .05);
+    const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(110, t0); o.frequency.exponentialRampToValueAtTime(880, t1);
+    const og = ctx.createGain(); og.gain.setValueAtTime(.0001, t0); og.gain.exponentialRampToValueAtTime(.05, t1 - .02); og.gain.linearRampToValueAtTime(0, t1);
+    const of = ctx.createBiquadFilter(); of.type = 'lowpass'; of.frequency.value = 2200;
+    o.connect(of); of.connect(og); og.connect(master); o.start(t0); o.stop(t1 + .05);
+  };
+  // Am – F – C – G, one chord per bar
+  const prog = [[110, 220, 261.63, 329.63], [87.31, 174.61, 220, 261.63], [130.81, 261.63, 329.63, 392], [98, 196, 246.94, 293.66]];
+  for (let bar = 0; bar < 8; bar++) {
+    const t0 = bar * 4 * B, ch = prog[bar % 4];
+    for (let b = 0; b < 4; b++) {
+      const tb = t0 + b * B; if (tb >= DUR) break;
+      kick(tb, bar === 0 ? .85 : 1);
+      if (bar >= 1 && bar < 7) hat(tb + B / 2, .06, b % 2 ? .25 : -.25);
+      if (bar >= 2 && bar < 7 && (b === 1 || b === 3)) clap(tb);
+      if (bar >= 1 && bar < 7) for (let e = 0; e < 2; e++) tone(tb + e * B / 2, ch[0] / 2, .2, 'sawtooth', .18, 700, .004);
+      if (bar >= 3 && bar < 6) for (let s = 0; s < 2; s++) tone(tb + s * B / 2, ch[1 + ((b * 2 + s) % 3)] * 2, .18, 'square', .026, 3200, .002);
+      if (bar === 6 || bar === 7) for (let s = 0; s < 4; s++) hat(tb + s * B / 4, .05, s % 2 ? .3 : -.3);
+    }
+    if (bar === 0 || bar >= 6) ch.slice(1).forEach(f => tone(t0, f, bar === 7 ? 1.8 : 2.1, 'triangle', .045, 1700, .2));
+  }
+  [2, 4, 6, 8, 10, 14].forEach(t => hit(t));
+  riser(10.0, 12.0); hit(12, true);
+  // the loop point: a short click as the mark closes back into the square
+  noise(14.5, .05, 'bandpass', 2600, 2, .18);
+  const buf = await ctx.startRendering();
+  // fold the tail back onto the start so the 15 s file loops seamlessly
+  const L = buf.getChannelData(0), R = buf.getChannelData(1), n = SR * DUR, tail = L.length - n;
+  for (let i = 0; i < tail; i++) { L[i] += L[n + i]; R[i] += R[n + i]; }
+  let pk = 0; for (let i = 0; i < n; i++) pk = Math.max(pk, Math.abs(L[i]), Math.abs(R[i]));
+  const k = Math.pow(10, -1 / 20) / pk, pcm = new Int16Array(n * 2);
+  for (let i = 0; i < n; i++) { pcm[2 * i] = Math.max(-32767, Math.min(32767, L[i] * k * 32767)); pcm[2 * i + 1] = Math.max(-32767, Math.min(32767, R[i] * k * 32767)); }
+  const bytes = new Uint8Array(pcm.buffer); let s = ''; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return { sr: SR, b64: btoa(s), peak: pk };
+};
+</script>
