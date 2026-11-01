@@ -570,7 +570,9 @@ window.ready=(async()=>{await Promise.all([900,800,700,600].map(w=>document.font
 
 /* =================== SOUNDTRACK (OfflineAudioContext) =================== */
 window.renderAudio=async function(speed=1){
-  const sr=48000,dur=17,ac=new OfflineAudioContext(2,sr*dur,sr);
+  // speed<1 stretches the timeline (tempo = 120*speed BPM); event times scale, sound envelopes keep natural length
+  const S=1/speed, Q=t=>t*S;
+  const sr=48000,dur=Math.ceil(17*S),ac=new OfflineAudioContext(2,sr*dur,sr);
   const comp=ac.createDynamicsCompressor();comp.threshold.value=-12;comp.ratio.value=6;comp.attack.value=.003;comp.release.value=.12;
   const master=ac.createGain();master.gain.value=.85;master.connect(comp);comp.connect(ac.destination);
   const r=rng(42);
@@ -581,33 +583,33 @@ window.renderAudio=async function(speed=1){
   const noise=(t,dur,type,f,q,peak,dec,send=0)=>{const s=ac.createBufferSource();s.buffer=nb;const fl=ac.createBiquadFilter();fl.type=type;fl.frequency.value=f;fl.Q.value=q;const g=ac.createGain();env(g,t,.001,peak,dec);s.connect(fl);fl.connect(g);g.connect(master);if(send){const sg=ac.createGain();sg.gain.value=send;g.connect(sg);sg.connect(verb);}s.start(t,r()*1.5,dur);};
   const kick=(t,amp=1)=>{const o=ac.createOscillator();o.type='sine';o.frequency.setValueAtTime(170,t);o.frequency.exponentialRampToValueAtTime(46,t+.11);const g=ac.createGain();env(g,t,.002,amp,.38);o.connect(g);g.connect(master);o.start(t);o.stop(t+.5);noise(t,.02,'highpass',3000,.7,.25*amp,.012);};
   const BEAT=.5;
-  for(let b=0;b<34;b++)kick(b*BEAT,b===24?1.15:1);
+  for(let b=0;b<34;b++)kick(Q(b*BEAT),b===24?1.15:1);
   // offbeat hats, ghost 16ths from bar 2
-  for(let b=0;b<34;b++){const t=b*BEAT;noise(t+.25,.06,'highpass',8500,.8,.16,.045);
-    if(t>=2&&t<16){noise(t+.125,.03,'highpass',10000,.8,.05,.02);noise(t+.375,.03,'highpass',10000,.8,.05,.02);}}
+  for(let b=0;b<34;b++){const t=b*BEAT;noise(Q(t+.25),.06,'highpass',8500,.8,.16,.045);
+    if(t>=2&&t<16){noise(Q(t+.125),.03,'highpass',10000,.8,.05,.02);noise(Q(t+.375),.03,'highpass',10000,.8,.05,.02);}}
   // bass on offbeats (sidechain feel)
   const roots=[55,55,43.65,43.65,65.41,49,55,43.65,55];
-  for(let b=0;b<34;b++){const t=b*BEAT+.25,f=roots[Math.floor(b/4)];const o=ac.createOscillator();o.type='sawtooth';o.frequency.value=f;const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.setValueAtTime(900,t);lp.frequency.exponentialRampToValueAtTime(160,t+.2);const g=ac.createGain();env(g,t,.005,.22,.21);o.connect(lp);lp.connect(g);g.connect(master);o.start(t);o.stop(t+.3);}
+  for(let b=0;b<34;b++){const t=Q(b*BEAT+.25),f=roots[Math.floor(b/4)];const o=ac.createOscillator();o.type='sawtooth';o.frequency.value=f;const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.setValueAtTime(900,t);lp.frequency.exponentialRampToValueAtTime(160,t+.2);const g=ac.createGain();env(g,t,.005,.22,.21*Math.sqrt(S));o.connect(lp);lp.connect(g);g.connect(master);o.start(t);o.stop(t+.5);}
   // scene-change hits: boom + noise crack + minor stab
   const hits=[2,4,6,8,10,12,14,16];
-  hits.forEach(t=>{const big=t===12?1.7:1;
+  hits.forEach(ht=>{const t=Q(ht),big=ht===12?1.7:1;
     const o=ac.createOscillator();o.type='sine';o.frequency.setValueAtTime(90,t);o.frequency.exponentialRampToValueAtTime(34,t+.6);const g=ac.createGain();env(g,t,.003,.55*big,.75*big);o.connect(g);g.connect(master);o.start(t);o.stop(t+1.6);
     noise(t,.4,'bandpass',1800,.9,.42*big,.22*big,.9);
-    const root=roots[Math.min(8,Math.floor(t/2))]*4;
+    const root=roots[Math.min(8,Math.floor(ht/2))]*4;
     [1,1.189,1.498,2].forEach(m=>{const s=ac.createOscillator();s.type='sawtooth';s.frequency.value=root*m;const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.setValueAtTime(3200,t);lp.frequency.exponentialRampToValueAtTime(400,t+.4);const sg=ac.createGain();env(sg,t,.004,.06*big,.42);s.connect(lp);lp.connect(sg);sg.connect(master);const vs=ac.createGain();vs.gain.value=.8;sg.connect(vs);vs.connect(verb);s.start(t);s.stop(t+.7);});
   });
   // riser into the last full bar (10 -> 12)
-  { const t0=10,t1=12;
+  { const t0=Q(10),t1=Q(12);
     const s=ac.createBufferSource();s.buffer=nb;s.loop=true;const bp=ac.createBiquadFilter();bp.type='bandpass';bp.Q.value=3;bp.frequency.setValueAtTime(250,t0);bp.frequency.exponentialRampToValueAtTime(7500,t1);const g=ac.createGain();g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(.32,t1-.01);g.gain.linearRampToValueAtTime(0,t1+.01);s.connect(bp);bp.connect(g);g.connect(master);s.start(t0);s.stop(t1+.02);
     const o=ac.createOscillator();o.type='sawtooth';o.frequency.setValueAtTime(110,t0);o.frequency.exponentialRampToValueAtTime(880,t1);const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.setValueAtTime(400,t0);lp.frequency.exponentialRampToValueAtTime(5000,t1);const og=ac.createGain();og.gain.setValueAtTime(.0001,t0);og.gain.exponentialRampToValueAtTime(.09,t1-.01);og.gain.linearRampToValueAtTime(0,t1+.01);o.connect(lp);lp.connect(og);og.connect(master);o.start(t0);o.stop(t1+.02);
     // snare roll accelerating
-    for(let tt=11;tt<12;){noise(tt,.08,'bandpass',2200,.8,.06+.14*(tt-11),.06);tt+=tt<11.5?.125:.0625;}
+    for(let tt=11;tt<12;){noise(Q(tt),.08,'bandpass',2200,.8,.06+.14*(tt-11),.06);tt+=tt<11.5?.125:.0625;}
   }
   const buf=await ac.startRendering();
   // WAV encode
   const n=buf.length,ch=2,bytes=44+n*ch*2,ab=new ArrayBuffer(bytes),dv=new DataView(ab);
   const ws=(o,s)=>{for(let i=0;i<s.length;i++)dv.setUint8(o+i,s.charCodeAt(i));};
-  ws(0,'RIFF');dv.setUint32(4,bytes-8,true);ws(8,'WAVE');ws(12,'fmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,ch,true);const osr=Math.round(sr*speed);dv.setUint32(24,osr,true);dv.setUint32(28,osr*ch*2,true);dv.setUint16(32,ch*2,true);dv.setUint16(34,16,true);ws(36,'data');dv.setUint32(40,n*ch*2,true);
+  ws(0,'RIFF');dv.setUint32(4,bytes-8,true);ws(8,'WAVE');ws(12,'fmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,ch,true);const osr=sr;dv.setUint32(24,osr,true);dv.setUint32(28,osr*ch*2,true);dv.setUint16(32,ch*2,true);dv.setUint16(34,16,true);ws(36,'data');dv.setUint32(40,n*ch*2,true);
   const L0=buf.getChannelData(0),R0=buf.getChannelData(1);let o=44;
   for(let i=0;i<n;i++){for(const d of [L0,R0]){const v=Math.max(-1,Math.min(1,d[i]*.95));dv.setInt16(o,v<0?v*32768:v*32767,true);o+=2;}}
   let bin='';const u8=new Uint8Array(ab);for(let i=0;i<u8.length;i+=32768)bin+=String.fromCharCode.apply(null,u8.subarray(i,i+32768));
