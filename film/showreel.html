@@ -17,7 +17,7 @@ html,body{margin:0;background:#000;overflow:hidden}canvas{display:block}
    ============================================================ */
 const W=1920,H=1080,CX=960,CY=540,DT=1/60;
 const cv=document.getElementById('c'),x=cv.getContext('2d');
-const O1='#FF6A00',O2='#FF3D00',O3='#FFA033',WH='#F5F2EC',BK='#000';
+const O1='#1F5BFF',O2='#0B2FA8',O3='#6FB1FF',WH='#F7F9FF',BK='#000';
 const FAM='"ID","Inter Display","Inter",sans-serif';
 const F=(w,s)=>`${w} ${s}px ${FAM}`;
 
@@ -316,7 +316,7 @@ function bars3D(t){
 function counters(t){
   // bar 4, beat 3: cars-on-the-floor counters
   const exit=8.0;
-  const cap=(str,left,base,t0)=>letters({str,w:700,fs:22,ls:5,left,base,color:'rgba(245,242,236,.62)',inT:t0,outT:exit,stagger:.006});
+  const cap=(str,left,base,t0)=>letters({str,w:700,fs:22,ls:5,left,base,color:'rgba(247,249,255,.62)',inT:t0,outT:exit,stagger:.006});
   cap('CARS ON THE FLOOR',160,170,7.0);
   [['20,831','AL QADISIYAH',O1,160],['11,038','AL SHIFA',O3,560]].forEach(([v,n,cc,lx],k)=>{
     const t0=7.0+k*.06;
@@ -334,8 +334,8 @@ function bar5(t){
     if(t<8.4) counters(t);
     // baseline + caption
     const bl=eo(P(t,8.5,.4));
-    if(bl>0){x.fillStyle='rgba(245,242,236,.35)';x.fillRect(CX-800*bl,820,1600*bl,2);}
-    if(t>=8.5)letters({str:'EVERY SHOWROOM, RANKED BY CARS ON THE FLOOR',w:700,fs:22,ls:5,left:160,base:875,color:'rgba(245,242,236,.62)',inT:8.55,outT:9.5,stagger:.004});
+    if(bl>0){x.fillStyle='rgba(247,249,255,.35)';x.fillRect(CX-800*bl,820,1600*bl,2);}
+    if(t>=8.5)letters({str:'EVERY SHOWROOM, RANKED BY CARS ON THE FLOOR',w:700,fs:22,ls:5,left:160,base:875,color:'rgba(247,249,255,.62)',inT:8.55,outT:9.5,stagger:.004});
   }else{
     sparkBars(t);
   }
@@ -343,7 +343,7 @@ function bar5(t){
     const dy=i=>150*(1-sp(t,9.0+i*.02,20))-170*sp(t,9.5+i*.012,22);
     const dyp=i=>150*(1-sp(t-DT,9.0+i*.02,20))-170*sp(t-DT,9.5+i*.012,22);
     rollText({from:'SAR 0.0 BN',to:'SAR 3.6 BN',fs:150,base:300,color:WH,colorFn:i=>(i>=4&&i<=6)?O1:WH,prog:i=>eo(P(t,9.02+i*.03,.4)),dy,dyPrev:dyp,align:'r',pos:1760,ls:-4,clipTop:.9});
-    letters({str:'STOCK ON DISPLAY · DEALER-STATED PRICES',w:700,fs:22,ls:5,left:1760-advances('STOCK ON DISPLAY · DEALER-STATED PRICES',700,22,5).at(-1),base:150,color:'rgba(245,242,236,.62)',inT:9.05,outT:9.5,stagger:.004});
+    letters({str:'STOCK ON DISPLAY · DEALER-STATED PRICES',w:700,fs:22,ls:5,left:1760-advances('STOCK ON DISPLAY · DEALER-STATED PRICES',700,22,5).at(-1),base:150,color:'rgba(247,249,255,.62)',inT:9.05,outT:9.5,stagger:.004});
   }
 }
 
@@ -352,7 +352,7 @@ const SPK={x0:620,x1:1300,base:352};
 function sparkBars(t){
   const s=sp(t,9.5,13), sw=sp(t,11,14), out=sp(t,12,14);
   const bl=L(1600,SPK.x1-SPK.x0,s);
-  x.fillStyle='rgba(245,242,236,.35)';
+  x.fillStyle='rgba(247,249,255,.35)';
   const baseY=L(820,SPK.base,s);
   {
   x.fillRect(L(160,SPK.x0,s),baseY,bl,2);
@@ -386,12 +386,12 @@ function bar6(t){
     // card grows out of the sparkline baseline
     const y0=L(SPK.base,CARD.y0,g), y1=L(SPK.base+2,CARD.y1,g), x0=L(SPK.x0,CARD.x0,g), x1=L(SPK.x1,CARD.x1,g);
     const s12=sp(t,12,13);
-    x.fillStyle=s12>0?`rgb(${L(11,255,s12)|0},${L(11,106,s12)|0},${L(11,0,s12)|0})`:'#0B0B0B';
+    x.fillStyle=s12>0?`rgb(${L(11,31,s12)|0},${L(11,91,s12)|0},${L(11,255,s12)|0})`:'#0B0B0B';
     rrect(x0,y0,x1-x0,y1-y0,L(2,22,g)*(1-s12)+2*s12); x.fill();
-    x.strokeStyle='rgba(245,242,236,.16)'; x.lineWidth=2; x.stroke();
+    x.strokeStyle='rgba(247,249,255,.16)'; x.lineWidth=2; x.stroke();
     sparkBars(t);
     x.save(); x.beginPath(); x.rect(x0,y0,x1-x0,y1-y0); x.clip();
-    letters({str:'DATA ROOM',w:700,fs:18,ls:6,left:620,base:282,color:'rgba(245,242,236,.6)',inT:10.05,stagger:.01});
+    letters({str:'DATA ROOM',w:700,fs:18,ls:6,left:620,base:282,color:'rgba(247,249,255,.6)',inT:10.05,stagger:.01});
     // pill
     const pw=L(206,148,sp(t,11,15)), pc=t<11?O1:O3, py=272;
     const pin=sp(t,10.08,16);
@@ -404,8 +404,8 @@ function bar6(t){
     ROWS.forEach((r,k)=>{
       const ry=490+k*68, t0=10.12+k*.06;
       const lw=eo(P(t,t0,.4));
-      x.fillStyle='rgba(245,242,236,.14)'; x.fillRect(620,ry,680*lw,1.5);
-      letters({str:r,w:600,fs:25,left:620,base:ry+44,color:'rgba(245,242,236,.66)',inT:t0,stagger:.006});
+      x.fillStyle='rgba(247,249,255,.14)'; x.fillRect(620,ry,680*lw,1.5);
+      letters({str:r,w:600,fs:25,left:620,base:ry+44,color:'rgba(247,249,255,.66)',inT:t0,stagger:.006});
       const v0=VQ[k].replace(/\d/g,'0');
       const pIn=i=>eo(P(t,10.5+k*.05+i*.025,.42)), pSw=i=>eo(P(t,11.0+k*.05+i*.02,.4));
       const from=t<11?v0:VQ[k], to=t<11?VQ[k]:VS[k];
@@ -413,7 +413,7 @@ function bar6(t){
     });
     // share bar
     const pf=eo(P(t,11.5,.45));
-    x.fillStyle='rgba(245,242,236,.1)'; x.fillRect(620,756,680*eo(P(t,11.45,.3)),6);
+    x.fillStyle='rgba(247,249,255,.1)'; x.fillRect(620,756,680*eo(P(t,11.45,.3)),6);
     x.fillStyle=O1; x.fillRect(620,756,680*L(.77,.91,1)*pf,6);
     x.restore();
   });
@@ -469,7 +469,7 @@ function bar7(t){
       drawTileFace(p1,p0,p2,TEXB,sxOf(tl),syOf(tl));
     }else if(a<Math.PI){ // face A
       x.fillStyle='#0B0B0B'; poly([p0,p1,p2,p3]); x.fill();
-      x.strokeStyle='rgba(255,106,0,.55)'; x.lineWidth=1.2; x.stroke();
+      x.strokeStyle='rgba(31,91,255,.6)'; x.lineWidth=1.2; x.stroke();
     }else{ // face C
       drawTileFace(p0,p1,p3,TEXC,sxOf(tl),syOf(tl));
     }
@@ -517,7 +517,7 @@ function bar8(t){
   const wm='AUTOLINK', xs=advances(wm,900,124,8);
   letters({str:wm,w:900,fs:124,ls:8,left:CX-xs[wm.length]/2+4,base:650,color:WH,inT:14.06,outT:14.6,outDir:1,stagger:.016,wIn:22,wOut:24});
   const sub='SUB-DEALER PORTFOLIO · RIYADH', xs2=advances(sub,700,22,8);
-  letters({str:sub,w:700,fs:22,ls:8,left:CX-xs2[sub.length]/2+4,base:712,color:'rgba(245,242,236,.62)',inT:14.14,outT:14.6,outDir:1,stagger:.006});
+  letters({str:sub,w:700,fs:22,ls:8,left:CX-xs2[sub.length]/2+4,base:712,color:'rgba(247,249,255,.62)',inT:14.14,outT:14.6,outDir:1,stagger:.006});
 }
 
 /* =================== MASTER =================== */
