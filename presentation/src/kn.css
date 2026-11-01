@@ -972,3 +972,27 @@ body { background: #000; }
 .trail__n b { color: var(--flame-lit); font-weight: 600; }
 .t-tap { display: none; } @media (hover: none) { .t-hov { display: none; } .t-tap { display: inline; } }
 
+
+/* already onboard: the NDA / MOU pipeline */
+.onb { position: absolute; inset: calc(92px + env(safe-area-inset-top, 0px)) max(24px, calc((100vw - 1240px) / 2 + 24px)) calc(40px + env(safe-area-inset-bottom, 0px)); display: grid; align-content: center; gap: clamp(22px, 3.6vh, 44px); }
+.onb__head .say { margin-top: 12px; max-width: 22ch; }
+.onb__n { color: var(--flame-lit); font-variant-numeric: tabular-nums; }
+.onb__body { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(22px, 4vw, 64px); align-items: center; }
+.onb__grid { display: grid; grid-template-columns: repeat(16, 1fr); gap: clamp(6px, .8vw, 12px); }
+.onb__grid i { aspect-ratio: 1; border-radius: 50%; transform: scale(0); opacity: 0; transition: transform .7s var(--ease-out-quint), opacity .7s var(--ease-out-quint); transition-delay: calc(var(--k) * 22ms + 200ms); }
+.sc.is-on .onb__grid i { transform: none; opacity: 1; }
+.onb__grid i.s { background: linear-gradient(160deg, #ffb066, #ff6a2a); box-shadow: 0 0 0 1px rgba(255, 176, 102, .35); }
+.onb__grid i.a { border: 2px solid rgba(255, 210, 173, .7); }
+.onb__grid i.p { border: 1px solid rgba(255, 234, 219, .2); }
+.onb__leg { margin: 0; padding: 0; list-style: none; display: grid; gap: clamp(12px, 2vh, 20px); }
+.onb__leg li { display: grid; grid-template-columns: 4.2ch 1fr; align-items: baseline; gap: 14px; padding-bottom: clamp(10px, 1.6vh, 16px); border-bottom: 1px solid var(--hair-soft); }
+.onb__leg b { font: 600 clamp(1.9rem, 3.4vw, 3.2rem)/1 var(--font-display); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.onb__leg .is-s b { color: var(--flame-lit); } .onb__leg .is-p b { color: var(--ink-soft); }
+.onb__leg span { font-size: clamp(14px, 1.2vw, 16px); line-height: 1.45; color: var(--ink-soft); }
+.onb__q { max-width: 52ch; font: 400 clamp(1.1rem, 1.7vw, 1.5rem)/1.4 var(--font-display); letter-spacing: -.01em; }
+.onb__q b { color: var(--flame-lit); font-weight: 600; } .onb__q em { font-family: var(--font-italic); font-weight: 400; color: #ffd2ad; }
+@media (max-width: 760px) {
+  .onb { align-content: start; inset: calc(84px + env(safe-area-inset-top, 0px)) 20px 24px; gap: 18px; }
+  .onb__body { grid-template-columns: 1fr; gap: 18px; }
+  .onb__grid { gap: 5px; }
+}

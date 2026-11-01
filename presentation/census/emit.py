@@ -25,7 +25,7 @@ for r in rows:
 dp = [r for r in rows if (r.get("deep") or r.get("sold") is not None) and r.get("sold") and r.get("asp") and r.get("lost") is not None and r["market"] == "qadisiyah"]
 lostSar = sum((r.get("lost") or 0) * r["asp"] for r in dp); soldSar = sum(r["sold"] * r["asp"] for r in dp)
 G = c["geo"]
-photos_on_disk = len([f for f in os.listdir(S + "/portfolio/photos") if f.endswith(".jpg") and not f.startswith("hq-")])
+photos_on_disk = len([f for f in os.listdir(S + "/portfolio/photos") if f.endswith(".jpg") and not f.startswith(("hq-", "kafd-"))])
 facts = dict(per=[dict(area=round(G[k]["area"], 2), nn=round(G[k]["nn"]), walk=round(G[k]["walk"], 1), cn=round(V(f"brand_cn_{k}"), 3)) for k in ("Q", "S")],
     sqm=int(V("sqm_Q") + V("sqm_S")), sqmN=M["sqm_Q"]["n"] + M["sqm_S"]["n"], salesmen=int(V("staff_Q")), salesmenN=M["staff_Q"]["n"],
     carsPerSalesman=round(V("cars_per_staff_Q"), 1), brands=V("brands_distinct"),

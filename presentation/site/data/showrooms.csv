@@ -311,214 +311,214 @@ D0306,Al Qadisiyah,Al Saeed Cars,معرض السعيد للسيارات,active,2
 D0307,Al Qadisiyah,Abdulrahman Imad Al-Din Cars,عبدالرحمن عماد الدين للسيارات,active,24.82915,46.834181,verified,1200.0,mix,Cadillac; Jeep; Toyota; Chevrolet,65.0,10000.0,,3.0,no,
 D0308,Al Qadisiyah,Hamat Al Astoorah ,شركة هامات الأسطورة للسيارات,active,24.827822,46.83197,verified,800.0,mix,Mercedes; Land Rover; Nissan; GMC; Jetour; BMW,45.0,180000.0,,2.0,no,
 D0309,Al Qadisiyah,,,active,24.826239,46.821935,verified,,,,,,,,,
-SD001,Al Shifa,4cars,فور كارز,active,24.5429157,46.6844866,verified,950.0,used,Toyota; Lexus; Mercedes; BMW; Jeep; Audi,40.0,100000.0,0.35,,,cash
-SD002,Al Shifa,Abdullah Al Otaibi Cars,معرض عبدالله العتيبي للسيارات,active,24.5441768,46.6848681,verified,1100.0,used,Toyota; Hyundai; Nissan; Kia; Lexus; Ford; GMC; Chevrolet; Honda,60.0,85000.0,0.25,,,cash
-SD003,Al Shifa,Abdullah Nashban Showroom,معرض عبدالله نشبان,open-floor,24.5522124,46.6809165,verified,,used,,,,0.0,,,cash
-SD004,Al Shifa,Abu Ghazi Cars,معرض ابوغازى للسيارات,active,24.5480608,46.6911787,verified,1000.0,used,Toyota; Lexus; Mercedes; BMW,60.0,100000.0,0.4,,,cash
-SD005,Al Shifa,Adwa Suwaidan Cars,معرض اضواء سويدان للسيارات,active,24.5480608,46.6894011,verified,500.0,used,Toyota; Hyundai; GMC,30.0,60000.0,0.6,,,cash
-SD007,Al Shifa,Ahad Cars Group — Al Shifa,مجموعة أحد — فرع الشفا,active,24.5472973,46.6826856,verified,1000.0,new,Toyota; Hyundai; Nissan; GMC,73.0,101000.0,0.0,,,cash
-SD008,Al Shifa,Ahmad Al Basri Marwah Showroom,معرض أحمد البصري المروة,active,24.5489692,46.6784106,verified,1200.0,used,Toyota; Hyundai; Kia; Isuzu,65.0,95000.0,0.1,,,cash
-SD009,Al Shifa,Al Adini Cars,معرض العديني للسيارات,active,24.5480608,46.6917712,verified,800.0,used,Lexus; Mercedes; Jetour; BMW,50.0,160000.0,0.0,,,cash
-SD010,Al Shifa,Al Aman Cars — Al Shifa,الأمان للسيارات — الشفا,active,24.5516734,46.6784475,verified,600.0,used,Toyota; Hyundai; Nissan; Kia,50.0,83000.0,0.36,,,cash
-SD011,Al Shifa,Al Badr Cars — Al Shifa,معرض البدر للسيارات — الشفا,active,24.5505344,46.6813136,verified,900.0,used,Toyota; Hyundai; Ford; Jetour; Geely; Haval; Tank,60.0,85000.0,0.2,,,cash
-SD012,Al Shifa,Al Duhaim Cars,الدحيم للسيارات,active,24.5506956,46.6799638,verified,1000.0,used,Toyota,90.0,65000.0,0.85,,,cash
-SD013,Al Shifa,Al Ezz Cruise Cars,معرض العزكروز للسيارات,active,24.5496,46.6813,verified,500.0,used,Toyota; Lexus; GMC; Jetour; Land Rover,35.0,150000.0,0.0,,,cash
-SD014,Al Shifa,Al Fadiliyah,معرض الفاضلية,active,24.5514327,46.6837826,verified,600.0,used,Hyundai; GMC; Chevrolet; Changan,45.0,65000.0,0.7,,,cash
-SD015,Al Shifa,Al Faris Cars — Al Shifa,الفارس للسيارات — الشفا,active,24.5523921,46.6808178,verified,1000.0,used,Hyundai; GMC; Chevrolet; Changan; Honda,40.0,80000.0,0.7,,,cash
-SD016,Al Shifa,Al Ghuraybi Cars,معرض الغريبي للسيارات,active,24.5466002,46.6832001,verified,400.0,used,Toyota; GMC,25.0,25000.0,1.0,,,cash
-SD017,Al Shifa,Al Harithi Cars,معرض الحارثي لبيع وشراء السيارات,active,24.5478003,46.6772825,verified,1000.0,used,Toyota; Hyundai; Nissan; Lexus; Ford; Chevrolet; Changan; Land Rover; Peugeot,100.0,95000.0,0.45,,,cash
-SD018,Al Shifa,Al Hawadij Commercial Services,الهوادج الخدمات التجارية,active,24.5484,46.6846,verified,600.0,used,Toyota; Hyundai; Kia,40.0,70000.0,0.2,,,cash
-SD019,Al Shifa,Al Hijaz Cars,معرض الحجاز للسيارات,active,24.5514039,46.680719,verified,1400.0,used,Toyota; Hyundai; Kia; Lexus; Mercedes; Haval,90.0,90000.0,0.5,,,cash
-SD020,Al Shifa,Al Ibdaa Cars,الإبداع للسيارات,active,24.551298,46.6827456,verified,1100.0,used,Toyota; Hyundai; Lexus; Ford; Mercedes; BMW,60.0,95000.0,0.4,,,cash
-SD021,Al Shifa,Al Imtiyaz Cars,معرض الإمتياز للسيارات,active,24.5504446,46.6838813,verified,1000.0,used,Toyota; Hyundai; MG,40.0,60000.0,0.6,,,cash
-SD022,Al Shifa,Al Jaidi Cars,الجعيدي للتجارة,active,24.5480608,46.6837719,verified,450.0,used,Ford; Mercedes; BMW; Land Rover; Genesis; Jeep,19.0,125000.0,0.2,,,cash
-SD023,Al Shifa,Al Janoub Al Hadith,معرض الجنوب الحديث للسيارات,active,24.550759,46.6815111,verified,1500.0,used,Hyundai; Nissan; Jetour; Geely; Renault,60.0,64400.0,0.0,,,all
-SD024,Al Shifa,Al Jubail for Cars,الجبيل للسيارات,active,24.5509561,46.6791876,verified,1000.0,mix,Toyota; Hyundai; Nissan,120.0,100000.0,0.05,,,all
-SD025,Al Shifa,Al Mahdani Cars,معرض المهداني للسيارات,active,24.5496347,46.6821098,verified,450.0,used,Toyota; Hyundai; Nissan; Kia; Ford,35.0,55000.0,0.55,,,cash
-SD026,Al Shifa,Al Mutamayyiz — Al Shifa,المتميز للسيارات — الشفا,active,24.5477464,46.6834756,verified,700.0,used,Toyota; Hyundai; Ford; BMW,35.0,80000.0,0.5,,,cash
-SD027,Al Shifa,Al Najm Al Thaqib Cars,معرض النجم الثاقب للسيارات,active,24.5424262,46.6855638,verified,650.0,used,Kia; Lexus; Mercedes; GMC; Chevrolet; Jeep; Dodge,20.0,118000.0,0.3,,,cash
-SD028,Al Shifa,Al Nisawi Cars,النساوي للسيارات,active,24.5472003,46.6833996,verified,400.0,used,Toyota; Hyundai,20.0,40000.0,0.5,,,cash
-SD029,Al Shifa,Al Nukhba Cruise Cars,معرض النخبة كروز للسيارات,active,24.5429108,46.6856661,verified,500.0,used,Toyota; Hyundai; Kia; Lexus; GMC; Jetour; Mazda,17.0,90000.0,0.35,,,cash
-SD030,Al Shifa,Al Qahtani Group Al Shifa,مجموعة القحطانى للسيارات حي الشفا,active,24.5503812,46.6808734,verified,1000.0,new,Jetour; BAIC,65.0,85000.0,0.05,,,all
 SD031,Al Shifa,Al Sari — Al Shifa branch,معرض الساري فرع الشفا,active,24.5516734,46.6812128,verified,1500.0,mix,Toyota; Hyundai; Nissan; Kia; Lexus; Ford; Mercedes; GMC; Chevrolet; MG; Isuzu; Jeep; Mitsubishi; Infiniti,150.0,130000.0,0.25,,,all
-SD032,Al Shifa,Al Sati Cars,معرض الصاطي للسيارات,active,24.5481956,46.6815005,verified,1200.0,used,Toyota; Hyundai; Lexus; Ford,60.0,90000.0,0.35,,,cash
+SD067,Al Shifa,Isnad Al Fiddiyah Ltd,شركة اسناد الفضية المحدوده,active,24.5503893,46.6791451,verified,1200.0,used,Hyundai; Nissan,150.0,50000.0,0.5,,,cash
+SD145,Al Shifa,Wisam Al Shifa Cars,معرض وسام الشفا للسيارات,active,24.5489625,46.6824844,verified,2000.0,mix,Toyota; Hyundai; Nissan; Lexus; GMC; Mazda; Honda; Mitsubishi,140.0,150000.0,0.4,,,all
+SD024,Al Shifa,Al Jubail for Cars,الجبيل للسيارات,active,24.5509561,46.6791876,verified,1000.0,mix,Toyota; Hyundai; Nissan,120.0,100000.0,0.05,,,all
+SD217,Al Shifa,New shifa cars,معرض الشفا الجديد للسيارات,active,24.549306,46.682474,verified,1400.0,mix,,120.0,100000.0,0.1,,,new-only
+SD017,Al Shifa,Al Harithi Cars,معرض الحارثي لبيع وشراء السيارات,active,24.5478003,46.6772825,verified,1000.0,used,Toyota; Hyundai; Nissan; Lexus; Ford; Chevrolet; Changan; Land Rover; Peugeot,100.0,95000.0,0.45,,,cash
 SD033,Al Shifa,Al Shabih Al Faddi Cars,معرض الشبح الفضي للسيارات,active,24.5463501,46.6844782,verified,2000.0,used,Toyota; Hyundai; Nissan; Kia; Lexus; Ford; Mercedes; GMC; Chevrolet; BMW; Jeep; Honda; Dodge,100.0,100000.0,0.2,,,cash
-SD034,Al Shifa,Al Shenaifi Cars,معرض الشنيفي للسيارات,active,24.5523022,46.6796327,verified,800.0,mix,Nissan,65.0,60000.0,0.1,,,cash
-SD035,Al Shifa,Al Shenaifi Cars 2,معرض الشنيفي للسيارات 2,active,24.5480608,46.6932526,verified,800.0,mix,Toyota; Lexus; Ford; Mercedes; Chevrolet; BMW; Haval; Cadillac; Audi; Chery; Volkswagen,33.0,100000.0,0.25,,,cash
-SD037,Al Shifa,Al Shifa New Cars Showroom,معرض الشفاء الجديد للسيارات,active,24.5508039,46.6825974,verified,1200.0,mix,Toyota; Hyundai; Changan; Geely; Maxus,50.0,100000.0,0.1,,,cash
-SD039,Al Shifa,Al Tajweed Showroom,معرض التجويد للسيارات,active,24.5511344,46.6795339,verified,800.0,used,Toyota; Hyundai; Nissan; Kia,50.0,80000.0,0.2,,,cash
-SD040,Al Shifa,Al Ustoorah 70 Cars,معرض شركة الأسطورة (70),active,24.5518531,46.6805709,verified,950.0,used,Toyota; Hyundai; Kia; Mercedes,60.0,80000.0,0.5,,,cash
-SD042,Al Shifa,Al Wisham Al Jadeed,الوشام الجديد,active,24.5479315,46.6850014,verified,700.0,used,Toyota; Ford; Mercedes; GMC; Chevrolet; BMW; Cadillac,45.0,150000.0,0.2,,,cash
-SD043,Al Shifa,Al Yamani Cars,شركة اليمني للسيارات,active,24.5514327,46.6816098,verified,700.0,used,Toyota; Hyundai; Kia; Lexus,45.0,105000.0,0.0,,,cash
-SD044,Al Shifa,Al Zabdani Cars,معرض الزبداني للسيارات,active,24.5480608,46.6902899,verified,800.0,used,Toyota; Lexus; Genesis,70.0,95000.0,0.5,,,cash
-SD045,Al Shifa,Al Zahrani Cars,معرض الزهراني للسيارات,active,24.5502649,46.683585,verified,800.0,used,Toyota; Hyundai; Lexus; Mazda; Honda,35.0,47500.0,0.95,,,cash
-SD046,Al Shifa,Al-Yami Showroom,معرض اليامي,active,24.5493285,46.6816696,verified,700.0,used,Toyota; Lexus; Mazda; Jeep; Mitsubishi,45.0,114000.0,0.0,,,cash
-SD047,Al Shifa,Alarabah For Cars,صالة العربة للسيارات,active,24.5509387,46.681758,verified,1400.0,used,Toyota; Hyundai; Nissan; Geely,60.0,85000.0,0.35,,,cash
-SD048,Al Shifa,Alghamdi Showroom,معرض الغامدي,active,24.5520328,46.6789413,verified,1100.0,used,Toyota; Hyundai; Nissan; Kia,80.0,65000.0,0.5,,,cash
-SD049,Al Shifa,Aljanoub Exhibition,معرض الجنوب,active,24.5512081,46.6829925,verified,1150.0,used,Toyota; Hyundai; Lexus; BMW,55.0,75000.0,0.45,,,cash
-SD050,Al Shifa,Aljumah Showroom,معرض الجمعة,active,24.5510446,46.6810153,verified,950.0,used,Toyota; Hyundai; Kia; Lexus,65.0,80000.0,0.45,,,cash
 SD051,Al Shifa,Almultaqa Showroom,معرض الملتقى,active,24.5517022,46.6812148,verified,1400.0,new,Toyota; Hyundai; Ford,100.0,90000.0,0.0,,,all
-SD052,Al Shifa,Alrzeen Auto Show,معرض الرزين للسيارات,active,24.5508937,46.6832888,verified,1150.0,used,Toyota; Hyundai; Lexus; Changan,50.0,70000.0,0.55,,,cash
-SD053,Al Shifa,Asdaa Cars Al Shifa,معرض أصداء السيارات الشفاء,active,24.5494209,46.6791273,verified,800.0,new,Hyundai; Kia,65.0,90000.0,0.0,,,cash
-SD054,Al Shifa,Autostar Al Shifa,أوتو ستار الشفا,active,24.5515226,46.6823505,verified,1200.0,used,Toyota; Hyundai; Lexus; Ford,55.0,90000.0,0.4,,,cash
+SD114,Al Shifa,Shaibani Cars,معرض الشيباني للسيارات,active,24.5482954,46.6809783,verified,2500.0,used,Hyundai; Toyota; Lexus; Ford; Chevrolet; Isuzu; Maxus,100.0,85000.0,0.0,,,cash
+SD119,Al Shifa,Talal Cars,معرض طلال للسيارات,active,24.5462156,46.6861781,verified,2400.0,used,Toyota; Hyundai; Nissan; Kia; Ford; Chevrolet; Changan; Honda; Peugeot; Renault,100.0,60000.0,0.45,,,cash
+SD164,Al Shifa,Al Maliki Cars,معرض المالكي للسيارات,active,24.547319,46.683118,verified,1200.0,used,Toyota; MG; Geely,95.0,95000.0,0.35,,,cash
+SD012,Al Shifa,Al Duhaim Cars,الدحيم للسيارات,active,24.5506956,46.6799638,verified,1000.0,used,Toyota,90.0,65000.0,0.85,,,cash
+SD019,Al Shifa,Al Hijaz Cars,معرض الحجاز للسيارات,active,24.5514039,46.680719,verified,1400.0,used,Toyota; Hyundai; Kia; Lexus; Mercedes; Haval,90.0,90000.0,0.5,,,cash
+SD105,Al Shifa,Saed Al Malki Cars,معرض ساعد المالكي للسيارات,active,24.5504054,46.6812319,verified,500.0,used,Hyundai; Toyota; Ford; Genesis; Dodge,90.0,95000.0,0.4,,,cash
+SD140,Al Shifa,Al Saber Cars Al Shifa,شركة السبر للسيارات الشفا,active,24.5448365,46.6832997,verified,2500.0,mix,BMW; Audi; Citroen; Ashok Leyland; Tata,90.0,90000.0,0.05,,,all
+SD154,Al Shifa,Sahab Al Khair Cars,سحاب الخير للسيارات,active,24.546343,46.682278,verified,1200.0,used,Hyundai; Lexus; GMC; Chevrolet; Genesis,90.0,100000.0,0.65,,,cash
+SD156,Al Shifa,Al Katheri Motors,الكثيري موتورز,active,24.545671,46.679813,verified,2000.0,used,Changan,90.0,70000.0,0.2,,,cash
+SD151,Al Shifa,Al Najrani Cars,معرض النجراني للسيارات,active,24.545578,46.682038,verified,1200.0,used,Toyota; Hyundai; GMC; Peugeot,85.0,70000.0,0.85,,,cash
+SD048,Al Shifa,Alghamdi Showroom,معرض الغامدي,active,24.5520328,46.6789413,verified,1100.0,used,Toyota; Hyundai; Nissan; Kia,80.0,65000.0,0.5,,,cash
+SD064,Al Shifa,Fal Al Khair Cars,معرض فال الخير للسيارات,active,24.5509836,46.6824493,verified,1200.0,used,Toyota; Hyundai; Ford; Geely,80.0,77000.0,0.4,,,cash
+SD076,Al Shifa,Marqab Al Sharq Cars,معرض مرقاب الشرق لبيع و شراء السيارات,active,24.5462171,46.6854458,verified,1200.0,used,Toyota; Hyundai; Nissan; Kia; Ford; GMC; Chevrolet; Isuzu; Honda; Mitsubishi,80.0,75000.0,0.55,,,cash
+SD086,Al Shifa,Qimmat Al Wafi Cars,معرض قمة الوافي للسيارات,active,24.548709,46.6777295,verified,1000.0,new,Isuzu,80.0,105000.0,0.0,,,all
+SD115,Al Shifa,Shalal Najd Cars,معرض شلال نجد للسيارات,active,24.5507751,46.6802252,verified,1250.0,used,Toyota; Hyundai; Kia; Ford,80.0,90570.0,0.4,,,cash
+SD122,Al Shifa,Wisam Al Majd Cars Al Shifa 2,شركة وسام المجد للسيارات الشفا 2,active,24.5514852,46.6800201,verified,1400.0,new,Toyota; Hyundai; Nissan; Kia; Ford; MG; Suzuki; Foton,80.0,120000.0,0.0,,,cash
+SD126,Al Shifa,Shumukh Al Sharq Cars,معرض شموخ الشرق للسيارات,active,24.5454282,46.6841462,verified,1200.0,mix,Land Rover; Cadillac; Toyota; Lexus; Ford; Mercedes; BMW; Jeep; Audi,80.0,170000.0,0.3,,,cash
+SD132,Al Shifa,Al Sunaid Cars,السنيد للسيارات,active,24.5446703,46.6841637,verified,2500.0,used,Cadillac; Hyundai; Ford; Mercedes; GMC; Chevrolet; BMW; Genesis; Jeep; Porsche,80.0,200000.0,0.49,,,cash
+SD138,Al Shifa,Mawj Al Shifa Cars,معرض موج الشفا للسيارات,active,24.5458686,46.6826608,verified,1200.0,used,Toyota; Hyundai; Kia,80.0,60000.0,0.4,,,cash
+SD196,Al Shifa,Shari Cars,معرض شري للسيارات,active,24.545502,46.682211,verified,1600.0,used,Toyota; Hyundai; Kia; GMC,80.0,75000.0,0.55,,,cash
+SD096,Al Shifa,Rawat Al Saha Cars,معرض روعة الساحة للسيارات,active,24.5480608,46.6888085,verified,1000.0,used,Toyota; Hyundai; Honda,76.0,70000.0,0.25,,,cash
+SD091,Al Shifa,Ramz Al Riyadh,رمز الرياض,active,24.5480608,46.6920675,verified,1400.0,used,Toyota; Lexus; Mercedes; BMW,75.0,60000.0,0.15,,,cash
+SD101,Al Shifa,Rukn Al Safa Al Mumayaz,ركن الصفا المميز للسيارات,active,24.5509548,46.6787438,verified,850.0,used,Toyota; Hyundai; Nissan; Kia,75.0,70000.0,0.45,,,cash
+SD150,Al Shifa,Al Ezz Park Cars,معرض العز بارك للسيارات,active,24.5453,46.681939,verified,1000.0,used,Toyota; Hyundai; MG; Isuzu; Suzuki,75.0,70000.0,0.65,,,cash
+SD211,Al Shifa,Al Malfi Abu Thnain Cars,ال ملفي ابوثنين للسيارات,active,24.54999,46.67995,verified,1500.0,used,Toyota; Hyundai; Kia; Ford,75.0,70000.0,0.65,,,cash
+SD007,Al Shifa,Ahad Cars Group — Al Shifa,مجموعة أحد — فرع الشفا,active,24.5472973,46.6826856,verified,1000.0,new,Toyota; Hyundai; Nissan; GMC,73.0,101000.0,0.0,,,cash
+SD044,Al Shifa,Al Zabdani Cars,معرض الزبداني للسيارات,active,24.5480608,46.6902899,verified,800.0,used,Toyota; Lexus; Genesis,70.0,95000.0,0.5,,,cash
 SD055,Al Shifa,Ayed Saad Misfer Al Shahrani,شركة عايض سعد مسفر الشهراني,active,24.5490141,46.6812746,verified,1150.0,used,Toyota; Hyundai; Lexus; Ford,70.0,95000.0,0.35,,,cash
-SD056,Al Shifa,Bahjat Al Shifa,معرض بهجة الشفا للسيارات,active,24.5483403,46.6778181,verified,1000.0,used,Toyota; Hyundai; Ford; Isuzu,65.0,80000.0,0.4,,,cash
-SD057,Al Shifa,Barakat Al Markabat Cars,معرض بركة المركبات للسيارات,active,24.5474,46.6842,verified,700.0,used,Mercedes; GMC; Jetour; Mazda; Chrysler,45.0,100000.0,0.1,,,cash
 SD058,Al Shifa,Class Cars Al Shifa,معرض كلاس للسيارات,active,24.5512531,46.6820049,verified,800.0,used,Toyota; Lexus; GMC; BMW,70.0,110000.0,0.5,,,cash
-SD059,Al Shifa,Country of Arabism Motor Show,معرض بلاد العروبة للسيارات,active,24.5481607,46.680287,verified,800.0,used,Toyota; Hyundai; GMC; Jetour,40.0,90000.0,0.05,,,all
-SD060,Al Shifa,Dar Al Nukhba — Al Shifa,دار النخبة للسيارات — الشفا,active,24.5512243,46.6815091,verified,1300.0,mix,Toyota; Hyundai; Nissan; Lexus,58.0,216750.0,0.0,,,cash
+SD071,Al Shifa,Khulaif Cars,معرض خليف للسيارات,active,24.5460292,46.6866847,verified,1000.0,used,Toyota; Hyundai; Kia; Ford; GMC; Chevrolet; Genesis; Geely; Chery,70.0,120000.0,0.1,,,cash
+SD080,Al Shifa,Mubarak Cars Al Shifa,معرض مبارك للسيارات الشفا,active,24.5515939,46.6807351,verified,800.0,mix,Toyota; Hyundai; Kia; Lexus; Ford; Mercedes,70.0,85000.0,0.2,,,cash
+SD173,Al Shifa,Al Hassan Ayesh Al Adini Cars,معرض الحسن عائش العديني للسيارات,active,24.544417,46.683258,verified,800.0,used,Toyota; Hyundai; Kia; Lexus; Jetour; Mazda,70.0,95000.0,0.35,,,cash
+SD191,Al Shifa,Asimat Al Alam,معرض عاصمة العلم,active,24.546347,46.68038,verified,1400.0,used,Toyota; Lexus; Mercedes; BMW; Genesis; Mazda; Jeep,70.0,95000.0,0.5,,,cash
+SD205,Al Shifa,Al Osaimi Cars (auction hall),معرض العصيمي للسيارات,active,24.548242,46.685589,verified,1400.0,used,Toyota; Hyundai; Kia; Ford,70.0,85000.0,0.25,,,cash
+SD208,Al Shifa,Class – Lexus showroom,معرض المركبه كلاس — لكزس,active,24.545584,46.682166,verified,800.0,used,Lexus,70.0,110000.0,0.5,,,cash
+SD008,Al Shifa,Ahmad Al Basri Marwah Showroom,معرض أحمد البصري المروة,active,24.5489692,46.6784106,verified,1200.0,used,Toyota; Hyundai; Kia; Isuzu,65.0,95000.0,0.1,,,cash
+SD030,Al Shifa,Al Qahtani Group Al Shifa,مجموعة القحطانى للسيارات حي الشفا,active,24.5503812,46.6808734,verified,1000.0,new,Jetour; BAIC,65.0,85000.0,0.05,,,all
+SD034,Al Shifa,Al Shenaifi Cars,معرض الشنيفي للسيارات,active,24.5523022,46.6796327,verified,800.0,mix,Nissan,65.0,60000.0,0.1,,,cash
+SD050,Al Shifa,Aljumah Showroom,معرض الجمعة,active,24.5510446,46.6810153,verified,950.0,used,Toyota; Hyundai; Kia; Lexus,65.0,80000.0,0.45,,,cash
+SD053,Al Shifa,Asdaa Cars Al Shifa,معرض أصداء السيارات الشفاء,active,24.5494209,46.6791273,verified,800.0,new,Hyundai; Kia,65.0,90000.0,0.0,,,cash
+SD056,Al Shifa,Bahjat Al Shifa,معرض بهجة الشفا للسيارات,active,24.5483403,46.6778181,verified,1000.0,used,Toyota; Hyundai; Ford; Isuzu,65.0,80000.0,0.4,,,cash
+SD092,Al Shifa,Ramz Al Riyadh 2,شركة رمز الرياض 2,active,24.5491487,46.6786454,verified,800.0,used,Toyota; Hyundai; Kia; Ford; Changan,65.0,55000.0,0.6,,,cash
+SD097,Al Shifa,Rawdat Al Khair Cars,معرض روضة الخير للسيارات,active,24.5486295,46.6785377,verified,1000.0,used,Toyota; Hyundai; Lexus; Mercedes; Porsche,65.0,70000.0,0.6,,,cash
+SD113,Al Shifa,Sanaya Shifa,سنايا الشفا,active,24.5512243,46.6804227,verified,850.0,used,Toyota; Hyundai; Kia; Lexus,65.0,85000.0,0.45,,,cash
+SD137,Al Shifa,Al Araba Al Sagheera,معرض العربة الصغيرة للسيارات,active,24.5458728,46.6832226,verified,1000.0,mix,Toyota; Hyundai; Kia; Changan; Jaecoo,65.0,105000.0,0.05,,,all
+SD177,Al Shifa,Mohammed Al Jariwi Cars,معرض محمد الجريوي للسيارات,active,24.54395,46.68418,verified,1200.0,used,Isuzu,65.0,55000.0,0.75,,,cash
+SD187,Al Shifa,Al Maliki Car Showrooms,معارض السيارات المالكي,active,24.54359,46.6855796,verified,1400.0,used,Toyota; Nissan; Kia; Chevrolet,65.0,75000.0,0.5,,,cash
+SD002,Al Shifa,Abdullah Al Otaibi Cars,معرض عبدالله العتيبي للسيارات,active,24.5441768,46.6848681,verified,1100.0,used,Toyota; Hyundai; Nissan; Kia; Lexus; Ford; GMC; Chevrolet; Honda,60.0,85000.0,0.25,,,cash
+SD004,Al Shifa,Abu Ghazi Cars,معرض ابوغازى للسيارات,active,24.5480608,46.6911787,verified,1000.0,used,Toyota; Lexus; Mercedes; BMW,60.0,100000.0,0.4,,,cash
+SD011,Al Shifa,Al Badr Cars — Al Shifa,معرض البدر للسيارات — الشفا,active,24.5505344,46.6813136,verified,900.0,used,Toyota; Hyundai; Ford; Jetour; Geely; Haval; Tank,60.0,85000.0,0.2,,,cash
+SD020,Al Shifa,Al Ibdaa Cars,الإبداع للسيارات,active,24.551298,46.6827456,verified,1100.0,used,Toyota; Hyundai; Lexus; Ford; Mercedes; BMW,60.0,95000.0,0.4,,,cash
+SD023,Al Shifa,Al Janoub Al Hadith,معرض الجنوب الحديث للسيارات,active,24.550759,46.6815111,verified,1500.0,used,Hyundai; Nissan; Jetour; Geely; Renault,60.0,64400.0,0.0,,,all
+SD032,Al Shifa,Al Sati Cars,معرض الصاطي للسيارات,active,24.5481956,46.6815005,verified,1200.0,used,Toyota; Hyundai; Lexus; Ford,60.0,90000.0,0.35,,,cash
+SD040,Al Shifa,Al Ustoorah 70 Cars,معرض شركة الأسطورة (70),active,24.5518531,46.6805709,verified,950.0,used,Toyota; Hyundai; Kia; Mercedes,60.0,80000.0,0.5,,,cash
+SD047,Al Shifa,Alarabah For Cars,صالة العربة للسيارات,active,24.5509387,46.681758,verified,1400.0,used,Toyota; Hyundai; Nissan; Geely,60.0,85000.0,0.35,,,cash
 SD061,Al Shifa,Durrat Al Shifa,درة الشفاء للسيارات,active,24.5478912,46.6814721,verified,1200.0,used,Toyota; Hyundai; Lexus; Ford,60.0,85000.0,0.35,,,cash
 SD062,Al Shifa,Fahd Al Fulaij Cars,معرض فهد الفليج للسيارات,active,24.5486447,46.6823893,verified,1000.0,mix,Toyota; Nissan; Lexus; Ford; BMW,60.0,120000.0,0.1,,,cash
-SD063,Al Shifa,Faisal Uqab Al Mutairi Cars,معرض فيصل عقاب المطيري للسيارات,active,24.5480608,46.6852533,verified,1100.0,used,Toyota; Nissan; Chevrolet; Isuzu,55.0,55000.0,0.7,,,cash
-SD064,Al Shifa,Fal Al Khair Cars,معرض فال الخير للسيارات,active,24.5509836,46.6824493,verified,1200.0,used,Toyota; Hyundai; Ford; Geely,80.0,77000.0,0.4,,,cash
-SD065,Al Shifa,Haraj Al Shifa Used Cars,حراج الشفا للسيارات,open-floor,24.54852,46.6805833,verified,,used,Toyota; Lexus; Ford; Chevrolet,55.0,55000.0,0.7,,,cash
-SD066,Al Shifa,Heibat Al Qiyada Cars,معرض هيبة القيادة للسيارات,active,24.5469192,46.6845004,verified,600.0,used,Toyota; Hyundai; Ford; Isuzu,20.0,90000.0,0.3,,,cash
-SD067,Al Shifa,Isnad Al Fiddiyah Ltd,شركة اسناد الفضية المحدوده,active,24.5503893,46.6791451,verified,1200.0,used,Hyundai; Nissan,150.0,50000.0,0.5,,,cash
-SD068,Al Shifa,Karaa Cars,معرض كراء للسيارات,closed,24.550865,46.6792376,verified,,used,,,,0.0,,,cash
 SD069,Al Shifa,Khaled Cars 2 — Al Shifa,خالد للسيارات 2 — فرع الشفا,active,24.5476217,46.6793982,verified,1250.0,used,Toyota; Hyundai; Lexus; Ford,60.0,80000.0,0.35,,,cash
-SD070,Al Shifa,Khalil Anzi Car Showroom,معرض خليل العنزي للسيارات,active,24.5507141,46.6828937,verified,1150.0,used,Toyota; Hyundai; Lexus; BMW,50.0,80000.0,0.45,,,cash
-SD071,Al Shifa,Khulaif Cars,معرض خليف للسيارات,active,24.5460292,46.6866847,verified,1000.0,used,Toyota; Hyundai; Kia; Ford; GMC; Chevrolet; Genesis; Geely; Chery,70.0,120000.0,0.1,,,cash
-SD072,Al Shifa,Lamset Al Mustaqbal Cars,معرض لمسة المستقبل للسيارات,active,24.5482,46.6833,verified,500.0,used,Toyota; Hyundai; Geely,35.0,60000.0,0.35,,,cash
-SD073,Al Shifa,Latest Cars — Al Shifa branch,أحدث السيارات فرع الشفا,active,24.5478014,46.6786081,verified,1200.0,used,Hyundai; Ford,45.0,110000.0,0.0,,,cash
-SD074,Al Shifa,Majd Al Motor Cars,معرض مجد الموتر للسيارات,active,24.547279,46.6859752,verified,500.0,used,Toyota; Nissan; Kia; Mazda; Mitsubishi; Dodge,35.0,85000.0,0.3,,,cash
 SD075,Al Shifa,Malik Al Jaysh Cars,معرض مالك الجيش لبيع وشراء السيارات,active,24.5521226,46.6801265,verified,950.0,used,Toyota; Hyundai; Nissan; Kia,60.0,75000.0,0.5,,,cash
-SD076,Al Shifa,Marqab Al Sharq Cars,معرض مرقاب الشرق لبيع و شراء السيارات,active,24.5462171,46.6854458,verified,1200.0,used,Toyota; Hyundai; Nissan; Kia; Ford; GMC; Chevrolet; Isuzu; Honda; Mitsubishi,80.0,75000.0,0.55,,,cash
-SD077,Al Shifa,Masoud Cars,معرض مسعود للسيارات,active,24.5500853,46.68319,verified,1150.0,used,Toyota; Hyundai; Lexus; Mazda,51.0,128000.0,0.0,,,cash
-SD078,Al Shifa,Mawtin Al Asimah,معرض موطن العاصمة,active,24.5491488,46.6799908,verified,800.0,used,Toyota; Hyundai; Kia; Ford,40.0,35000.0,0.45,,,cash
-SD079,Al Shifa,Misfer Al Shahrani Cars,مسفر الشهراني للسيارات,active,24.5487895,46.6781144,verified,900.0,used,Toyota; Hyundai; Kia; Isuzu,55.0,87400.0,0.0,,,cash
-SD080,Al Shifa,Mubarak Cars Al Shifa,معرض مبارك للسيارات الشفا,active,24.5515939,46.6807351,verified,800.0,mix,Toyota; Hyundai; Kia; Lexus; Ford; Mercedes,70.0,85000.0,0.2,,,cash
-SD081,Al Shifa,Muntaha Al Takamul Cars,معرض منتهى التكامل,active,24.5423137,46.6849329,verified,1000.0,used,Toyota; Lexus; Ford; Mercedes; Genesis; Honda,34.0,120000.0,0.3,,,cash
-SD082,Al Shifa,Mustaqbal Al Sura'a Cars,معرض مستقبل السرعة للسيارات,active,24.5426687,46.6857255,verified,600.0,used,Toyota; Hyundai; Isuzu,14.0,58000.0,0.6,,,cash
-SD083,Al Shifa,Najoom Al Shifa,نجوم الشفا للسيارات,active,24.5510734,46.6822024,verified,1200.0,used,Hyundai; Toyota; Nissan; Ford,35.0,100000.0,0.0,,,cash
-SD084,Al Shifa,Naseem Al Shifa Cars,معرض نسيم الشفاء للسيارات,active,24.5486098,46.6792007,verified,900.0,used,Toyota; Hyundai; Kia; Ford,55.0,60000.0,0.71,,,cash
-SD085,Al Shifa,Nujoom Al Etimad Cars,نجوم الاعتماد للسيارات,active,24.5480608,46.6891048,verified,500.0,mix,Hyundai; Nissan; Kia; Ford,15.0,80000.0,0.1,,,cash
-SD086,Al Shifa,Qimmat Al Wafi Cars,معرض قمة الوافي للسيارات,active,24.548709,46.6777295,verified,1000.0,new,Isuzu,80.0,105000.0,0.0,,,all
-SD087,Al Shifa,Qimmat Kayan 2,معرض قمة كيان 2,active,24.5474769,46.6821918,verified,950.0,used,Toyota; Hyundai; Nissan; Ford,50.0,43000.0,0.7,,,cash
 SD088,Al Shifa,Ramz Al Afdaal,رمز الأفضل,active,24.5486997,46.6823609,verified,950.0,used,Toyota; Nissan; Lexus; Ford,60.0,90000.0,0.4,,,cash
-SD089,Al Shifa,Ramz Al Ikhtiyar — Al Shifa,رمز الاختيار — فرع الشفا,active,24.5480708,46.6820647,verified,800.0,used,Toyota; Hyundai; Nissan; Kia; Ford; Jetour,45.0,110000.0,0.0,,,cash
-SD090,Al Shifa,Ramz Al Qiyada Cars,معرض رمز القياده للسيارات,active,24.5475687,46.6858626,verified,700.0,used,Lexus; Mercedes; Jetour; BMW; Genesis; Mini,44.0,180000.0,0.05,,,cash
-SD091,Al Shifa,Ramz Al Riyadh,رمز الرياض,active,24.5480608,46.6920675,verified,1400.0,used,Toyota; Lexus; Mercedes; BMW,75.0,60000.0,0.15,,,cash
-SD092,Al Shifa,Ramz Al Riyadh 2,شركة رمز الرياض 2,active,24.5491487,46.6786454,verified,800.0,used,Toyota; Hyundai; Kia; Ford; Changan,65.0,55000.0,0.6,,,cash
-SD093,Al Shifa,Rashid Al Damaan Cars,معرض راشد ال دمعان للسيارات,active,24.5488793,46.6789044,verified,1200.0,mix,Hyundai; Kia; Honda; Renault,35.0,85000.0,0.05,,,cash
-SD094,Al Shifa,Rawabi Nisah Cars,معرض روابي نساح للسيارات,active,24.5516124,46.6834863,verified,1200.0,used,Toyota; Hyundai; Kia,50.0,70000.0,0.65,,,cash
-SD095,Al Shifa,Rawat Al Muharrikat,معرض روعة المحركات للسيارات,active,24.5475668,46.6810067,verified,1000.0,used,Hyundai; Nissan; Kia; Ford; Mercedes; Chevrolet; Changan; Genesis; Mazda; Mini,45.0,32000.0,0.35,,,cash
-SD096,Al Shifa,Rawat Al Saha Cars,معرض روعة الساحة للسيارات,active,24.5480608,46.6888085,verified,1000.0,used,Toyota; Hyundai; Honda,76.0,70000.0,0.25,,,cash
-SD097,Al Shifa,Rawdat Al Khair Cars,معرض روضة الخير للسيارات,active,24.5486295,46.6785377,verified,1000.0,used,Toyota; Hyundai; Lexus; Mercedes; Porsche,65.0,70000.0,0.6,,,cash
-SD098,Al Shifa,Riyada Cars,رياضة كارز,active,24.5488002,46.6843002,verified,700.0,mix,Hyundai; Kia; Mercedes; Jetour; Dodge,50.0,110000.0,0.0,,,new-only
-SD099,Al Shifa,Road Lights Modern for Cars,معرض رود لايتس مودرن للسيارات,active,24.5486,46.6838,verified,500.0,used,Nissan; Kia; Lexus; GMC; Honda,35.0,100000.0,0.1,,,cash
-SD100,Al Shifa,Rukn Al Qimma Car,معرض ركن القمه كار,active,24.5472083,46.6855273,verified,500.0,used,Toyota; Hyundai; Kia,20.0,100000.0,0.0,,,cash
-SD101,Al Shifa,Rukn Al Safa Al Mumayaz,ركن الصفا المميز للسيارات,active,24.5509548,46.6787438,verified,850.0,used,Toyota; Hyundai; Nissan; Kia,75.0,70000.0,0.45,,,cash
 SD102,Al Shifa,Rukn Al Shifa,ركن الشفاء للسيارات,active,24.547981,46.6796945,verified,1200.0,used,Toyota; Hyundai; Kia; Ford,60.0,80000.0,0.35,,,cash
-SD103,Al Shifa,Saad Mohammed Al Qahtani Cars,معرض سعد محمد القحطاني للسيارات,active,24.5465,46.6844,verified,800.0,used,Toyota; Hyundai; Nissan; Kia; Suzuki,50.0,40000.0,0.15,,,cash
-SD104,Al Shifa,Saad Muhaysin Al Otaibi Cars,معرض سعد محيسن العتيبي,active,24.5505501,46.6806028,verified,600.0,used,Toyota; Hyundai; Nissan; Kia; Lexus; Ford; GMC; Chevrolet; Jeep,45.0,75000.0,0.45,,,cash
-SD105,Al Shifa,Saed Al Malki Cars,معرض ساعد المالكي للسيارات,active,24.5504054,46.6812319,verified,500.0,used,Hyundai; Toyota; Ford; Genesis; Dodge,90.0,95000.0,0.4,,,cash
-SD106,Al Shifa,Saeed Salem Al Shahrani Cars,شركة سعيد سالم الشهراني للسيارات,active,24.5480608,46.6879197,verified,800.0,new,Hyundai; Ford,45.0,100000.0,0.0,,,all
-SD107,Al Shifa,Saleh Group — Al Shifa,مجموعة صالح للسيارات — الشفا,active,24.5515836,46.6800277,verified,800.0,mix,Toyota; Hyundai; Nissan; Kia,58.0,92000.0,0.0,,,cash
-SD108,Al Shifa,Salim Cars,معرض سليم للسيارات,active,24.5481147,46.6856927,verified,600.0,mix,Toyota; Hyundai; Kia; Ford; Mazda,50.0,90000.0,0.15,,,cash
-SD109,Al Shifa,Sama Al Shifa Al Hadith,معرض سماء الشفاء الحديث,active,24.5479,46.6845,verified,800.0,used,Toyota; Hyundai; Nissan; Kia; Mazda,30.0,74000.0,0.25,,,cash
-SD110,Al Shifa,Sama Dirab Cars,معرض سماء ديراب للسيارات,active,24.5471,46.6836,verified,450.0,used,Toyota; Hyundai; Nissan; Lexus; Mazda; Honda,35.0,38000.0,0.6,,,cash
 SD111,Al Shifa,Sama Najd Showroom,معرض سما نجد,active,24.5482854,46.6830806,verified,1200.0,used,Toyota; Nissan; Kia; Lexus; Ford; GMC; BMW; Land Rover,60.0,90000.0,0.6,,,cash
-SD112,Al Shifa,Sama Riyadh Showroom,معرض سما الرياض,active,24.5487346,46.681303,verified,1000.0,used,Toyota; Lexus,45.0,200000.0,0.0,,,cash
-SD113,Al Shifa,Sanaya Shifa,سنايا الشفا,active,24.5512243,46.6804227,verified,850.0,used,Toyota; Hyundai; Kia; Lexus,65.0,85000.0,0.45,,,cash
-SD114,Al Shifa,Shaibani Cars,معرض الشيباني للسيارات,active,24.5482954,46.6809783,verified,2500.0,used,Hyundai; Toyota; Lexus; Ford; Chevrolet; Isuzu; Maxus,100.0,85000.0,0.0,,,cash
-SD115,Al Shifa,Shalal Najd Cars,معرض شلال نجد للسيارات,active,24.5507751,46.6802252,verified,1250.0,used,Toyota; Hyundai; Kia; Ford,80.0,90570.0,0.4,,,cash
-SD116,Al Shifa,Shawafir Cars,معرض شوافر للسيارات,closing,24.5462442,46.6872634,verified,1000.0,,,,,,,,cash
-SD117,Al Shifa,Shifa Yard for Used Cars,ساحة الشفا للسيارات المستعملة,open-floor,24.5488603,46.6804937,verified,,used,Toyota; Hyundai; Lexus; GMC,55.0,55000.0,0.7,,,cash
-SD118,Al Shifa,Sultan Al Rudayyan Cars,معرض سلطان الرضيان للسيارات,active,24.5477464,46.6827843,verified,700.0,used,Toyota; Nissan; Ford; BMW,40.0,75325.0,0.5,,,cash
-SD119,Al Shifa,Talal Cars,معرض طلال للسيارات,active,24.5462156,46.6861781,verified,2400.0,used,Toyota; Hyundai; Nissan; Kia; Ford; Chevrolet; Changan; Honda; Peugeot; Renault,100.0,60000.0,0.45,,,cash
-SD120,Al Shifa,Turo 1 Cars,معرض تورو 1 للسيارات,active,24.5480608,46.6876234,verified,800.0,used,Kia; Jetour; Mazda,45.0,75000.0,0.15,,,cash
-SD121,Al Shifa,Walid Cars — Al Shifa,وليد السيارات,active,24.5468,46.6841,verified,800.0,used,Toyota; Ford; GMC; Land Rover,30.0,70000.0,0.8,,,cash
-SD122,Al Shifa,Wisam Al Majd Cars Al Shifa 2,شركة وسام المجد للسيارات الشفا 2,active,24.5514852,46.6800201,verified,1400.0,new,Toyota; Hyundai; Nissan; Kia; Ford; MG; Suzuki; Foton,80.0,120000.0,0.0,,,cash
-SD123,Al Shifa,Warid Al Tamayuz,معرض وارد التميز,active,24.5455418,46.6844734,verified,1000.0,mix,Nissan; Hyundai; Jetour; Changan; Honda,40.0,130000.0,0.4,,,cash
-SD124,Al Shifa,Tamayuz Al Shifa,معرض تميز الشفاء,active,24.5455794,46.6845573,verified,800.0,used,Hyundai; Ford; Mercedes; Chevrolet,35.0,50000.0,0.9,,,cash
-SD125,Al Shifa,Al Tawra Cars,معرض التوره,active,24.5453416,46.6850374,verified,1000.0,used,Toyota; Hyundai; Ford; Chevrolet,45.0,35000.0,0.9,,,cash
-SD126,Al Shifa,Shumukh Al Sharq Cars,معرض شموخ الشرق للسيارات,active,24.5454282,46.6841462,verified,1200.0,mix,Land Rover; Cadillac; Toyota; Lexus; Ford; Mercedes; BMW; Jeep; Audi,80.0,170000.0,0.3,,,cash
-SD127,Al Shifa,Al Masari Cars,معرض المسعري للسيارات,active,24.5451093,46.6853671,verified,900.0,used,Toyota; Isuzu,40.0,55000.0,0.9,,,cash
-SD128,Al Shifa,Auto Park Cars,معرض اوتو بارك للسيارات,active,24.5447568,46.6860129,verified,1400.0,used,Land Rover; Kia; Mercedes; GMC; BMW; Audi,55.0,150000.0,0.4,,,cash
-SD129,Al Shifa,Mawtin Al Asimah Exhibition,معرض موطن العاصمة للسيارات,active,24.5445675,46.6862542,verified,800.0,used,Toyota; Hyundai; Kia; Chevrolet; MG; Peugeot,40.0,40000.0,0.7,,,cash
-SD131,Al Shifa,Faisal Nasser Al Mutairi,معرض فيصل ناصر المطيري,active,24.5451144,46.6842697,verified,800.0,used,Toyota; Hyundai; Ford; Geely; Honda,35.0,40000.0,0.9,,,cash
-SD132,Al Shifa,Al Sunaid Cars,السنيد للسيارات,active,24.5446703,46.6841637,verified,2500.0,used,Cadillac; Hyundai; Ford; Mercedes; GMC; Chevrolet; BMW; Genesis; Jeep; Porsche,80.0,200000.0,0.49,,,cash
-SD133,Al Shifa,Shihana Cars,معرض شيهانة للسيارات,active,24.5451783,46.6843454,verified,800.0,used,Toyota; Hyundai; GMC; Chevrolet,25.0,50000.0,0.8,,,cash
-SD134,Al Shifa,Mada Car,معرض مدى كار للسيارات,active,24.545765,46.6836374,verified,1400.0,used,Land Rover; Toyota; Lexus; Mercedes; GMC; Mazda,40.0,100000.0,0.6,,,cash
 SD135,Al Shifa,Ajyal Cars,معرض أجيال السيارات,active,24.5460633,46.6837652,verified,1400.0,used,Hyundai; Toyota; Kia; Changan; Genesis; Mazda; Haval; Honda,60.0,55000.0,0.7,,,cash
-SD136,Al Shifa,Zawiyat Al Tamlik,زاوية التمليك للسيارات,active,24.5463584,46.6831529,verified,1000.0,used,Toyota; Lexus; GMC; Jetour; Chevrolet; Jeep; Dodge,40.0,80000.0,0.55,,,cash
-SD137,Al Shifa,Al Araba Al Sagheera,معرض العربة الصغيرة للسيارات,active,24.5458728,46.6832226,verified,1000.0,mix,Toyota; Hyundai; Kia; Changan; Jaecoo,65.0,105000.0,0.05,,,all
-SD138,Al Shifa,Mawj Al Shifa Cars,معرض موج الشفا للسيارات,active,24.5458686,46.6826608,verified,1200.0,used,Toyota; Hyundai; Kia,80.0,60000.0,0.4,,,cash
-SD139,Al Shifa,Ali Othman Ahmed Al Amudi,معرض علي عثمان أحمد العمودي للسيارات,active,24.5453476,46.6826932,verified,700.0,used,Toyota,30.0,80000.0,0.65,,,cash
-SD140,Al Shifa,Al Saber Cars Al Shifa,شركة السبر للسيارات الشفا,active,24.5448365,46.6832997,verified,2500.0,mix,BMW; Audi; Citroen; Ashok Leyland; Tata,90.0,90000.0,0.05,,,all
-SD141,Al Shifa,Al Hadyan,معرض الهديان,active,24.5447342,46.6826904,verified,900.0,used,Toyota; Hyundai; GMC; BMW,35.0,85000.0,0.55,,,cash
-SD143,Al Shifa,Adwaa Shubra Cars,معرض أضواء شبرا للسيارات,active,24.5477875,46.6841406,verified,800.0,used,Mercedes; Toyota; Ford; BMW; Mazda; Jeep; GAC; Cadillac; Great Wall,40.0,47500.0,0.8,,,cash
-SD144,Al Shifa,Nibras Used Cars 2,معرض نبراس الهدف 2,active,24.5496468,46.6830597,verified,800.0,used,Toyota; Nissan; Kia; Lexus; BMW; Mazda; Honda,35.0,90000.0,0.7,,,cash
-SD145,Al Shifa,Wisam Al Shifa Cars,معرض وسام الشفا للسيارات,active,24.5489625,46.6824844,verified,2000.0,mix,Toyota; Hyundai; Nissan; Lexus; GMC; Mazda; Honda; Mitsubishi,140.0,150000.0,0.4,,,all
-SD146,Al Shifa,Ramz Al Emarat Cars Co.,شركة رمز الإمارات للسيارات,active,,,missing,1400.0,used,Mercedes; Toyota; Hyundai; Kia,28.0,110000.0,0.2,,,all
-SD147,Al Shifa,Mohammed bin Dhaar Al Ajmi — Al Shifa,معرض محمد بن ذعار العجمي للسيارات - فرع الشفا,active,24.5451515,46.6813797,listing,500.0,new,Hyundai; MG; Changan,40.0,110000.0,0.0,,,all
-SD148,Al Shifa,Durar Al Tanfeedh Cars Co.,شركة درر التنفيذ للسيارات,active,,,missing,800.0,used,Toyota; Hyundai; Nissan,45.0,80000.0,0.6,,,cash
-SD149,Al Shifa,Al Ajmi Cars,العجمي للسيارات,active,,,missing,1000.0,used,Toyota; Hyundai,30.0,80000.0,0.7,,,cash
-SD150,Al Shifa,Al Ezz Park Cars,معرض العز بارك للسيارات,active,,,missing,1000.0,used,Toyota; Hyundai; MG; Isuzu; Suzuki,75.0,70000.0,0.65,,,cash
-SD151,Al Shifa,Al Najrani Cars,معرض النجراني للسيارات,active,,,missing,1200.0,used,Toyota; Hyundai; GMC; Peugeot,85.0,70000.0,0.85,,,cash
-SD152,Al Shifa,Al Sarran Cars,معرض السران للسيارات,active,,,missing,700.0,used,Toyota; Kia; GMC; Chevrolet; Genesis; Mazda; Jeep; Audi,50.0,75000.0,0.7,,,cash
-SD153,Al Shifa,Adwaa Al Tawheed Cars & Export,معرض أضواء التوحيد لسيارات والتصدير,active,,,missing,1200.0,used,Toyota; Hyundai; Kia; Ford; Isuzu; Peugeot; Renault,60.0,65000.0,0.5,,,cash
-SD154,Al Shifa,Sahab Al Khair Cars,سحاب الخير للسيارات,active,,,missing,1200.0,used,Hyundai; Lexus; GMC; Chevrolet; Genesis,90.0,100000.0,0.65,,,cash
-SD155,Al Shifa,Premium motors,Premium motors,active,,,missing,1500.0,used,Lexus; Mercedes; BMW; Mazda,60.0,110000.0,0.4,,,cash
-SD156,Al Shifa,Al Katheri Motors,الكثيري موتورز,active,24.5455286,46.6798017,listing,2000.0,used,Toyota; Hyundai; Nissan; Kia; Ford; Chevrolet,90.0,70000.0,0.2,,,cash
-SD157,Al Shifa,Carvind,Carvind,active,,,missing,1500.0,used,Toyota; Hyundai; Nissan; Lexus; MG; Geely; Renault,55.0,50000.0,0.6,,,cash
-SD158,Al Shifa,Fares Al Shahrani Cars,معرض فارس الشهراني للسيارات,active,,,missing,800.0,used,Toyota; Hyundai; Nissan; Ford; GMC; Honda,35.0,90000.0,0.5,,,cash
-SD159,Al Shifa,Nibras Used Cars,معرض نبراس الهدف,active,,,missing,800.0,used,Toyota; Nissan; Kia; Mazda; Honda,38.0,60000.0,0.7,,,cash
-SD160,Al Shifa,Ramz Al Tahaddi / Sahm Al Saha Cars,معرض رمز التحدي للسيارات / معرض سهم الساحه,active,,,missing,1200.0,used,Toyota; Hyundai; Kia,60.0,70000.0,0.35,,,cash
-SD161,Al Shifa,Dream Auto Company,شركه دريم اوتو,active,,,missing,1000.0,used,Toyota; Nissan; Kia; Ford,35.0,40000.0,0.85,,,cash
-SD162,Al Shifa,Ruyat Al Mustaqbal Cars,معرض رؤية المستقبل للسيارات,active,,,missing,800.0,used,Toyota; Changan; Geely; Suzuki,60.0,90000.0,0.3,,,cash
-SD163,Al Shifa,Najm Al Jazeera Cars,معرض نجم الجزيرة للسيارات,active,,,missing,1000.0,used,Nissan; Toyota; Hyundai; Kia,30.0,35000.0,0.8,,,cash
-SD164,Al Shifa,Al Maliki Cars,معرض المالكي للسيارات,active,,,missing,1200.0,used,Toyota; MG; Geely,95.0,95000.0,0.35,,,cash
-SD165,Al Shifa,Ahmed Al Fulaij Cars Co. ,شركة احمد الفليج للسيارات (الصالة),active,,,missing,800.0,new,Toyota; Kia; Jetour; Geely; Suzuki,25.0,90000.0,0.05,,,cash
-SD166,Al Shifa,Al falah motors company,Al falah motors company,active,,,missing,5000.0,new,Toyota; Lexus; Geely,55.0,110000.0,0.0,,,all
-SD167,Al Shifa,Al Masoudi Cars,معرض المسعودي للسيارات,active,24.542762,46.6858099,listing,800.0,used,Toyota; Hyundai; Ford; Mazda,45.0,45000.0,0.8,,,cash
-SD168,Al Shifa,Mutab Cars,معرض متعب للسيارات,active,24.544817,46.683764,listing,600.0,used,GMC; Chevrolet; BMW,25.0,100000.0,0.5,,,cash
-SD169,Al Shifa,Al Qannas Cars,معرض القناص للسيارات,active,24.5446157,46.6839596,listing,1000.0,used,Mercedes; Nissan; GMC; BMW,50.0,80000.0,0.6,,,cash
-SD170,Al Shifa,Al Asdiqa Cars,معرض الأصدقاء,empty,24.5440899,46.6837743,listing,,,,,,0.0,,,cash
-SD171,Al Shifa,Sultan For Cars,سلطان للسيارات,active,24.5443702,46.6835921,listing,1000.0,used,Hyundai; Nissan; Mercedes; GMC; Chevrolet,20.0,90000.0,0.3,,,cash
-SD172,Al Shifa,Al Rakbah Al Fawriya / Insta Car,شركة الركبة الفورية للسيارات / انستا كار,active,24.5442619,46.6834784,verified,750.0,used,Hyundai; Toyota; Nissan; Kia; GMC; Chevrolet,40.0,55000.0,0.6,,,cash
-SD173,Al Shifa,Al Hassan Ayesh Al Adini Cars,معرض الحسن عائش العديني للسيارات,active,24.5444107,46.6832149,listing,800.0,used,Toyota; Hyundai; Kia; Lexus; Jetour; Mazda,70.0,95000.0,0.35,,,cash
-SD174,Al Shifa,Sayf Al Khaleej Cars,معرض سيف الخليج للسيارات,active,,,missing,800.0,used,Land Rover; Hyundai; Nissan; Kia; GMC; BMW; Renault,50.0,50000.0,0.7,,,cash
-SD175,Al Shifa,Al Markaba Al Khamisa / Sumou 2,معرض المركبة الخامسة للسيارات / سمو المركبات ٢,empty,24.5441396,46.683003,listing,,,,,,0.0,,,cash
-SD176,Al Shifa,Saheel Al Fikr Al Jadeed,شركة معرض صهيل الفكر الجديد,active,24.5439731,46.6827857,listing,800.0,used,Toyota; Suzuki; Peugeot,50.0,50000.0,0.85,,,cash
-SD177,Al Shifa,Mohammed Al Jariwi Cars,معرض محمد الجريوي للسيارات,active,24.5438039,46.6842179,listing,1200.0,used,Isuzu,65.0,55000.0,0.75,,,cash
-SD178,Al Shifa,Imtiyaz Al Shifa Cars,معرض امتياز الشفا للسيارات,active,24.5440954,46.6844923,listing,1000.0,used,Toyota,55.0,100000.0,0.5,,,cash
-SD179,Al Shifa,Aqd Al Bidaa Cars,معرض عقد البداع للسيارات,active,24.5438636,46.6844259,verified,1000.0,used,Land Rover; Kia; Ford; GMC; Jetour; Chevrolet; BMW,35.0,80000.0,0.7,,,cash
-SD180,Al Shifa,Sharyan Al Asimah Cars,معرض شريان العاصمة للسيارات,active,24.5438053,46.6845071,verified,1000.0,used,Land Rover; Toyota; Hyundai; Nissan; Mercedes; Chevrolet; BMW; Jeep; Porsche,25.0,100000.0,0.45,,,cash
-SD181,Al Shifa,Jood Cars,معرض جود كارز للسيارات,active,24.5439633,46.6847263,listing,600.0,used,Toyota; Lexus; Mercedes,30.0,100000.0,0.5,,,cash
+SD153,Al Shifa,Adwaa Al Tawheed Cars & Export,معرض أضواء التوحيد لسيارات والتصدير,active,24.54581,46.681622,verified,1200.0,used,Toyota; Hyundai; Kia; Ford; Isuzu; Peugeot; Renault,60.0,65000.0,0.5,,,cash
+SD155,Al Shifa,Premium motors,Premium motors,active,24.548215,46.678174,verified,1500.0,used,Lexus; Mercedes; BMW; Mazda,60.0,110000.0,0.4,,,cash
+SD160,Al Shifa,Ramz Al Tahaddi / Sahm Al Saha Cars,معرض رمز التحدي للسيارات / معرض سهم الساحه,active,24.549549,46.682984,verified,1200.0,used,Toyota; Hyundai; Kia,60.0,70000.0,0.35,,,cash
+SD162,Al Shifa,Ruyat Al Mustaqbal Cars,معرض رؤية المستقبل للسيارات,active,24.547795,46.682703,verified,800.0,used,Toyota; Changan; Geely; Suzuki,60.0,90000.0,0.3,,,cash
+SD183,Al Shifa,Nasaem Al Shurooq Cars,معرض نسائم الشروق,active,24.543603,46.684743,verified,900.0,used,Toyota,60.0,100000.0,0.7,,,cash
+SD185,Al Shifa,Atef bin Sumaida Cars,معرض عاطف بن سميدع للسيارات,active,24.543834,46.68555,verified,1000.0,used,Toyota; Hyundai; Lexus; Ford; GMC,60.0,90000.0,0.65,,,cash
+SD192,Al Shifa,Aidah Al Nahdi,معرض عيضه النهدي,active,24.545821,46.680778,verified,1200.0,used,Toyota; Hyundai; Kia; GMC,60.0,65000.0,0.5,,,cash
+SD202,Al Shifa,Eid Cars,معرض عيد للسيارات,active,24.548349,46.685262,verified,1200.0,used,Toyota; Hyundai; Nissan; Kia,60.0,55000.0,0.7,,,cash
+SD213,Al Shifa,Eshq Al Janoub Cars Co.,شركة عشق الجنوب للسيارات,active,24.54601002029,46.6791865602111,verified,1400.0,mix,Hyundai; Kia; Ford; Changan; Geely,60.0,100000.0,0.05,,,cash
+SD060,Al Shifa,Dar Al Nukhba — Al Shifa,دار النخبة للسيارات — الشفا,active,24.5512243,46.6815091,verified,1300.0,mix,Toyota; Hyundai; Nissan; Lexus,58.0,216750.0,0.0,,,cash
+SD107,Al Shifa,Saleh Group — Al Shifa,مجموعة صالح للسيارات — الشفا,active,24.5515836,46.6800277,verified,800.0,mix,Toyota; Hyundai; Nissan; Kia,58.0,92000.0,0.0,,,cash
+SD049,Al Shifa,Aljanoub Exhibition,معرض الجنوب,active,24.5512081,46.6829925,verified,1150.0,used,Toyota; Hyundai; Lexus; BMW,55.0,75000.0,0.45,,,cash
+SD054,Al Shifa,Autostar Al Shifa,أوتو ستار الشفا,active,24.5515226,46.6823505,verified,1200.0,used,Toyota; Hyundai; Lexus; Ford,55.0,90000.0,0.4,,,cash
+SD063,Al Shifa,Faisal Uqab Al Mutairi Cars,معرض فيصل عقاب المطيري للسيارات,active,24.5480608,46.6852533,verified,1100.0,used,Toyota; Nissan; Chevrolet; Isuzu,55.0,55000.0,0.7,,,cash
+SD065,Al Shifa,Haraj Al Shifa Used Cars,حراج الشفا للسيارات,open-floor,24.54852,46.6805833,verified,,used,Toyota; Lexus; Ford; Chevrolet,55.0,55000.0,0.7,,,cash
+SD079,Al Shifa,Misfer Al Shahrani Cars,مسفر الشهراني للسيارات,active,24.5487895,46.6781144,verified,900.0,used,Toyota; Hyundai; Kia; Isuzu,55.0,87400.0,0.0,,,cash
+SD084,Al Shifa,Naseem Al Shifa Cars,معرض نسيم الشفاء للسيارات,active,24.5486098,46.6792007,verified,900.0,used,Toyota; Hyundai; Kia; Ford,55.0,60000.0,0.71,,,cash
+SD117,Al Shifa,Shifa Yard for Used Cars,ساحة الشفا للسيارات المستعملة,open-floor,24.5488603,46.6804937,verified,,used,,55.0,55000.0,0.7,,,cash
+SD128,Al Shifa,Auto Park Cars,معرض اوتو بارك للسيارات,active,24.5447568,46.6860129,verified,1400.0,used,Land Rover; Kia; Mercedes; GMC; BMW; Audi,55.0,150000.0,0.4,,,cash
+SD157,Al Shifa,Carvind,Carvind,active,24.550575,46.682756,verified,1500.0,used,Toyota; Hyundai; Nissan; Lexus; MG; Geely; Renault,55.0,50000.0,0.6,,,cash
+SD166,Al Shifa,Al falah motors company,Al falah motors company,active,24.553253,46.679914,verified,5000.0,new,Toyota; Lexus; Geely,55.0,110000.0,0.0,,,all
+SD178,Al Shifa,Imtiyaz Al Shifa Cars,معرض امتياز الشفا للسيارات,active,24.544108,46.684527,verified,1000.0,used,Toyota,55.0,100000.0,0.5,,,cash
+SD077,Al Shifa,Masoud Cars,معرض مسعود للسيارات,active,24.5500853,46.68319,verified,1150.0,used,Toyota; Hyundai; Lexus; Mazda,51.0,128000.0,0.0,,,cash
+SD009,Al Shifa,Al Adini Cars,معرض العديني للسيارات,active,24.5480608,46.6917712,verified,800.0,used,Lexus; Mercedes; Jetour; BMW,50.0,160000.0,0.0,,,cash
+SD010,Al Shifa,Al Aman Cars — Al Shifa,الأمان للسيارات — الشفا,active,24.5516734,46.6784475,verified,600.0,used,Toyota; Hyundai; Nissan; Kia,50.0,83000.0,0.36,,,cash
+SD037,Al Shifa,Al Shifa New Cars Showroom,معرض الشفاء الجديد للسيارات,active,24.5508039,46.6825974,verified,1200.0,mix,Toyota; Hyundai; Changan; Geely; Maxus,50.0,100000.0,0.1,,,cash
+SD039,Al Shifa,Al Tajweed Showroom,معرض التجويد للسيارات,active,24.5511344,46.6795339,verified,800.0,used,Toyota; Hyundai; Nissan; Kia,50.0,80000.0,0.2,,,cash
+SD052,Al Shifa,Alrzeen Auto Show,معرض الرزين للسيارات,active,24.5508937,46.6832888,verified,1150.0,used,Toyota; Hyundai; Lexus; Changan,50.0,70000.0,0.55,,,cash
+SD070,Al Shifa,Khalil Anzi Car Showroom,معرض خليل العنزي للسيارات,active,24.5507141,46.6828937,verified,1150.0,used,Toyota; Hyundai; Lexus; BMW,50.0,80000.0,0.45,,,cash
+SD087,Al Shifa,Qimmat Kayan 2,معرض قمة كيان 2,active,24.5474769,46.6821918,verified,950.0,used,Toyota; Hyundai; Nissan; Ford,50.0,43000.0,0.7,,,cash
+SD094,Al Shifa,Rawabi Nisah Cars,معرض روابي نساح للسيارات,active,24.5516124,46.6834863,verified,1200.0,used,Toyota; Hyundai; Kia,50.0,70000.0,0.65,,,cash
+SD098,Al Shifa,Riyada Cars,رياضة كارز,active,24.5488002,46.6843002,verified,700.0,mix,Hyundai; Kia; Mercedes; Jetour; Dodge,50.0,110000.0,0.0,,,new-only
+SD103,Al Shifa,Saad Mohammed Al Qahtani Cars,معرض سعد محمد القحطاني للسيارات,active,24.5465,46.6844,verified,800.0,used,Toyota; Hyundai; Nissan; Kia; Suzuki,50.0,40000.0,0.15,,,cash
+SD108,Al Shifa,Salim Cars,معرض سليم للسيارات,active,24.5481147,46.6856927,verified,600.0,mix,Toyota; Hyundai; Kia; Ford; Mazda,50.0,90000.0,0.15,,,cash
+SD152,Al Shifa,Al Sarran Cars,معرض السران للسيارات,active,24.545896,46.682013,verified,700.0,used,Toyota; Kia; GMC; Chevrolet; Genesis; Mazda; Jeep; Audi,50.0,75000.0,0.7,,,cash
+SD169,Al Shifa,Al Qannas Cars,معرض القناص للسيارات,active,24.544625,46.683978,verified,1000.0,used,Mercedes; Nissan; GMC; BMW,50.0,80000.0,0.6,,,cash
+SD174,Al Shifa,Sayf Al Khaleej Cars,معرض سيف الخليج للسيارات,active,24.54424,46.683438,verified,800.0,used,Land Rover; Hyundai; Nissan; Kia; GMC; BMW; Renault,50.0,50000.0,0.7,,,cash
+SD176,Al Shifa,Saheel Al Fikr Al Jadeed,شركة معرض صهيل الفكر الجديد,active,24.54399,46.682823,verified,800.0,used,Toyota; Suzuki; Peugeot,50.0,50000.0,0.85,,,cash
+SD188,Al Shifa,Azm Vehicles,معرض عزم Azm للمركبات,active,24.5517419188673,46.6794322205665,verified,1000.0,used,Toyota; Hyundai; Nissan; Mercedes,50.0,50000.0,0.85,,,cash
+SD190,Al Shifa,Al Saadi Cars – Al Shifa branch,معرض السعدي للسيارات فرع الشفا,active,24.550613,46.679055,verified,900.0,used,Toyota; Hyundai; Kia; Ford,50.0,110000.0,0.0,,,cash
+SD198,Al Shifa,Al Qaisar Cars,معرض القيصر للسيارات,active,24.547091,46.685453,verified,1000.0,used,Toyota; Hyundai; Lexus; Mercedes,50.0,100000.0,0.35,,,cash
+SD203,Al Shifa,Ramz Al Asimah,معرض رمز العاصمة,active,24.549622,46.681976,verified,1000.0,used,Toyota; Hyundai; Nissan; GMC,50.0,80000.0,0.6,,,cash
+SD207,Al Shifa,Sada Al Riyadh,معرض صدى الرياض,active,24.54934,46.682398,verified,1000.0,mix,Lexus,50.0,120000.0,0.3,,,cash
+SD210,Al Shifa,Nasser Cars,معرض ناصر للسيارات,active,24.544761,46.680904,verified,1500.0,used,Toyota; Hyundai; Kia; Ford,50.0,40000.0,0.85,,,cash
+SD214,Al Shifa,Raed Al Shifa Cars Co. (branch 2),شركة رعد الشفاء للسيارات (2),active,24.546558,46.680681,verified,900.0,used,Hyundai; Cadillac; Toyota; Ford; Chevrolet,50.0,65000.0,0.65,,,cash
+SD014,Al Shifa,Al Fadiliyah,معرض الفاضلية,active,24.5514327,46.6837826,verified,600.0,used,Hyundai; GMC; Chevrolet; Changan,45.0,65000.0,0.7,,,cash
+SD042,Al Shifa,Al Wisham Al Jadeed,الوشام الجديد,active,24.5479315,46.6850014,verified,700.0,used,Toyota; Ford; Mercedes; GMC; Chevrolet; BMW; Cadillac,45.0,150000.0,0.2,,,cash
+SD043,Al Shifa,Al Yamani Cars,شركة اليمني للسيارات,active,24.5514327,46.6816098,verified,700.0,used,Toyota; Hyundai; Kia; Lexus,45.0,105000.0,0.0,,,cash
+SD046,Al Shifa,Al-Yami Showroom,معرض اليامي,active,24.5493285,46.6816696,verified,700.0,used,Toyota; Lexus; Mazda; Jeep; Mitsubishi,45.0,114000.0,0.0,,,cash
+SD057,Al Shifa,Barakat Al Markabat Cars,معرض بركة المركبات للسيارات,active,24.5474,46.6842,verified,700.0,used,Mercedes; GMC; Jetour; Mazda; Chrysler,45.0,100000.0,0.1,,,cash
+SD073,Al Shifa,Latest Cars — Al Shifa branch,أحدث السيارات فرع الشفا,active,24.5478014,46.6786081,verified,1200.0,used,Hyundai; Ford,45.0,110000.0,0.0,,,cash
+SD089,Al Shifa,Ramz Al Ikhtiyar — Al Shifa,رمز الاختيار — فرع الشفا,active,24.5480708,46.6820647,verified,800.0,used,Toyota; Hyundai; Nissan; Kia; Ford; Jetour,45.0,110000.0,0.0,,,cash
+SD095,Al Shifa,Rawat Al Muharrikat,معرض روعة المحركات للسيارات,active,24.5475668,46.6810067,verified,1000.0,used,Hyundai; Nissan; Kia; Ford; Mercedes; Chevrolet; Changan; Genesis; Mazda; Mini,45.0,32000.0,0.35,,,cash
+SD104,Al Shifa,Saad Muhaysin Al Otaibi Cars,معرض سعد محيسن العتيبي,active,24.5505501,46.6806028,verified,600.0,used,Toyota; Hyundai; Nissan; Kia; Lexus; Ford; GMC; Chevrolet; Jeep,45.0,75000.0,0.45,,,cash
+SD106,Al Shifa,Saeed Salem Al Shahrani Cars,شركة سعيد سالم الشهراني للسيارات,active,24.5480608,46.6879197,verified,800.0,new,Hyundai; Ford,45.0,100000.0,0.0,,,all
+SD112,Al Shifa,Sama Riyadh Showroom,معرض سما الرياض,active,24.5487346,46.681303,verified,1000.0,used,Toyota; Lexus,45.0,200000.0,0.0,,,cash
+SD120,Al Shifa,Turo 1 Cars,معرض تورو 1 للسيارات,active,24.5480608,46.6876234,verified,800.0,used,Kia; Jetour; Mazda,45.0,75000.0,0.15,,,cash
+SD125,Al Shifa,Al Tawra Cars,معرض التوره,active,24.5453416,46.6850374,verified,1000.0,used,Toyota; Hyundai; Ford; Chevrolet,45.0,35000.0,0.9,,,cash
+SD148,Al Shifa,Durar Al Tanfeedh Cars Co.,شركة درر التنفيذ للسيارات,active,24.545239,46.681939,verified,800.0,used,Toyota; Hyundai; Nissan,45.0,80000.0,0.6,,,cash
+SD167,Al Shifa,Al Masoudi Cars,معرض المسعودي للسيارات,active,24.5427778671353,46.6858509099383,verified,800.0,used,Toyota; Hyundai; Ford; Mazda,45.0,45000.0,0.8,,,cash
 SD182,Al Shifa,Ustul Al Arabiya Cars,معرض أسطول العربية للسيارات,active,24.5437361,46.6845215,verified,800.0,used,Toyota; Hyundai; GMC,45.0,80000.0,0.65,,,cash
-SD183,Al Shifa,Nasaem Al Shurooq Cars,معرض نسائم الشروق,active,24.5436135,46.6847357,listing,900.0,used,Toyota,60.0,100000.0,0.7,,,cash
-SD184,Al Shifa,Al Mowah Cars,معرض الموح للسيارات,active,24.5437757,46.6849456,verified,800.0,used,Toyota; Nissan; Kia; Chevrolet; Mitsubishi,35.0,60000.0,0.8,,,cash
-SD185,Al Shifa,Atef bin Sumaida Cars,معرض عاطف بن سميدع للسيارات,active,24.5438247,46.6854896,listing,1000.0,used,Toyota; Hyundai; Lexus; Ford; GMC,60.0,90000.0,0.65,,,cash
+SD189,Al Shifa,Showroom Jawad Car,معرض الجواد,active,24.551096,46.679838,verified,900.0,used,Toyota; Lexus; Ford; Changan; Mitsubishi,45.0,90000.0,0.5,,,cash
+SD209,Al Shifa,Mawj Al Shifa – 2nd showroom,معرض موج الشفا للسيارات (2),active,24.545673,46.68296,verified,1000.0,used,Toyota; Hyundai; GMC,45.0,85000.0,0.6,,,cash
+SD215,Al Shifa,Al Subaie Cars,معرض السبيعي للسيارات,active,24.546152,46.67894,verified,1200.0,used,Toyota; Ford; GMC; Chevrolet,45.0,55000.0,0.75,,,cash
+SD090,Al Shifa,Ramz Al Qiyada Cars,معرض رمز القياده للسيارات,active,24.5475687,46.6858626,verified,700.0,used,Lexus; Mercedes; Jetour; BMW; Genesis; Mini,44.0,180000.0,0.05,,,cash
+SD001,Al Shifa,4cars,فور كارز,active,24.5429157,46.6844866,verified,950.0,used,Toyota; Lexus; Mercedes; BMW; Jeep; Audi,40.0,100000.0,0.35,,,cash
+SD015,Al Shifa,Al Faris Cars — Al Shifa,الفارس للسيارات — الشفا,active,24.5523921,46.6808178,verified,1000.0,used,Hyundai; GMC; Chevrolet; Changan; Honda,40.0,80000.0,0.7,,,cash
+SD018,Al Shifa,Al Hawadij Commercial Services,الهوادج الخدمات التجارية,active,24.5484,46.6846,verified,600.0,used,Toyota; Hyundai; Kia,40.0,70000.0,0.2,,,cash
+SD021,Al Shifa,Al Imtiyaz Cars,معرض الإمتياز للسيارات,active,24.5504446,46.6838813,verified,1000.0,used,Toyota; Hyundai; MG,40.0,60000.0,0.6,,,cash
+SD059,Al Shifa,Country of Arabism Motor Show,معرض بلاد العروبة للسيارات,active,24.5481607,46.680287,verified,800.0,used,Toyota; Hyundai; GMC; Jetour,40.0,90000.0,0.05,,,all
+SD078,Al Shifa,Mawtin Al Asimah,معرض موطن العاصمة,active,24.5491488,46.6799908,verified,800.0,used,Toyota; Hyundai; Kia; Ford,40.0,35000.0,0.45,,,cash
+SD118,Al Shifa,Sultan Al Rudayyan Cars,معرض سلطان الرضيان للسيارات,active,24.5477464,46.6827843,verified,700.0,used,Toyota; Nissan; Ford; BMW,40.0,75325.0,0.5,,,cash
+SD123,Al Shifa,Warid Al Tamayuz,معرض وارد التميز,active,24.5455418,46.6844734,verified,1000.0,mix,Nissan; Hyundai; Jetour; Changan; Honda,40.0,130000.0,0.4,,,cash
+SD127,Al Shifa,Al Masari Cars,معرض المسعري للسيارات,active,24.5451093,46.6853671,verified,900.0,used,Toyota; Isuzu,40.0,55000.0,0.9,,,cash
+SD129,Al Shifa,Mawtin Al Asimah Exhibition,معرض موطن العاصمة للسيارات,active,24.5445675,46.6862542,verified,800.0,used,Toyota; Hyundai; Kia; Chevrolet; MG; Peugeot,40.0,40000.0,0.7,,,cash
+SD134,Al Shifa,Mada Car,معرض مدى كار للسيارات,active,24.545765,46.6836374,verified,1400.0,used,Land Rover; Toyota; Lexus; Mercedes; GMC; Mazda,40.0,100000.0,0.6,,,cash
+SD136,Al Shifa,Zawiyat Al Tamlik,زاوية التمليك للسيارات,active,24.5463584,46.6831529,verified,1000.0,used,Toyota; Lexus; GMC; Jetour; Chevrolet; Jeep; Dodge,40.0,80000.0,0.55,,,cash
+SD143,Al Shifa,Adwaa Shubra Cars,معرض أضواء شبرا للسيارات,active,24.5477875,46.6841406,verified,800.0,used,Mercedes; Toyota; Ford; BMW; Mazda; Jeep; GAC; Cadillac; Great Wall,40.0,47500.0,0.8,,,cash
+SD147,Al Shifa,Mohammed bin Dhaar Al Ajmi — Al Shifa,معرض محمد بن ذعار العجمي للسيارات - فرع الشفا,active,24.545162,46.681417,verified,500.0,new,Hyundai; MG; Changan,40.0,110000.0,0.0,,,all
+SD172,Al Shifa,Al Rakbah Al Fawriya / Insta Car,شركة الركبة الفورية للسيارات / انستا كار,active,24.544197,46.683376,verified,750.0,used,Hyundai; Toyota; Nissan; Kia; GMC; Chevrolet,40.0,55000.0,0.6,,,cash
 SD186,Al Shifa,Bayraq Al Ibdaa Cars,معرض بيرق الابداع للسيارات,active,24.5437093,46.6850184,verified,800.0,used,Hyundai; Nissan; Kia; Chevrolet; Genesis,40.0,95000.0,0.5,,,cash
-SD187,Al Shifa,Al Maliki Car Showrooms,معارض السيارات المالكي,active,24.54359,46.6855796,verified,1400.0,used,Toyota; Nissan; Kia; Chevrolet,65.0,75000.0,,,,cash
-SD188,Al Shifa,Azm Vehicles,معرض عزم Azm للمركبات,active,,,missing,1000.0,used,Toyota; Hyundai; Nissan; Mercedes,50.0,50000.0,0.85,,,cash
-SD189,Al Shifa,Al Jawad,معرض الجواد,active,,,missing,900.0,used,Toyota; Lexus; Ford; Changan; Mitsubishi,45.0,90000.0,0.5,,,cash
-SD190,Al Shifa,Al Saadi Cars – Al Shifa branch,معرض السعدي للسيارات فرع الشفا,active,,,missing,900.0,used,Toyota; Hyundai; Kia; Ford,50.0,110000.0,0.0,,,cash
-SD191,Al Shifa,Asimat Al Alam,معرض عاصمة العلم,active,,,missing,1400.0,used,Toyota; Hyundai; Kia; Lexus,70.0,95000.0,0.5,,,cash
-SD192,Al Shifa,Aidah Al Nahdi,معرض عيضه النهدي,active,24.5458103,46.680764,listing,1200.0,used,Toyota; Hyundai; Kia; GMC,60.0,65000.0,0.5,,,cash
-SD193,Al Shifa,Utarid Cars,عطارد للسيارات تمويلك الأول,active,24.5456111,46.6802335,listing,600.0,mix,Toyota; Hyundai; Kia; Lexus; Mercedes,35.0,100000.0,0.25,,,cash
-SD194,Al Shifa,Al Jammah Cars ,فرع معرض الجماح للسيارات,active,,,missing,1200.0,mix,Hyundai; Nissan; Mercedes; BMW; Genesis,10.0,100000.0,0.1,,,cash
-SD195,Al Shifa,Al Sadhan Cars,معرض ال سدحان للسيارات بالشفا,active,,,missing,800.0,used,Toyota; Hyundai; Nissan; GMC,40.0,80000.0,0.7,,,cash
-SD196,Al Shifa,Shari Cars,معرض شري للسيارات,active,,,missing,1600.0,used,Toyota; Hyundai; Kia; GMC,80.0,75000.0,0.55,,,cash
-SD197,Al Shifa,Qimmat Al Mustawrad Cars,معرض قمة المستورد للسيارات,active,,,missing,400.0,used,Toyota; Kia; Lexus; Ford,20.0,120000.0,0.3,,,cash
-SD198,Al Shifa,Al Qaisar Cars,معرض القيصر للسيارات,active,,,missing,1000.0,used,Toyota; Hyundai; Lexus; Mercedes,50.0,100000.0,0.35,,,cash
-SD199,Al Shifa,Al Kariwain Cars,الكريوين لبيع وشراء جميع أنواع السيارات,active,,,missing,700.0,used,Toyota; Hyundai; Nissan; Mercedes,35.0,50000.0,0.95,,,cash
+SD195,Al Shifa,Al Sadhan Cars,معرض ال سدحان للسيارات بالشفا,active,24.545568,46.682544,verified,800.0,used,Toyota; Hyundai; Nissan; GMC,40.0,80000.0,0.7,,,cash
+SD201,Al Shifa,Bin Muhanna Cars,بن مهنا لبيع وشراء جميع السيارات,active,24.547957,46.686183,verified,800.0,used,Toyota; Hyundai; Kia; Ford,40.0,40000.0,0.7,,,cash
+SD204,Al Shifa,Adwaa Al Haramain,معرض أضواء الحرمين,active,24.548752,46.684176,verified,800.0,used,Toyota; Hyundai; Nissan; Kia,40.0,60000.0,0.6,,,cash
+SD159,Al Shifa,Nibras Used Cars,معرض نبراس الهدف,active,24.54963,46.683072,verified,800.0,used,Toyota; Nissan; Kia; Mazda; Honda,38.0,60000.0,0.7,,,cash
+SD013,Al Shifa,Al Ezz Cruise Cars,معرض العزكروز للسيارات,active,24.5496,46.6813,verified,500.0,used,Toyota; Lexus; GMC; Jetour; Land Rover,35.0,150000.0,0.0,,,cash
+SD025,Al Shifa,Al Mahdani Cars,معرض المهداني للسيارات,active,24.5496347,46.6821098,verified,450.0,used,Toyota; Hyundai; Nissan; Kia; Ford,35.0,55000.0,0.55,,,cash
+SD026,Al Shifa,Al Mutamayyiz — Al Shifa,المتميز للسيارات — الشفا,active,24.5477464,46.6834756,verified,700.0,used,Toyota; Hyundai; Ford; BMW,35.0,80000.0,0.5,,,cash
+SD045,Al Shifa,Al Zahrani Cars,معرض الزهراني للسيارات,active,24.5502649,46.683585,verified,800.0,used,Toyota; Hyundai; Lexus; Mazda; Honda,35.0,47500.0,0.95,,,cash
+SD072,Al Shifa,Lamset Al Mustaqbal Cars,معرض لمسة المستقبل للسيارات,active,24.5482,46.6833,verified,500.0,used,Toyota; Hyundai; Geely,35.0,60000.0,0.35,,,cash
+SD074,Al Shifa,Majd Al Motor Cars,معرض مجد الموتر للسيارات,active,24.547279,46.6859752,verified,500.0,used,Toyota; Nissan; Kia; Mazda; Mitsubishi; Dodge,35.0,85000.0,0.3,,,cash
+SD083,Al Shifa,Najoom Al Shifa,نجوم الشفا للسيارات,active,24.5510734,46.6822024,verified,1200.0,used,Hyundai; Toyota; Nissan; Ford,35.0,100000.0,0.0,,,cash
+SD093,Al Shifa,Rashid Al Damaan Cars,معرض راشد ال دمعان للسيارات,active,24.5488793,46.6789044,verified,1200.0,mix,Hyundai; Kia; Honda; Renault,35.0,85000.0,0.05,,,cash
+SD099,Al Shifa,Road Lights Modern for Cars,معرض رود لايتس مودرن للسيارات,active,24.5486,46.6838,verified,500.0,used,Nissan; Kia; Lexus; GMC; Honda,35.0,100000.0,0.1,,,cash
+SD110,Al Shifa,Sama Dirab Cars,معرض سماء ديراب للسيارات,active,24.5471,46.6836,verified,450.0,used,Toyota; Hyundai; Nissan; Lexus; Mazda; Honda,35.0,38000.0,0.6,,,cash
+SD124,Al Shifa,Tamayuz Al Shifa,معرض تميز الشفاء,active,24.5455794,46.6845573,verified,800.0,used,Hyundai; Ford; Mercedes; Chevrolet,35.0,50000.0,0.9,,,cash
+SD131,Al Shifa,Faisal Nasser Al Mutairi,معرض فيصل ناصر المطيري,active,24.5451144,46.6842697,verified,800.0,used,Toyota; Hyundai; Ford; Geely; Honda,35.0,40000.0,0.9,,,cash
+SD141,Al Shifa,Al Hadyan,معرض الهديان,active,24.5447342,46.6826904,verified,900.0,used,Toyota; Hyundai; GMC; BMW,35.0,85000.0,0.55,,,cash
+SD144,Al Shifa,Nibras Used Cars 2,معرض نبراس الهدف 2,active,24.5496468,46.6830597,verified,800.0,used,Toyota; Nissan; Kia; Lexus; BMW; Mazda; Honda,35.0,90000.0,0.7,,,cash
+SD158,Al Shifa,Fares Al Shahrani Cars,معرض فارس الشهراني للسيارات,active,24.549902,46.68333,verified,800.0,used,Toyota; Hyundai; Nissan; Ford; GMC; Honda,35.0,90000.0,0.5,,,cash
+SD161,Al Shifa,Dream Auto Company,شركه دريم اوتو,active,24.5484124402494,46.6821017472595,verified,1000.0,used,Toyota; Nissan; Kia; Ford,35.0,40000.0,0.85,,,cash
+SD179,Al Shifa,Aqd Al Bidaa Cars,معرض عقد البداع للسيارات,active,24.5438636,46.6844259,verified,1000.0,used,Land Rover; Kia; Ford; GMC; Jetour; Chevrolet; BMW,35.0,80000.0,0.7,,,cash
+SD184,Al Shifa,Al Mowah Cars,معرض الموح للسيارات,active,24.5437757,46.6849456,verified,800.0,used,Toyota; Nissan; Kia; Chevrolet; Mitsubishi,35.0,60000.0,0.8,,,cash
+SD193,Al Shifa,Utarid Cars,عطارد للسيارات تمويلك الأول,active,24.545625,46.680247,verified,600.0,mix,Toyota; Hyundai; Lexus; Mercedes,35.0,100000.0,0.25,,,cash
+SD199,Al Shifa,Al Kariwain Cars,الكريوين لبيع وشراء جميع أنواع السيارات,active,24.546597,46.685449,verified,700.0,used,Toyota; Hyundai; Nissan; Mercedes,35.0,50000.0,0.95,,,cash
+SD081,Al Shifa,Muntaha Al Takamul Cars,معرض منتهى التكامل,active,24.5423137,46.6849329,verified,1000.0,used,Toyota; Lexus; Ford; Mercedes; Genesis; Honda,34.0,120000.0,0.3,,,cash
+SD035,Al Shifa,Al Shenaifi Cars 2,معرض الشنيفي للسيارات 2,active,24.5480608,46.6932526,verified,800.0,mix,Toyota; Lexus; Ford; Mercedes; Chevrolet; BMW; Haval; Cadillac; Audi; Chery; Volkswagen,33.0,100000.0,0.25,,,cash
+SD005,Al Shifa,Adwa Suwaidan Cars,معرض اضواء سويدان للسيارات,active,24.5480608,46.6894011,verified,500.0,used,Toyota; Hyundai; GMC,30.0,60000.0,0.6,,,cash
+SD109,Al Shifa,Sama Al Shifa Al Hadith,معرض سماء الشفاء الحديث,active,24.5479,46.6845,verified,800.0,used,Toyota; Hyundai; Nissan; Kia; Mazda,30.0,74000.0,0.25,,,cash
+SD121,Al Shifa,Walid Cars — Al Shifa,وليد السيارات,active,24.5468,46.6841,verified,800.0,used,Toyota; Ford; GMC; Land Rover,30.0,70000.0,0.8,,,cash
+SD139,Al Shifa,Ali Othman Ahmed Al Amudi,معرض علي عثمان أحمد العمودي للسيارات,active,24.5453476,46.6826932,verified,700.0,used,Toyota,30.0,80000.0,0.65,,,cash
+SD149,Al Shifa,Al Ajmi Cars,العجمي للسيارات,active,24.545654,46.681738,verified,1000.0,used,Toyota; Hyundai,30.0,80000.0,0.7,,,cash
+SD163,Al Shifa,Najm Al Jazeera Cars,معرض نجم الجزيرة للسيارات,active,24.547378,46.682729,verified,1000.0,used,Nissan; Toyota; Hyundai; Kia,30.0,35000.0,0.8,,,cash
+SD181,Al Shifa,Jood Cars,معرض جود كارز للسيارات,active,24.54397,46.684764,verified,600.0,used,Toyota; Lexus; Mercedes,30.0,100000.0,0.5,,,cash
+SD146,Al Shifa,Ramz Al Emarat Cars Co.,شركة رمز الإمارات للسيارات,active,24.544733,46.681499,verified,1400.0,used,Mercedes; Toyota; Hyundai; Kia,28.0,110000.0,0.2,,,all
+SD016,Al Shifa,Al Ghuraybi Cars,معرض الغريبي للسيارات,active,24.5466002,46.6832001,verified,400.0,used,Toyota; GMC,25.0,25000.0,1.0,,,cash
+SD133,Al Shifa,Shihana Cars,معرض شيهانة للسيارات,active,24.5451783,46.6843454,verified,800.0,used,Toyota; Hyundai; GMC; Chevrolet,25.0,50000.0,0.8,,,cash
+SD165,Al Shifa,Ahmed Al Fulaij Cars Co. ,شركة احمد الفليج للسيارات (الصالة),active,24.553671,46.679456,verified,800.0,new,Toyota; Kia; Jetour; Geely; Suzuki,25.0,90000.0,0.05,,,cash
+SD168,Al Shifa,Mutab Cars,معرض متعب للسيارات,active,24.546121,46.681356,verified,600.0,used,GMC; Chevrolet; BMW,25.0,100000.0,0.5,,,cash
+SD180,Al Shifa,Sharyan Al Asimah Cars,معرض شريان العاصمة للسيارات,active,24.5438053,46.6845071,verified,1000.0,used,Land Rover; Toyota; Hyundai; Nissan; Mercedes; Chevrolet; BMW; Jeep; Porsche,25.0,100000.0,0.45,,,cash
+SD216,Al Shifa,New Zamzam Showroom for Cars,معرض زمزم الجديد للسيارات,active,24.54632,46.678473,verified,1400.0,used,Toyota; Isuzu,25.0,60000.0,0.5,,,cash
+SD027,Al Shifa,Al Najm Al Thaqib Cars,معرض النجم الثاقب للسيارات,active,24.5424262,46.6855638,verified,650.0,used,Kia; Lexus; Mercedes; GMC; Chevrolet; Jeep; Dodge,20.0,118000.0,0.3,,,cash
+SD028,Al Shifa,Al Nisawi Cars,النساوي للسيارات,active,24.5472003,46.6833996,verified,400.0,used,Toyota; Hyundai,20.0,40000.0,0.5,,,cash
+SD066,Al Shifa,Heibat Al Qiyada Cars,معرض هيبة القيادة للسيارات,active,24.5469192,46.6845004,verified,600.0,used,Toyota; Hyundai; Ford; Isuzu,20.0,90000.0,0.3,,,cash
+SD100,Al Shifa,Rukn Al Qimma Car,معرض ركن القمه كار,active,24.5472083,46.6855273,verified,500.0,used,Toyota; Hyundai; Kia,20.0,100000.0,0.0,,,cash
+SD171,Al Shifa,Sultan For Cars,سلطان للسيارات,active,24.544387,46.683644,verified,1000.0,used,Hyundai; Nissan; Mercedes; GMC; Chevrolet,20.0,90000.0,0.3,,,cash
+SD197,Al Shifa,Qimmat Al Mustawrad Cars,معرض قمة المستورد للسيارات,active,24.546169,46.686617,verified,400.0,used,Toyota; Kia; Lexus; Ford,20.0,120000.0,0.3,,,cash
 SD200,Al Shifa,Al Qasim,معرض القاسم,active,,,missing,400.0,used,Toyota; Hyundai; Kia; Lexus,20.0,90000.0,0.3,,,cash
-SD201,Al Shifa,Bin Muhanna Cars,بن مهنا لبيع وشراء جميع السيارات,active,,,missing,800.0,used,Toyota; Hyundai; Kia; Ford,40.0,40000.0,0.7,,,cash
-SD202,Al Shifa,Eid Cars,معرض عيد للسيارات,active,,,missing,1200.0,used,Toyota; Hyundai; Nissan; Kia,60.0,55000.0,0.7,,,cash
-SD203,Al Shifa,Ramz Al Asimah,معرض رمز العاصمة,active,,,missing,1000.0,used,Toyota; Hyundai; Nissan; GMC,50.0,80000.0,0.6,,,cash
-SD204,Al Shifa,Adwaa Al Haramain,معرض أضواء الحرمين,active,,,missing,800.0,used,Toyota; Hyundai; Nissan; Kia,40.0,60000.0,0.6,,,cash
-SD205,Al Shifa,Al Osaimi Cars (auction hall),معرض العصيمي للسيارات,active,,,missing,1400.0,used,Toyota; Hyundai; Kia; Ford,70.0,85000.0,0.25,,,cash
 SD206,Al Shifa,Rukn Al Hudaybiya Cars,معرض ركن الحديبية للسيارات,active,,,missing,700.0,used,Toyota; Hyundai; Kia; Ford,20.0,35000.0,0.95,,,cash
-SD207,Al Shifa,Sada Al Riyadh,معرض صدى الرياض,active,,,missing,1000.0,mix,Lexus,50.0,120000.0,0.3,,,cash
-SD208,Al Shifa,Class – Lexus showroom,معرض المركبه كلاس — لكزس,active,,,missing,800.0,used,Lexus,70.0,110000.0,0.5,,,cash
-SD209,Al Shifa,Mawj Al Shifa – 2nd showroom,معرض موج الشفا للسيارات (2),active,,,missing,1000.0,used,Toyota; Hyundai; GMC,45.0,85000.0,0.6,,,cash
-SD210,Al Shifa,Nasser Cars,معرض ناصر للسيارات,active,,,missing,1500.0,used,Toyota; Hyundai; Kia; Ford,50.0,40000.0,0.85,,,cash
-SD211,Al Shifa,Al Malfi Abu Thnain Cars,ال ملفي ابوثنين للسيارات,active,,,missing,1500.0,used,Toyota; Hyundai; Kia; Ford,75.0,70000.0,0.65,,,cash
-SD212,Al Shifa,Al Bijad Showroom,معرض ال بجاد,active,,,missing,400.0,used,Toyota; Hyundai; Kia; Lexus,20.0,90000.0,0.3,,,cash
-SD213,Al Shifa,Eshq Al Janoub Cars Co.,شركة عشق الجنوب للسيارات,active,24.5459766,46.6791991,listing,1400.0,mix,Hyundai; Kia; Ford; Changan; Geely,60.0,100000.0,0.05,,,cash
-SD214,Al Shifa,Raed Al Shifa Cars Co. (branch 2),شركة رعد الشفاء للسيارات (2),active,,,missing,900.0,used,Hyundai; Cadillac; Toyota; Ford; Chevrolet,50.0,65000.0,0.65,,,cash
-SD215,Al Shifa,Al Subaie Cars,معرض السبيعي للسيارات,active,,,missing,1200.0,used,Toyota; Ford; GMC; Chevrolet,45.0,55000.0,0.75,,,cash
-SD216,Al Shifa,New Zamzam Showroom for Cars,معرض زمزم الجديد للسيارات,active,,,missing,1400.0,used,Toyota; Isuzu,25.0,60000.0,0.5,,,cash
-SD217,Al Shifa,New shifa cars,معرض الشفا الجديد للسيارات,active,24.549306,46.682474,verified,1400.0,mix,Toyota; Kia; Ford; Jetour; Geely,120.0,100000.0,0.1,,,new-only
+SD212,Al Shifa,Al Bijad Showroom,معرض ال بجاد,active,24.547668,46.678958,verified,400.0,used,Toyota; Hyundai; Kia; Lexus,20.0,90000.0,0.3,,,cash
+SD022,Al Shifa,Al Jaidi Cars,الجعيدي للتجارة,active,24.5480608,46.6837719,verified,450.0,used,Ford; Mercedes; BMW; Land Rover; Genesis; Jeep,19.0,125000.0,0.2,,,cash
+SD029,Al Shifa,Al Nukhba Cruise Cars,معرض النخبة كروز للسيارات,active,24.5429108,46.6856661,verified,500.0,used,Toyota; Hyundai; Kia; Lexus; GMC; Jetour; Mazda,17.0,90000.0,0.35,,,cash
+SD085,Al Shifa,Nujoom Al Etimad Cars,نجوم الاعتماد للسيارات,active,24.5480608,46.6891048,verified,500.0,mix,Hyundai; Nissan; Kia; Ford,15.0,80000.0,0.1,,,cash
+SD082,Al Shifa,Mustaqbal Al Sura'a Cars,معرض مستقبل السرعة للسيارات,active,24.5426687,46.6857255,verified,600.0,used,Toyota; Hyundai; Isuzu,14.0,58000.0,0.6,,,cash
+SD194,Al Shifa,Al Jammah Cars ,فرع معرض الجماح للسيارات,active,24.545182,46.681624,verified,1200.0,mix,Hyundai; Nissan; Mercedes; BMW; Genesis,10.0,100000.0,0.1,,,cash
+SD003,Al Shifa,Abdullah Nashban Showroom,معرض عبدالله نشبان,open-floor,24.5522124,46.6809165,verified,,used,,,,0.0,,,cash
+SD116,Al Shifa,Shawafir Cars,معرض شوافر للسيارات,closing,24.5462442,46.6872634,verified,1000.0,,,,,,,,cash
+SD170,Al Shifa,Al Asdiqa Cars,معرض الأصدقاء,empty,24.5440899,46.6837743,listing,,,,,,0.0,,,cash
+SD175,Al Shifa,Al Markaba Al Khamisa / Sumou 2,معرض المركبة الخامسة للسيارات / سمو المركبات ٢,empty,24.544151,46.683049,verified,,,,,,0.0,,,cash
+SD068,Al Shifa,Karaa Cars,معرض كراء للسيارات,closed,,,missing,,used,,,,0.0,,,
