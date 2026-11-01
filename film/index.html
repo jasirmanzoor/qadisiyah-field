@@ -1,0 +1,676 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>AUTOLINK — Mapped</title>
+<style>
+html,body{margin:0;background:#fff;overflow:hidden}
+canvas{display:block;width:1920px;height:1080px}
+</style></head>
+<body><canvas id="c" width="1920" height="1080"></canvas>
+<script src="data.js"></script>
+<script>
+/* AUTOLINK — "MAPPED."  120 BPM · 30 s · every pixel is f(t) */
+const W=1920,H=1080,BT=0.5;
+const C={blue:'#2B4BFF',sky:'#A9C1FF',orange:'#FF5B1F',ink:'#0B0B0F',white:'#FFFFFF'};
+const F='"Inter Display"';
+const cv=document.getElementById('c'), X=cv.getContext('2d');
+let ctx=X; // current target
+
+/* ---------- math / easing ---------- */
+const cl=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const lerp=(a,b,u)=>a+(b-a)*u;
+const P=(t,a,d)=>cl((t-a)/d);
+const eo=x=>x<=0?0:x>=1?1:(1-Math.pow(2,-10*x))/(1-Math.pow(2,-10));
+const ei=x=>x<=0?0:x>=1?1:(Math.pow(2,10*x-10)-Math.pow(2,-10))/(1-Math.pow(2,-10));
+const eio=x=>x<=0?0:x>=1?1:x<.5?Math.pow(2,20*x-10)/2:(2-Math.pow(2,-20*x+10))/2;
+const spr=(dt,w=20)=>dt<=0?0:1-(1+w*dt)*Math.exp(-w*dt);      // critically damped: no overshoot
+const sprN=(t,a,w=20)=>{const v=spr(t-a,w);return v>0.9995?1:v};
+function hash(i){let x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x)}
+function hexRgb(h){return [1,3,5].map(i=>parseInt(h.slice(i,i+2),16))}
+function mixC(a,b,u){const A=hexRgb(a),B=hexRgb(b);return `rgb(${A.map((v,i)=>Math.round(lerp(v,B[i],u))).join(',')})`}
+
+/* ---------- assets ---------- */
+const IM=[];
+function loadImg(src){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(i);i.src=src})}
+function mkCanvas(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c}
+const LAYER=mkCanvas(W,H), LX=LAYER.getContext('2d');
+const ACC=mkCanvas(W,H), AX=ACC.getContext('2d');
+
+/* ---------- drawing helpers ---------- */
+function font(sz,wt=900){ctx.font=`${wt} ${sz}px ${F}`}
+function img(i,x,y,w,h,z=1,fx=.5,fy=.5){
+  if(w<=0.5||h<=0.5)return; const im=IM[((i%IM.length)+IM.length)%IM.length]; if(!im)return;
+  const IW=im.width,IH=im.height,a=w/h; let sw,sh;
+  if(a>IW/IH){sw=IW/z;sh=sw/a}else{sh=IH/z;sw=sh*a}
+  const sx=cl((IW-sw)*fx,0,IW-sw), sy=cl((IH-sh)*fy,0,IH-sh);
+  ctx.drawImage(im,sx,sy,sw,sh,x,y,w,h);
+}
+function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}
+function rrect(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r)}
+function clipRect(x,y,w,h){ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip()}
+function pathPartial(pts,p){ // draw polyline up to fraction p
+  if(p<=0||pts.length<2)return; let L=0;const seg=[];
+  for(let i=1;i<pts.length;i++){const d=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);seg.push(d);L+=d}
+  let rem=L*cl(p);ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length&&rem>0;i++){const d=seg[i-1];
+    if(rem>=d){ctx.lineTo(pts[i][0],pts[i][1]);rem-=d}
+    else{const u=rem/d;ctx.lineTo(lerp(pts[i-1][0],pts[i][0],u),lerp(pts[i-1][1],pts[i][1],u));rem=0}}
+  ctx.stroke();
+}
+function brushEllipse(cx,cy,rx,ry,rot,p,col,lw,seed=1){ // hand-painted loop, overshoots 1.12 turns
+  const pts=[],N=90;
+  for(let i=0;i<=N;i++){const a=-Math.PI*0.62+ (i/N)*Math.PI*2*1.12;
+    const k=1+0.035*Math.sin(a*3+seed)+0.05*(i/N);
+    const x=Math.cos(a)*rx*k,y=Math.sin(a)*ry*k;
+    pts.push([cx+x*Math.cos(rot)-y*Math.sin(rot),cy+x*Math.sin(rot)+y*Math.cos(rot)])}
+  ctx.save();ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.lineCap='round';ctx.lineJoin='round';pathPartial(pts,p);ctx.restore();
+}
+function checkMark(x,y,r,p,bg,fg){ // disc + painted tick
+  if(p<=0)return; const s=eo(cl(p*2));
+  ctx.save();ctx.fillStyle=bg;ctx.beginPath();ctx.arc(x,y,r*s,0,7);ctx.fill();
+  ctx.strokeStyle=fg;ctx.lineWidth=r*0.22;ctx.lineCap='round';ctx.lineJoin='round';
+  pathPartial([[x-r*.42,y+r*.02],[x-r*.1,y+r*.32],[x+r*.45,y-r*.3]],eo(cl(p*2-0.6)));ctx.restore();
+}
+/* per-letter masked text: letters rise in at tin, leave upward at tout */
+function word(str,o){
+  const {x,y,size,color=C.ink,align='left',tin=-9,tout=99,dur=0.3,stg=0.014,wt=900,ls=-0.035,dirIn=1,dirOut=-1,clipPad=0.3}=o;
+  font(size,wt);ctx.letterSpacing=(ls*size)+'px';
+  const total=ctx.measureText(str).width; let x0=x; if(align==='center')x0=x-total/2; else if(align==='right')x0=x-total;
+  const t=o.t; if(t<tin-0.001||t>tout+dur+stg*str.length)return {w:total,x0};
+  ctx.save();clipRect(x0-size*0.3,y-size*(0.98),total+size*0.6,size*(1.0+clipPad));
+  ctx.fillStyle=color;ctx.textBaseline='alphabetic';
+  for(let i=0;i<str.length;i++){
+    const ch=str[i]; if(ch===' ')continue;
+    const px=x0+ctx.measureText(str.slice(0,i)).width;
+    const pi=eo(P(t,tin+0.03+i*stg,dur)), po=eio(P(t,tout+i*stg*0.6,dur*0.72));
+    const dy=(1-pi)*size*1.1*dirIn + po*size*1.25*dirOut;
+    if(pi<=0||po>=1)continue;
+    ctx.fillText(ch,px,y+dy);
+  }
+  ctx.restore();ctx.letterSpacing='0px';return {w:total,x0};
+}
+function measure(str,size,wt=900,ls=-0.035){font(size,wt);ctx.letterSpacing=(ls*size)+'px';const w=ctx.measureText(str).width;ctx.letterSpacing='0px';return w}
+/* odometer: digits roll up to target as p goes 0..1 */
+function odo(str,o){
+  const {x,y,size,color=C.ink,align='left',p,wt=900,ls=-0.03,stg=0.06,out=0}=o;
+  if(p<=0||out>=1)return; font(size,wt);ctx.letterSpacing=(ls*size)+'px';
+  const total=ctx.measureText(str).width; let x0=align==='center'?x-total/2:align==='right'?x-total:x;
+  ctx.save();clipRect(x0-20,y-size*0.95,total+40,size*1.2);ctx.translate(0,-eio(out)*size*1.1);ctx.fillStyle=color;
+  const n=str.length;
+  for(let i=0;i<n;i++){const ch=str[i];const px=x0+ctx.measureText(str.slice(0,i)).width;
+    const q=eo(cl((p-(n-1-i)*stg/ (1+stg*n))*(1+stg*n)));
+    if(/[0-9]/.test(ch)){const d=+ch;const v=q*(d+10);const k=Math.floor(v),f=v-k;
+      ctx.fillText(String(k%10),px,y-f*size*1.05);if(f>0.001)ctx.fillText(String((k+1)%10),px,y+(1-f)*size*1.05);}
+    else{ctx.fillText(ch,px,y+(1-q)*size*1.05)}}
+  ctx.restore();ctx.letterSpacing='0px';
+}
+
+/* ---------- precomputed geometry (constants, not state) ---------- */
+let Q=[],S=[],ALL=[],HULLQ,HULLS,CQ,CS,MSTQ,MSTS,RANK,WALLF,WALLB,MARK;
+function hull(pts){const p=pts.map(a=>[a[0],a[1]]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+  const cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);const lo=[],up=[];
+  for(const q of p){while(lo.length>1&&cr(lo[lo.length-2],lo[lo.length-1],q)<=0)lo.pop();lo.push(q)}
+  for(const q of p.slice().reverse()){while(up.length>1&&cr(up[up.length-2],up[up.length-1],q)<=0)up.pop();up.push(q)}
+  return lo.slice(0,-1).concat(up.slice(0,-1))}
+function centroid(poly){let x=0,y=0;poly.forEach(p=>{x+=p[0];y+=p[1]});return [x/poly.length,y/poly.length]}
+function rayPoly(poly,c,ang){ // ray from c at angle hits convex poly
+  const dx=Math.cos(ang),dy=Math.sin(ang);let best=1e9;
+  for(let i=0;i<poly.length;i++){const a=poly[i],b=poly[(i+1)%poly.length];
+    const ex=b[0]-a[0],ey=b[1]-a[1];const den=dx*ey-dy*ex;if(Math.abs(den)<1e-9)continue;
+    const s=((a[0]-c[0])*ey-(a[1]-c[1])*ex)/den, u=((a[0]-c[0])*dy-(a[1]-c[1])*dx)/den;
+    if(s>0&&u>=-1e-6&&u<=1+1e-6&&s<best)best=s}
+  return [c[0]+dx*best,c[1]+dy*best]}
+function mst(pts){const n=pts.length,inT=new Array(n).fill(false),d=new Array(n).fill(1e18),par=new Array(n).fill(-1),E=[];d[0]=0;
+  for(let k=0;k<n;k++){let u=-1;for(let i=0;i<n;i++)if(!inT[i]&&(u<0||d[i]<d[u]))u=i;inT[u]=true;if(par[u]>=0)E.push([par[u],u]);
+    for(let v=0;v<n;v++)if(!inT[v]){const dd=(pts[u][0]-pts[v][0])**2+(pts[u][1]-pts[v][1])**2;if(dd<d[v]){d[v]=dd;par[v]=u}}}
+  return E}
+function fit(raw,cx,cy,bw,bh,proj){
+  const p=raw.map(proj);let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;p.forEach(([x,y])=>{x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)});
+  const s=Math.min(bw/(x1-x0),bh/(y1-y0));return p.map(([x,y])=>[cx+(x-(x0+x1)/2)*s,cy+(y-(y0+y1)/2)*s])}
+function padPoly(poly,c,pad){return poly.map(p=>{const dx=p[0]-c[0],dy=p[1]-c[1],L=Math.hypot(dx,dy);return [p[0]+dx/L*pad,p[1]+dy/L*pad]})}
+
+const QC=[600,610], SC=[1390,610];
+function prep(){
+  const D=window.DATA;
+  const qp=fit(D.Q,QC[0],QC[1],600,560,a=>[a[1]*Math.cos(24.8*Math.PI/180),-a[0]]);
+  const sp=fit(D.S,SC[0],SC[1],560,330,a=>[a[1],-a[0]]);
+  const qmax=Math.max(...D.Q.map(a=>a[2]));
+  Q=qp.map((p,i)=>({x:p[0],y:p[1],v:D.Q[i][2],d:0}));S=sp.map((p,i)=>({x:p[0],y:p[1],v:D.S[i][2],d:1}));
+  ALL=Q.concat(S);
+  const cap=v=>Math.min(v,260);
+  ALL.forEach((a,i)=>{a.h3=Math.pow(cap(a.v)/260,0.8)*300+6;a.i=i});
+  // re-center dots so their centroid defines the morph centre
+  HULLQ=hull(qp);HULLS=hull(sp);CQ=centroid(HULLQ);CS=centroid(HULLS);
+  HULLQ=padPoly(HULLQ,CQ,22);HULLS=padPoly(HULLS,CS,22);
+  MSTQ=mst(qp);MSTS=mst(sp);
+  ALL.forEach(a=>{const c=a.d?CS:CQ;a.r=Math.hypot(a.x-c[0],a.y-c[1])});
+  const mr=[Math.max(...Q.map(a=>a.r)),Math.max(...S.map(a=>a.r))];ALL.forEach(a=>a.rn=a.r/mr[a.d]);
+  const sorted=ALL.slice().sort((a,b)=>b.v-a.v);sorted.forEach((a,r)=>a.rank=r);
+  const vmax=sorted[2].v; ALL.forEach(a=>a.hc=Math.min(1,Math.pow(a.v/vmax,0.75)));
+  // wall textures 16x16 tiles (front photos / back type)
+  WALLF=mkCanvas(W,H);const wf=WALLF.getContext('2d');const sv=ctx;ctx=wf;
+  for(let j=0;j<16;j++)for(let i=0;i<16;i++){img(photoFor(4,i,j),i*120,j*67.5,120,67.5,1.1)}
+  WALLB=mkCanvas(W,H);ctx=WALLB.getContext('2d');rect(0,0,W,H,C.blue);
+  ctx.fillStyle=C.white;font(300);ctx.letterSpacing='-12px';ctx.textAlign='center';ctx.fillText('ORGANIZED.',W/2+10,540+120);ctx.textAlign='left';ctx.letterSpacing='0px';
+  ctx=sv;
+  // mark: three diamonds, tile grid positions inside each
+  const a=82,g=1.07; MARK={a,cx:960,cy:392,D:[[0,-a*g*0.5,C.blue],[-a*g,a*g*0.5,C.blue],[a*g,a*g*0.5,C.sky]]};
+  MARK.slots=[];for(let d=0;d<3;d++){const k=9;for(let u=0;u<k;u++)for(let v=0;v<k;v++){
+    const su=((u+0.5)/k-0.5)*a*Math.SQRT2, sv2=((v+0.5)/k-0.5)*a*Math.SQRT2; // rotate 45°
+    const x=(su-sv2)/Math.SQRT2,y=(su+sv2)/Math.SQRT2; MARK.slots.push([MARK.cx+MARK.D[d][0]+x,MARK.cy+MARK.D[d][1]+y,d])}}
+}
+const PH=[62,3,28,10,34,36,23,59,4,29,47,37,0,1,5,6,9,11,15,20,24,25,31,33,38,40,44,45,50,52,55,57,60,61,2,7,12,13,14,16,17,18,19,21,22,26,27,30,32,35,39,41,42,43,46,48,49,51,53,54,56,58,8];
+function photoFor(L,i,j){return PH[Math.floor(hash(L*977+i*31+j*7+3)*PH.length)]}
+
+/* ======================= SCENES ======================= */
+/* Bar 1 — HOOK: line → shutter → painted sign → three columns */
+const HR={x:120,y:67.5,w:1680,h:945};
+function colRect(k,t){const g=24*eo(P(t,1.5,0.3));const w=(HR.w-2*g)/3;return {x:HR.x+k*(w+g),y:HR.y,w,h:HR.h}}
+function sHook(t){
+  if(t<0.5){const w=lerp(120,1680,eio(P(t,0,0.5)));rect(960-w/2,536,w,8,C.blue);return}
+  const op=eo(P(t,0.5,0.42)); const h=lerp(8,HR.h,op); const y=540-h/2;
+  const z=1.04+0.06*(t-0.5);
+  if(t<1.5){
+    ctx.save();clipRect(HR.x,y,HR.w,h);img(62,HR.x,HR.y,HR.w,HR.h,z,0.5,0.4);
+    // paint on the sign
+    const px=HR.x+HR.w*0.5, py=HR.y+HR.h*0.32;
+    brushEllipse(px+10,py,HR.w*0.27,HR.h*0.13,-0.04,eo(P(t,1.0,0.42)),C.orange,13,2);
+    ctx.restore();
+    const bt=lerp(8,0,eo(P(t,0.78,0.3)));rect(HR.x,y-bt,HR.w,bt,C.blue);rect(HR.x,y+h,HR.w,bt,C.blue);
+    // tag chip
+    const cp=eo(P(t,1.12,0.3)); if(cp>0){ctx.save();const cw=300*cp;rect(HR.x+HR.w*0.5+380,HR.y+HR.h*0.5-6,cw,74,C.ink);clipRect(HR.x+HR.w*0.5+380,HR.y+HR.h*0.5-6,cw,74);
+      word('001 / 520',{t,x:HR.x+HR.w*0.5+404,y:HR.y+HR.h*0.5+48,size:46,color:C.white,tin:1.16,wt:700,ls:0});ctx.restore()}
+    return}
+  hookCols(t);
+}
+function hookCols(t){ // 1.5 → 2.0 : columns, new photos roll in
+  const ph=[[62,3],[62,28],[62,10]];
+  for(let k=0;k<3;k++){const r=colRect(k,t);const dir=k===1?-1:1;const u=eio(P(t,1.56+k*0.05,0.36));
+    ctx.save();clipRect(r.x,r.y,r.w,r.h);
+    const oy=-dir*u*r.h;
+    ctx.save();ctx.translate(0,oy);ctx.beginPath();ctx.rect(HR.x,HR.y,HR.w,HR.h);ctx.clip();
+    img(62,HR.x,HR.y,HR.w,HR.h,1.04+0.06*(t-0.5),0.5,0.4);
+    brushEllipse(HR.x+HR.w*0.5+10,HR.y+HR.h*0.32,HR.w*0.27,HR.h*0.13,-0.04,1,C.orange,13,2);
+    ctx.restore();
+    img(ph[k][1],r.x,r.y+oy+dir*r.h,r.w,r.h,1.0,0.5,0.5);
+    ctx.restore();}
+  // chip leaves left
+  const cp=eio(P(t,1.5,0.3)); if(cp<1){const cx=HR.x+HR.w*0.5+380;ctx.save();clipRect(cx,HR.y+HR.h*0.5-6,300,74);ctx.translate(-cp*300,0);rect(cx,HR.y+HR.h*0.5-6,300,74,C.ink);
+    font(46,700);ctx.fillStyle=C.white;ctx.fillText('001 / 520',cx+24,HR.y+HR.h*0.5+48);ctx.restore()}
+}
+
+/* Bar 2 — KINETIC TYPE: columns become photo-filled 520, then copy rolls */
+const DIG={size:600,y:560};
+function digitBoxes(size,cy){font(size);ctx.letterSpacing=(-0.04*size)+'px';const s='520',w=ctx.measureText(s).width,x0=960-w/2;const out=[];
+  for(let i=0;i<3;i++){const px=x0+ctx.measureText(s.slice(0,i)).width;const m=ctx.measureText(s[i]);
+    out.push({x:px,w:m.width-0.04*size,ch:s[i],base:cy+size*0.36})}ctx.letterSpacing='0px';return out}
+function s520(t){
+  // 2.0–2.4 columns collapse into glyphs (glyph mask zooms down from huge)
+  const m=eio(P(t,2.0,0.42)); // morph
+  const up=eio(P(t,2.5,0.4)); // move up / shrink
+  const size=lerp(600,400,up), cy=lerp(560,400,up);
+  const out=eio(P(t,4.0,0.36));
+  const box=digitBoxes(size,cy);
+  const fill=eo(P(t,2.5,0.32)); // blue wipe from bottom
+  for(let k=0;k<3;k++){
+    const r=colRect(k,Math.max(t,1.9)); const b=box[k];
+    const capH=size*0.73;
+    const tx=lerp(r.x,b.x,m),ty=lerp(r.y,b.base-capH,m),tw=lerp(r.w,b.w,m),th=lerp(r.h,capH,m);
+    // render into layer: photo (and blue fill) masked by glyph scaled about its stroke anchor
+    const L=LX; L.setTransform(1,0,0,1,0,0);L.clearRect(0,0,W,H);
+    const sv=ctx;ctx=L;
+    ctx.save();clipRect(tx,ty,tw,th);
+    img([3,28,10][k],r.x+(tx-r.x)*0+0,0,0,0);
+    img([3,28,10][k],tx-(1-m)*0,ty,tw,th,1+0.4*m,0.5,0.5);
+    if(fill>0)rect(tx,ty+th*(1-fill),tw,th*fill+2,C.blue);
+    ctx.restore();
+    ctx.globalCompositeOperation='destination-in';
+    const sc=lerp(14,1,eo(P(t,2.0,0.46)));
+    const ax=b.x+b.w*(k===2?0.08:k===1?0.5:0.5), ay=b.base-capH*(k===2?0.5:k===1?0.9:0.62);
+    ctx.save();ctx.translate(ax,ay);ctx.scale(sc,sc);ctx.translate(-ax,-ay);
+    font(size);ctx.fillStyle='#000';ctx.fillText(b.ch,b.x,b.base);ctx.restore();
+    ctx.globalCompositeOperation='source-over';ctx=sv;
+    // exit at 4.0: slide up behind mask
+    ctx.save();clipRect(0,cy-size*0.42,W,size*0.82);ctx.drawImage(LAYER,0,-out*size*0.9);ctx.restore();
+  }
+  if(t>=4.0-0.01) word('UNTIL',{t,x:960,y:cy+size*0.36,size,align:'center',tin:4.04,tout:5.0,stg:0.03});
+  // copy line
+  const ly=740;
+  word('SHOWROOMS',{t,x:960,y:ly,size:150,align:'center',tin:2.5,tout:3.0});
+  word('NEVER MAPPED.',{t,x:960,y:ly,size:150,align:'center',tin:3.0,tout:3.5,color:C.ink});
+  word('NEVER SURVEYED.',{t,x:960,y:ly,size:150,align:'center',tin:3.5,tout:4.0,color:C.ink});
+}
+/* Bar 3 — UNTIL NOW. → the O becomes an iris */
+function sNow(t){
+  const size=400, base=400+size*0.36+410;
+  const s='NOW.';font(size);ctx.letterSpacing=(-0.035*size)+'px';
+  const tot=ctx.measureText(s).width,x0=960-tot/2;const oX=x0+ctx.measureText('N').width, oW=ctx.measureText('O').width;ctx.letterSpacing='0px';
+  const capH=size*0.73, R0=capH*0.5+4; const ocx=oX+oW/2-size*0.02, ocy=base-capH/2;
+  if(t<5.0){
+    word('N',{t,x:x0,y:base,size,tin:4.5,tout:5.0});
+    word('W.',{t,x:x0+measure('NO',size),y:base,size,tin:4.56,tout:5.0});
+  }else{
+    word('N',{t,x:x0,y:base,size,tin:4.5,tout:5.0,dirOut:1});
+    word('W.',{t,x:x0+measure('NO',size),y:base,size,tin:4.56,tout:5.0,dirOut:1});
+  }
+  // disc
+  const pin=eo(P(t,4.53,0.36));
+  const g=eio(P(t,5.0,1.0));
+  const cx=lerp(ocx,960,eio(P(t,5.0,0.5))), cy=lerp(ocy,540,eio(P(t,5.0,0.5)));
+  const R=lerp(R0,1120,g)*pin;
+  if(R<=0)return;
+  ctx.save();ctx.beginPath();ctx.arc(cx,cy+(1-pin)*size*0.5,R,0,7);ctx.fillStyle=C.blue;ctx.fill();ctx.restore();
+  const ir=eio(P(t,5.45,0.55)); // inner photo iris
+  if(ir>0){ctx.save();ctx.beginPath();ctx.arc(cx,cy,R*ir,0,7);ctx.clip();colTile(t,'a',{x:0,y:0,w:W,h:H});ctx.restore()}
+}
+
+/* Bars 4–5 — EDITORIAL COLLAGE with paint */
+const M=80,G=16;
+function grid(cols,rows,g=G,m=M,top=M,hh=920){const w=(W-2*m-(cols-1)*g)/cols,h=(hh-(rows-1)*g)/rows;const o=[];for(let j=0;j<rows;j++)for(let i=0;i<cols;i++)o.push({x:m+i*(w+g),y:top+j*(h+g),w,h,i,j});return o}
+const TPH={a:3,b:28,c:10,d:23,e:59,f:34,g:47,h:4,i:37,j:29};
+function L(t){
+  // layouts keyed by beat
+  const g6=grid(3,2),g5=grid(5,1),g12=grid(4,3),g40=grid(8,5,12);
+  const Ls=[
+    {t:6.0,R:{a:{x:0,y:0,w:W,h:H}}},
+    {t:6.5,R:{a:{x:M,y:M,w:1140,h:920},b:{x:1236,y:M,w:604,h:452},c:{x:1236,y:548,w:604,h:452}}},
+    {t:7.0,R:{a:g6[0],b:g6[1],c:g6[2],d:g6[3],e:g6[4],f:g6[5]}},
+    {t:7.5,R:null}, // zoom through f
+    {t:8.0,R:Object.fromEntries(['g','f','h','i','j'].map((k,i)=>[k,g5[i]]))},
+    {t:8.5,R:Object.fromEntries(g12.map((r,i)=>[i===5?'f':'q'+i,r]))},
+    {t:9.0,R:Object.fromEntries(g40.map((r,i)=>[i===19?'f':'w'+i,r]))},
+  ];
+  // zoom layout = L2 transformed so f fills frame
+  const f=Ls[2].R.f, sx=W/f.w, sy=H/f.h; Ls[3].R={};
+  for(const k in Ls[2].R){const r=Ls[2].R[k];Ls[3].R[k]={x:(r.x-f.x)*sx,y:(r.y-f.y)*sy,w:r.w*sx,h:r.h*sy}}
+  return Ls;
+}
+let LS=null;
+function lerpR(a,b,u){return {x:lerp(a.x,b.x,u),y:lerp(a.y,b.y,u),w:lerp(a.w,b.w,u),h:lerp(a.h,b.h,u)}}
+function phOf(k){if(TPH[k]!==undefined)return TPH[k];const n=parseInt(k.slice(1));return PH[(n*5+(k[0]==='w'?17:9))%PH.length]}
+function colTile(t,k,r,zz){const z=(zz||1.0)+0.035*Math.max(0,t-6);img(phOf(k),r.x,r.y,r.w,r.h,z,0.5,0.45)}
+function sCollage(t){
+  LS=LS||L();
+  let idx=0;for(let i=0;i<LS.length;i++)if(t>=LS[i].t)idx=i;
+  const A=LS[idx],B=LS[idx+1];
+  const u=B?eo(P(t,A.t,0.42)):0;
+  // transition from previous layout into current
+  const Pv=LS[idx-1];const v=Pv?eo(P(t,A.t,0.42)):1;
+  const keys=new Set([...Object.keys(A.R),...(Pv?Object.keys(Pv.R):[])]);
+  const drawn=[];
+  for(const k of keys){
+    let r; const a=Pv&&Pv.R[k], b=A.R[k];
+    if(a&&b)r=lerpR(a,b,v);
+    else if(b){ // enter: grow from its centre (stagger by index)
+      const n=parseInt(k.slice(1))||0;const w=eo(P(t,A.t+(n%13)*0.012,0.4));if(w<=0)continue;
+      r={x:b.x+b.w*(1-w)/2,y:b.y+b.h*(1-w)/2,w:b.w*w,h:b.h*w}}
+    else{const w=1-eio(P(t,A.t,0.3));if(w<=0)continue;r={x:a.x+a.w*(1-w)/2,y:a.y+a.h*(1-w)/2,w:a.w*w,h:a.h*w}}
+    drawn.push([k,r]);
+  }
+  for(const [k,r] of drawn){
+    if(t>=9.5){blueTile(t,k,r);continue}
+    colTile(t,k,r);
+  }
+  // paint layers
+  const R=k=>{const d=drawn.find(e=>e[0]===k);return d&&d[1]};
+  if(t>=6.5&&t<7.0){const r=R('a');if(r)brushEllipse(r.x+r.w*0.42,r.y+r.h*0.30,r.w*0.33,r.h*0.14,0.03,eo(P(t,6.6,0.38)),C.orange,12,4);}
+  if(t>=6.5&&t<7.05){const r=R('a');if(r){word('MAPPED',{t,x:r.x+40,y:r.y+r.h-50,size:150,color:C.white,tin:6.62,tout:6.98})}}
+  if(t>=7.0&&t<7.5){['a','b','c','d','e','f'].forEach((k,i)=>{const r=R(k);if(r)checkMark(r.x+r.w-56,r.y+56,34,P(t,7.06+i*0.04,0.3),C.blue,C.white)});
+    const r=R('a');if(r)word('SURVEYED',{t,x:r.x+30,y:r.y+r.h-36,size:96,color:C.white,tin:7.1,tout:7.42});}
+  if(t>=7.5&&t<8.0){ // zoomed tile annotations
+    const r=R('f');if(r){
+      brushEllipse(r.x+r.w*0.555,r.y+r.h*0.64,r.w*0.13,r.h*0.33,0.02,eo(P(t,7.62,0.36)),C.orange,14,7);
+      // dimension line across canopy
+      const y=r.y+r.h*0.13, x1=r.x+r.w*0.05, x2=r.x+r.w*0.95, dp=eo(P(t,7.66,0.3));
+      ctx.save();ctx.strokeStyle=C.white;ctx.lineWidth=6;ctx.lineCap='butt';
+      ctx.beginPath();ctx.moveTo(x1,y);ctx.lineTo(lerp(x1,x2,dp),y);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x1,y-22);ctx.lineTo(x1,y+22);if(dp>0.98){ctx.moveTo(x2,y-22);ctx.lineTo(x2,y+22)}ctx.stroke();ctx.restore();
+      const chips=['SIZE','STOCK','BRANDS','FINANCE'];let cx=r.x+r.w*0.05;
+      chips.forEach((s,i)=>{const w=measure(s,54,800,0)+48;const cp=eo(P(t,7.56+i*0.04,0.22));
+        ctx.save();clipRect(cx,r.y+r.h-170,w*cp,84);rect(cx,r.y+r.h-170,w,84,i===3?C.orange:C.blue);font(54,800);ctx.fillStyle=C.white;ctx.fillText(s,cx+24,r.y+r.h-108);ctx.restore();cx+=w+14});
+    }}
+  if(t>=8.0&&t<8.5){word('AL QADISIYAH',{t,x:M+20,y:H-M-36,size:130,color:C.white,tin:8.06,tout:8.44})}
+  if(t>=8.5&&t<9.0){word('AL SHIFA',{t,x:M+20,y:H-M-36,size:130,color:C.white,tin:8.56,tout:8.94})}
+}
+function blueTile(t,k,r){ // 9.5–10: photo tiles paint over in blue (diagonal wipe), shrink to squares
+  const n=k==='f'?19:parseInt(k.slice(1));const i=n%8,j=Math.floor(n/8);
+  const col=i<5?C.blue:C.sky;
+  const wp=eo(P(t,9.5+(i+j)*0.02,0.2));
+  const sq=eio(P(t,9.68+(i+j)*0.012,0.3));
+  const cx=r.x+r.w/2,cy=r.y+r.h/2,side=70;
+  const w=lerp(r.w,side,sq),h=lerp(r.h,side,sq);
+  ctx.save();clipRect(cx-w/2,cy-h/2,w,h);
+  if(wp<1)colTile(t,k,r);
+  rect(cx-w/2,cy-h/2,w*wp,h,col);ctx.restore();
+}
+
+/* Bars 6–7 — SHAPE MORPH: squares → blocks → district outlines → 520 GPS dots → network */
+const CELL=88;
+function sqTarget(n){const i=n%8,j=Math.floor(n/8);
+  if(i<5)return {x:CQ[0]+(i-2.5)*CELL,y:CQ[1]+(j-2.5)*CELL,d:0};
+  return {x:CS[0]+(i-5-1.5)*CELL,y:CS[1]+(j-2.5)*CELL,d:1}}
+const NP=180;
+function morphPoly(d,u){const c=d?CS:CQ,hp=d?HULLS:HULLQ;const bw=(d?3:5)*CELL/2,bh=5*CELL/2;
+  const box=[[c[0]-bw,c[1]-bh],[c[0]+bw,c[1]-bh],[c[0]+bw,c[1]+bh],[c[0]-bw,c[1]+bh]];const o=[];
+  for(let i=0;i<NP;i++){const a=-Math.PI/2+i/NP*Math.PI*2;const p=rayPoly(box,c,a),q=rayPoly(hp,c,a);o.push([lerp(p[0],q[0],u),lerp(p[1],q[1],u)])}return o}
+function polyPath(pts,sc=1,c=[0,0]){ctx.beginPath();pts.forEach((p,i)=>{const x=c[0]+(p[0]-c[0])*sc,y=c[1]+(p[1]-c[1])*sc;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.closePath()}
+function sMorph(t){
+  const g40=grid(8,5,12);
+  if(t<10.5){
+    for(let n=0;n<40;n++){const r=g40[n];const tg=sqTarget(n);const u=eio(P(t,10.0+((n*7)%40)*0.004,0.4));
+      const cx=lerp(r.x+r.w/2,tg.x+CELL/2,u),cy=lerp(r.y+r.h/2,tg.y+CELL/2,u);
+      const s=lerp(70,CELL+1,eo(P(t,10.34,0.16)));rect(cx-s/2,cy-s/2,s,s,tg.d?C.sky:C.blue)}
+    return}
+  const m=eio(P(t,10.5,0.46));
+  const ret=eio(P(t,11.0,0.5)); // fill retracts into dots
+  for(const d of [0,1]){const poly=morphPoly(d,m);const c=d?CS:CQ;
+    if(ret<1){ctx.fillStyle=d?C.sky:C.blue;polyPath(poly,1-ret,c);ctx.fill()}
+    if(t>=11.0){ctx.save();ctx.strokeStyle=C.ink;ctx.lineWidth=2.5;const pts=poly.concat([poly[0]]);pathPartial(pts,eo(P(t,11.0,0.6)));ctx.restore()}
+  }
+  // dots
+  if(t>=11.0){for(const a of ALL){const s=eo(P(t,11.0+a.rn*0.42,0.18));if(s<=0)continue;
+    const pulse=1+0.6*Math.max(0,1-Math.abs(t-12.0-a.rn*0.25)*8)*(t<12.6?1:0);
+    ctx.fillStyle=a.d?C.sky:C.blue;ctx.beginPath();ctx.arc(a.x,a.y,5.2*s*pulse,0,7);ctx.fill()}}
+  // labels
+  labelsDistrict(t,1);
+  // surveyed rings
+  if(t>=12.5){ctx.save();ctx.strokeStyle=C.orange;ctx.lineWidth=1.3;for(const a of ALL){const s=eo(P(t,12.5+a.rn*0.3+hash(a.i)*0.1,0.2))*(1-eio(P(t,13.5+a.rn*0.2,0.25)));if(s<=0)continue;ctx.beginPath();ctx.arc(a.x,a.y,8.5*s,0,7);ctx.stroke()}ctx.restore()}
+  if(t>=13.0)network(t,eio(P(t,13.0,0.6)),1);
+  // kinetic words
+  const ky=230;
+  word('MAPPED.',{t,x:80,y:ky,size:120,tin:12.0,tout:12.5});
+  word('SURVEYED.',{t,x:80,y:ky,size:120,tin:12.5,tout:13.0});
+  word('STRUCTURED.',{t,x:80,y:ky,size:120,tin:13.0,tout:13.5,color:C.blue});
+}
+function labelsDistrict(t,mode){
+  const yq=Math.max(...HULLQ.map(p=>p[1]))+70, ys=Math.max(...HULLS.map(p=>p[1]))+70;
+  word('AL QADISIYAH · 309',{t,x:CQ[0],y:yq,size:42,wt:800,ls:0,align:'center',tin:10.62,tout:13.5});
+  word('AL SHIFA · 211',{t,x:CS[0],y:ys,size:42,wt:800,ls:0,align:'center',tin:10.68,tout:13.5});
+}
+function network(t,p,alpha){ctx.save();ctx.strokeStyle=C.ink;ctx.lineWidth=1.4;
+  for(const [E,pts] of [[MSTQ,Q],[MSTS,S]]){const g=p*E.length;const n=Math.floor(g);ctx.beginPath();
+    for(let i=0;i<Math.min(n+1,E.length);i++){const a=pts[E[i][0]],b=pts[E[i][1]];const u=i<n?1:g-n;ctx.moveTo(a.x,a.y);ctx.lineTo(lerp(a.x,b.x,u),lerp(a.y,b.y,u))}
+    ctx.stroke()}ctx.restore()}
+
+/* Bars 8–9 — 2D → 3D: the map tilts, every showroom extrudes by cars on the floor */
+function cam(t){
+  const tilt=lerp(0,62,eio(P(t,14.0,0.7)))+lerp(0,8,eio(P(t,16.0,1.0)));
+  const spin=lerp(0,-18,eio(P(t,14.0,1.6)))+lerp(0,-12,eio(P(t,15.8,1.4)));
+  const dist=lerp(1650,1300,eio(P(t,14,1.2)))-lerp(0,90,P(t,15.2,2.6));
+  const oy=lerp(0,150,eio(P(t,14.0,0.7)));
+  return {tilt:tilt*Math.PI/180,spin:spin*Math.PI/180,dist,oy}}
+function P3(c,x,y,z){x-=960;y-=600;const cs=Math.cos(c.spin),sn=Math.sin(c.spin);const X1=x*cs-y*sn,Y1=x*sn+y*cs;
+  const ct=Math.cos(c.tilt),st=Math.sin(c.tilt);const Yv=Y1*ct-z*st, Zv=-Y1*st-z*ct;const k=1600/(c.dist+Zv);return [960+X1*k,540+c.oy+Yv*k,Zv,k]}
+function s3D(t){
+  const c=cam(t);
+  // outlines + network projected
+  const ret=1-eio(P(t,16.9,0.4));
+  if(ret>0){ctx.save();ctx.strokeStyle=C.ink;ctx.lineWidth=2.5;
+    for(const hp of [HULLQ,HULLS]){const pts=hp.concat([hp[0]]).map(p=>P3(c,p[0],p[1],0));pathPartial(pts,ret)}
+    ctx.lineWidth=1.2;for(const [E,pts] of [[MSTQ,Q],[MSTS,S]]){ctx.beginPath();const n=Math.floor(E.length*ret);
+      for(let i=0;i<n;i++){const a=P3(c,pts[E[i][0]].x,pts[E[i][0]].y,0),b=P3(c,pts[E[i][1]].x,pts[E[i][1]].y,0);ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1])}ctx.stroke()}
+    ctx.restore()}
+  // bars
+  const items=ALL.map(a=>{const ex=eo(P(t,14.45+((a.x-300)/1400)*0.5,0.5));const b=P3(c,a.x,a.y,0),tp=P3(c,a.x,a.y,a.h3*ex);return {a,b,tp,z:b[2]}}).sort((p,q)=>q.z-p.z);
+  const ch=eio(P(t,17.0,0.75));
+  ctx.lineCap='butt';
+  for(const it of items){const a=it.a;
+    const st=cl((ch-a.rank/520*0.25)/0.75);const u=eio(st);
+    const cx=120+a.rank*(1680/520)+1.6, base=900, top=base-a.hc*560;
+    const bx=lerp(it.b[0],cx,u),by=lerp(it.b[1],base,u),tx=lerp(it.tp[0],cx,u),ty=lerp(it.tp[1],top,u);
+    ctx.strokeStyle=a.d?C.sky:C.blue;ctx.lineWidth=lerp(Math.max(2.5,5*it.b[3]),2.6,u);
+    ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(tx,ty);ctx.stroke();
+    if(u<1){ctx.fillStyle=a.d?C.sky:C.blue;ctx.beginPath();ctx.arc(tx,ty,lerp(3.4*it.b[3]*1.2,0,u),0,7);ctx.fill()}
+  }
+  // counters
+  if(t>=15.0&&t<17.6){
+    const q=P3(c,CQ[0],CQ[1]-60,330), s=P3(c,CS[0],CS[1]-40,260);
+    const o1=1-eio(P(t,17.0,0.3));
+    ctx.save();clipRect(0,0,W,H);
+    odo('20,831',{x:240,y:250,size:150,p:P(t,15.0,0.5),color:C.blue,out:P(t,17.0,0.35)});
+    word('CARS ON THE FLOOR · AL QADISIYAH',{t,x:246,y:305,size:30,wt:700,ls:0.04,tin:15.1,tout:17.0});
+    odo('11,038',{x:1680,y:250,size:150,p:P(t,15.5,0.5),align:'right',color:C.ink,out:P(t,17.05,0.35)});
+    word('AL SHIFA',{t,x:1680,y:305,size:30,wt:700,ls:0.04,tin:15.6,tout:17.0,align:'right'});
+    ctx.restore();
+    if(t>=17.0){} }
+  if(t>=16.0&&t<17.0) word('31,869 CARS. EVERY ONE COUNTED.',{t,x:960,y:1010,size:52,wt:800,ls:0,align:'center',tin:16.0,tout:16.9});
+}
+/* the counters must leave cleanly: overlay mask handled by word/odo exit */
+function counterExit(t){}
+
+/* Bars 10–11 — DATA / UI */
+const CARD={x:580,y:200,w:760,h:690};
+function chartBars(t,toCard){ // bars, optionally morphing into card sparkline
+  ctx.lineCap='butt';
+  const sp={x:CARD.x+44,y:CARD.y+60,w:CARD.w-88,h:150};
+  for(const a of ALL){const cx=120+a.rank*(1680/520)+1.6, base=900, top=base-a.hc*560;
+    const u=eio(cl((toCard-(a.rank/520)*0.2)/0.8));
+    const sx=sp.x+a.rank*(sp.w/520)+0.6, sb=sp.y+sp.h, stp=sb-a.hc*sp.h;
+    ctx.strokeStyle=a.d?C.sky:C.blue;ctx.lineWidth=lerp(2.6,1.0,u);
+    ctx.beginPath();ctx.moveTo(lerp(cx,sx,u),lerp(base,sb,u));ctx.lineTo(lerp(cx,sx,u),lerp(top,stp,u));ctx.stroke()}
+}
+function sData(t){
+  const tc=P(t,19.0,0.5);
+  // card frame grows from sparkline
+  const g=eio(P(t,19.05,0.45));
+  const flip=P(t,20.0,0.42); const fs=Math.abs(Math.cos(Math.PI*eio(flip)));const back=eio(flip)>0.5;
+  const net=eio(P(t,21.0,0.4)); // card shrinks left
+  const conv=eio(P(t,21.5,0.42));
+  const sc=lerp(1,0.5,net)*(1-conv), ox=lerp(0,-640,net)*(1-conv);
+  if(t<19.05){
+    // axis + caption
+    const ap=eo(P(t,17.7,0.5));ctx.fillStyle=C.ink;ctx.fillRect(120,902,1680*ap,3);
+    chartBars(t,0);
+    word('EVERY SHOWROOM, RANKED BY CARS ON THE FLOOR',{t,x:120,y:965,size:30,wt:700,ls:0.04,tin:18.0,tout:19.0});
+    word('SAR 3.6BN',{t,x:1800,y:300,size:210,align:'right',color:C.ink,tin:18.5,tout:19.0,stg:0.03});
+    word('STOCK ON DISPLAY',{t,x:1796,y:380,size:34,wt:700,ls:0.04,align:'right',tin:18.58,tout:19.0});
+    return}
+  ctx.save();
+  ctx.translate(960+ox,545);ctx.scale(sc*(t>=20?fs:1),sc);ctx.translate(-960,-545);
+  const sp={x:CARD.x+44,y:CARD.y+60,w:CARD.w-88,h:150};
+  const cx0=lerp(sp.x-10,CARD.x,g),cy0=lerp(sp.y-10,CARD.y,g),cw=lerp(sp.w+20,CARD.w,g),chh=lerp(sp.h+20,CARD.h,g);
+  rrect(cx0,cy0,cw,chh,lerp(4,30,g));ctx.fillStyle=back?'#F3F6FF':C.white;ctx.fill();
+  ctx.lineWidth=3;ctx.strokeStyle=C.ink;ctx.stroke();
+  // axis line shrinking to the sparkline base
+  if(t<19.6){const u=eio(tc);ctx.fillStyle=C.ink;ctx.fillRect(lerp(120,sp.x,u),lerp(902,sp.y+sp.h+2,u),lerp(1680,sp.w,u),lerp(3,2,u))}
+  else{ctx.fillStyle=C.ink;ctx.fillRect(sp.x,sp.y+sp.h+2,sp.w,2)}
+  ctx.save();
+    chartBars(t,tc);
+  const rows=back?[['Cars on the floor','11,038'],['Median stated price','SAR 85,000'],['Toyota or Hyundai','91%']]:
+                  [['Cars on the floor','20,831'],['Median stated price','SAR 100,000'],['Toyota or Hyundai','77%']];
+  const T0=back?20.22:19.28;
+  word(back?'Al Shifa':'Al Qadisiyah',{t,x:CARD.x+44,y:CARD.y+296,size:76,wt:900,tin:T0,ls:-0.03});
+  const chipTxt=back?'211 SHOWROOMS':'309 SHOWROOMS';const cw2=measure(chipTxt,26,800,0.04)+36;const cp=eo(P(t,T0+0.1,0.3));
+  const chx=CARD.x+44,chy=CARD.y+320;if(cp>0){rrect(chx,chy,cw2*cp,50,25);ctx.fillStyle=back?C.sky:C.blue;ctx.fill();
+    ctx.save();clipRect(chx,chy,cw2,50);word(chipTxt,{t,x:chx+18,y:chy+34,size:26,wt:800,ls:0.04,color:back?C.ink:C.white,tin:T0+0.12});ctx.restore()}
+  rows.forEach((r,i)=>{const y=CARD.y+466+i*84;const ti=T0+0.2+i*0.12;
+    const lp=eo(P(t,ti,0.35));ctx.fillStyle='#D9DCE6';ctx.fillRect(CARD.x+44,y-54,(CARD.w-88)*lp,2);
+    word(r[0],{t,x:CARD.x+44,y:y,size:34,wt:600,ls:0,tin:ti});
+    odo(r[1],{x:CARD.x+CARD.w-44,y:y+2,size:44,align:'right',p:P(t,ti+0.02,0.36),color:i===0?C.blue:C.ink});
+  });
+  ctx.restore();
+  ctx.restore();
+  // network: card → AUTOLINK AI → 21 lenders
+  if(t>=21.0){
+    const cardR=[960-640+ (CARD.x+CARD.w-960)*0.5, 545];
+    const ai=[960,540];
+    const nodes=[];for(let i=0;i<21;i++){const c=i%3,r=Math.floor(i/3);nodes.push([1460+c*120,190+r*112,i<8])}
+    const cvp=conv;
+    const lp=eo(P(t,21.08,0.3));
+    ctx.save();ctx.strokeStyle=C.ink;ctx.lineWidth=3;
+    const A=[lerp(cardR[0],ai[0],cvp),lerp(cardR[1],ai[1],cvp)];
+    ctx.beginPath();ctx.moveTo(A[0],A[1]);ctx.lineTo(lerp(A[0],ai[0],lp),ai[1]);ctx.stroke();
+    ctx.lineWidth=1.6;
+    nodes.forEach((n,i)=>{const q=eo(P(t,21.1+i*0.01,0.25));const nx=lerp(n[0],ai[0],cvp),ny=lerp(n[1],ai[1],cvp);
+      ctx.beginPath();ctx.moveTo(ai[0],ai[1]);ctx.lineTo(lerp(ai[0],nx,q),lerp(ai[1],ny,q));ctx.stroke()});
+    nodes.forEach((n,i)=>{const q=eo(P(t,21.18+i*0.01,0.22))*(1-cvp);if(q<=0)return;const nx=lerp(n[0],ai[0],cvp),ny=lerp(n[1],ai[1],cvp);
+      ctx.fillStyle=n[2]?C.blue:C.sky;ctx.beginPath();if(n[2])ctx.rect(nx-22*q,ny-22*q,44*q,44*q);else ctx.arc(nx,ny,23*q,0,7);ctx.fill()});
+    ctx.restore();
+    // AI node
+    const ap=eo(P(t,21.0,0.3));const ar=lerp(70,0,eio(P(t,21.75,0.25)))*ap;
+    if(ar>0){ctx.save();ctx.translate(ai[0],ai[1]);ctx.rotate(Math.PI/4);rect(-ar,-ar,ar*2,ar*2,C.orange);ctx.restore();}
+    word('AUTOLINK AI',{t,x:960,y:690,size:44,wt:900,ls:0,align:'center',tin:21.1,tout:21.55});
+    word('21 LENDERS',{t,x:1580,y:1000,size:44,wt:900,ls:0,align:'center',tin:21.3,tout:21.55});
+    word('FINANCE, FACILITATED.',{t,x:960,y:150,size:96,align:'center',tin:21.5,tout:21.85,color:C.ink});
+  }
+}
+
+/* Bar 12 — TYPE STACK: NO ONE HAD / MAPPED / THIS MARKET / BEFORE. */
+const LINES=[['NO ONE HAD',22.0],['MAPPED',22.5],['THIS MARKET',23.0],['BEFORE',23.5]];
+function sType(t){
+  const size=210,lh=200;
+  let n=0;LINES.forEach((l,i)=>{if(t>=l[1])n=i});
+  const shift=LINES.reduce((s,l,i)=>s+(i>0?eo(P(t,l[1],0.4))*lh:0),0);
+  const baseY=590-shift+0;
+  // zoom into the period
+  const z=ei(P(t,23.72,0.28));
+  const per=periodRect(baseY+3*lh,size);
+  const zs=Math.pow(W/per.w*1.02,z); const pcx=per.x+per.w/2,pcy=per.y+per.h/2;
+  ctx.save();
+  ctx.translate(lerp(pcx,960,z),lerp(pcy,540,z));ctx.scale(zs,zs);ctx.translate(-pcx,-pcy);
+  LINES.forEach((l,i)=>{const y=baseY+i*lh;
+    if(i===2){word('THIS ',{t,x:120,y,size,tin:l[1]});word('MARKET',{t,x:120+measure('THIS ',size),y,size,tin:l[1]+0.11,color:C.blue})}
+    else word(l[0],{t,x:120,y,size,tin:l[1]});
+  });
+  // period square grows in
+  const pp=eo(P(t,23.66,0.2));
+  if(pp>0){rect(per.x,per.y+per.h*(1-pp),per.w,per.h*pp,C.blue)}
+  ctx.restore();
+}
+function periodRect(y,size){const x=120+measure('BEFORE',size)+size*0.04;const s=size*0.2;return {x,y:y-s,w:s,h:s}}
+
+/* Bar 13 — RISER: the period becomes a photo; the grid doubles every beat */
+function sSplit(t){
+  const lv=t<24.5?0:t<25.0?1:t<25.5?2:t<25.75?3:4;
+  const n=1<<lv; const T=[24.0,24.5,25.0,25.5,25.75][lv];
+  const gut=[0,10,8,6,4][lv];
+  const gp=eo(P(t,T,0.35));
+  const z=1+0.04*(t-24);
+  // blue square → full frame at 24.0
+  const open=eio(P(t,23.95,0.0001));
+  for(let j=0;j<n;j++)for(let i=0;i<n;i++){
+    const cw=W/n,ch=H/n;const g=gut*gp;
+    const x=i*cw+g/2,y=j*ch+g/2,w=cw-g,h=ch-g;
+    const pi=i>>1,pj=j>>1;
+    // child starts as crop of parent, then its own photo rolls in (stagger diagonal)
+    const roll=lv===4?eio(P(t,T+0.01+((i+j)/(2*n))*0.1,0.12)):eio(P(t,T+0.06+((i+j)/(2*n))*0.22,0.26));
+    ctx.save();clipRect(x,y,w,h);
+    if(roll<1){ if(lv===0)rect(x,y,w,h,C.blue); else drawParentCrop(lv-1,pi,pj,-roll*h*(i%2?-1:1),z)}
+    if(roll>0){const yy=y+(1-roll)*h*(i%2?-1:1);
+      if(lv===4)ctx.drawImage(WALLF,i*120,j*67.5,120,67.5,x,yy,w,h);
+      else img(photoFor(lv,i,j),x,yy,w,h,z+0.0,0.5,0.45)}
+    ctx.restore();
+  }
+  // painted overlays per level
+  if(lv===1){brushEllipse(W*0.75,H*0.25,170,90,0.05,eo(P(t,24.62,0.3)),C.orange,10,9)}
+  if(lv===2){for(let k=0;k<5;k++){const i=[0,3,1,2,3][k],j=[0,0,2,3,2][k];checkMark(i*480+410,j*270+64,26,P(t,25.1+k*0.05,0.3),C.blue,C.white)}}
+  // counter chip
+  chip(t);
+}
+function chip(t){
+  const nums=['001','004','016','064','256','520'],T=[24.06,24.5,25.0,25.5,25.75,26.0];const cw=330,cx=80,cy=H-80-130;
+  const wv=cw*eo(P(t,24.0,0.3))*(1-eio(P(t,26.4,0.3)));if(wv<=0)return;
+  ctx.save();rect(cx,cy,wv,130,C.white);clipRect(cx,cy,wv,130);
+  for(let k=0;k<6;k++)word(nums[k],{t,x:cx+26,y:cy+108,size:120,tin:T[k],tout:k<5?T[k+1]:26.36,ls:-0.02,color:k===5?C.blue:C.ink});
+  ctx.restore();
+}
+function drawParentCrop(pl,pi,pj,dy,z){ // the parent tile's photo, continuing under its children
+  const n=1<<pl;const g=[0,10,8,6,4][pl];const PW=W/n,PH2=H/n;
+  img(photoFor(pl,pi,pj),pi*PW+g/2,pj*PH2+g/2+dy,PW-g,PH2-g,z,0.5,0.45);
+}
+
+/* Bar 14 — STRONGEST: the wall tilts into 3D, flips in a wave to read ORGANIZED., then flies into the mark */
+function sWall(t){
+  const tiltA=lerp(0,16,eio(P(t,26.0,0.45)))*(1-eio(P(t,27.1,0.4)))*Math.PI/180;
+  const tiltB=lerp(0,-22,eio(P(t,26.0,0.45)))*(1-eio(P(t,27.1,0.4)))*Math.PI/180;
+  const S=lerp(1,0.84,eio(P(t,26.0,0.5)))*lerp(1,1.04,P(t,26.5,1.0));
+  const fly=P(t,27.5,0.45);
+  const items=[];
+  for(let j=0;j<16;j++)for(let i=0;i<16;i++){
+    const k=j*16+i;
+    const d=(i/15)*0.65+(j/15)*0.35;
+    const th=Math.PI*eio(P(t,26.42+d*0.42,0.36));
+    const cx=(i*120+60-960)*S, cy=(j*67.5+33.75-540)*S, w=116*S, h=63.5*S;
+    const corner=(sx,sy)=>{let x=cx+sx*w/2*Math.cos(th), y=cy+sy*h/2, z=sx*w/2*Math.sin(th);
+      // wall rotation: Y then X
+      let X1=x*Math.cos(tiltB)+z*Math.sin(tiltB), Z1=-x*Math.sin(tiltB)+z*Math.cos(tiltB);
+      let Y2=y*Math.cos(tiltA)-Z1*Math.sin(tiltA), Z2=y*Math.sin(tiltA)+Z1*Math.cos(tiltA);
+      const kk=1800/(1800+Z2);return [960+X1*kk,540+Y2*kk,Z2]};
+    items.push({i,j,k,th,TL:corner(-1,-1),TR:corner(1,-1),BL:corner(-1,1),z:corner(0,0)[2]});
+  }
+  if(fly>0){wallFly(t,items,fly);return}
+
+  items.sort((a,b)=>b.z-a.z);
+  for(const it of items){const back=Math.cos(it.th)<0;
+    let {TL,TR,BL}=it; const sw=120,sh=67.5;
+    const a=(TR[0]-TL[0])/sw,b=(TR[1]-TL[1])/sw,c=(BL[0]-TL[0])/sh,d=(BL[1]-TL[1])/sh;
+    if(Math.abs(a*d-b*c)<1e-4)continue;
+    ctx.save();ctx.setTransform(a,b,c,d,TL[0],TL[1]);
+    if(!back)ctx.drawImage(WALLF,it.i*120,it.j*67.5,120,67.5,0,0,sw,sh);
+    else{ctx.translate(sw,0);ctx.scale(-1,1);ctx.drawImage(WALLB,it.i*120,it.j*67.5,120,67.5,0,0,sw,sh)}
+    ctx.restore();
+  }
+  ctx.setTransform(1,0,0,1,0,0);chip(t);
+}
+function wallFly(t,items,fly){
+  for(const it of items){const s=MARK.slots[it.k%MARK.slots.length];
+    const st=eio(cl((fly-hash(it.k)*0.25)/0.75));
+    const x0=(it.TL[0]+it.TR[0])/2+ (it.BL[0]-it.TL[0])/2, y0=(it.TL[1]+it.BL[1])/2+(it.TR[1]-it.TL[1])/2;
+    const w0=Math.hypot(it.TR[0]-it.TL[0],it.TR[1]-it.TL[1]), h0=Math.hypot(it.BL[0]-it.TL[0],it.BL[1]-it.TL[1]);
+    const cell=MARK.a*Math.SQRT2/9+1.2;
+    const x=lerp(x0,s[0],st),y=lerp(y0,s[1],st),w=lerp(w0,cell,st),h=lerp(h0,cell,st);
+    ctx.save();ctx.translate(x,y);ctx.rotate(Math.PI/4*st);
+    if(st<0.55)ctx.drawImage(WALLB,it.i*120,it.j*67.5,120,67.5,-w/2,-h/2,w,h);
+    else rect(-w/2,-h/2,w,h,MARK.D[s[2]][2]);
+    ctx.restore();}
+}
+
+/* Bar 15 — END TITLE → back to the line */
+function diamond(cx,cy,a){return [[cx,cy-a],[cx+a,cy],[cx,cy+a],[cx-a,cy]]}
+function sEnd(t){
+  const col=eio(P(t,29.42,0.5)); // collapse into line
+  const push=1+0.03*P(t,28,1.4);
+  const segs=[[920,1000],[900,940],[980,1020]]; // line thirds (x0,x1) for T,L,R  (line: 900..1020)
+  const order=[1,0,2]; // L,T,R left→right: L=900-940, T=940-980, R=980-1020
+  const lineX=[[940,980],[900,940],[980,1020]];
+  MARK.D.forEach((dd,k)=>{
+    const a=MARK.a*push; const cx=MARK.cx+(dd[0])*push, cy=MARK.cy+dd[1]*push;
+    const dm=diamond(cx,cy,a);
+    const lx=lineX[k];const ln=[[lx[0],536],[lx[1],536],[lx[1],544],[lx[0],544]];
+    // map diamond verts (top,right,bottom,left) → rect (TL,TR,BR,BL)
+    const pts=dm.map((p,i)=>[lerp(p[0],ln[i][0],col),lerp(p[1],ln[i][1],col)]);
+    ctx.fillStyle=k===2?mixC(C.sky,C.blue,col):C.blue;ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fill();
+  });
+  word('AUTOLINK',{t,x:960,y:720,size:170,align:'center',tin:28.02,tout:29.25,stg:0.03,ls:-0.03});
+  word('THE SUB-DEALER MARKET, ORGANIZED.',{t,x:960,y:810,size:38,wt:800,ls:0.06,align:'center',tin:28.5,tout:29.25,stg:0.006});
+}
+
+/* ======================= COMPOSITOR ======================= */
+function scene(t){
+  ctx=AX;ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+  rect(0,0,W,H,C.white);
+  t=((t%30)+30)%30;
+  if(t<2.0)sHook(t);
+  else if(t<4.5)s520(t);
+  else if(t<6.0){s520(t);sNow(t)}
+  else if(t<10.0){sCollage(t)}
+  else if(t<14.0){sMorph(t)}
+  else if(t<18.0){s3D(t)}
+  else if(t<22.0)sData(t);
+  else if(t<24.0)sType(t);
+  else if(t<26.0)sSplit(t);
+  else if(t<28.0)sWall(t);
+  else sEnd(t);
+}
+function hookColsUnder(t){}
+const SUB=2, SHUT=1/720; // in-frame shutter samples (direction-true motion blur)
+window.seek=function(t){
+  X.setTransform(1,0,0,1,0,0);X.globalAlpha=1;
+  for(let s=0;s<SUB;s++){scene(t+s*SHUT);X.globalAlpha=1/(s+1);X.drawImage(ACC,0,0)}
+  X.globalAlpha=1;
+};
+window.ready=(async()=>{
+  const faces=[['fonts/InterDisplay-Black.otf','900'],['fonts/InterDisplay-Bold.otf','800'],['fonts/InterDisplay-Bold.otf','700'],['fonts/InterDisplay-SemiBold.otf','600']];
+  for(const [u,w] of faces){const f=new FontFace('Inter Display',`url(${u})`,{weight:w});await f.load();document.fonts.add(f)}
+  const ims=await Promise.all(Array.from({length:63},(_,i)=>loadImg(`img/p${String(i).padStart(2,'0')}.jpg`)));
+  ims.forEach((m,i)=>IM[i]=m);
+  ctx=AX;prep();window.seek(0);return true})();
+</script></body></html>
