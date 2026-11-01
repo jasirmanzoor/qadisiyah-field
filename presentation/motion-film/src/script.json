@@ -2,32 +2,170 @@
  "voice": "af_heart",
  "films": {
   "teaser": [
-   {"id": "T1", "lead": 0.9, "lines": ["Riyadh's independent car market trades billions of riyals a year.", "And no one had ever counted it."]},
-   {"id": "T2", "lines": ["So we walked it. Door to door. Five hundred and twenty showrooms."]},
-   {"id": "T3", "lines": ["Thirty one thousand, nine hundred and forty four cars. Three point six billion riyals of stock."]},
-   {"id": "T4", "lines": ["And on every floor, the same question. How will I pay?"]},
-   {"id": "T5", "lines": ["AutoLink brings the finance to the floor."], "pad": 0.6},
-   {"id": "T6", "lines": ["Twenty showrooms signed in the first month."]},
-   {"id": "T7", "lines": ["AutoLink. From the showroom floor, to KAFD."], "tail": 2.4}
+   {
+    "id": "T1",
+    "lead": 0.9,
+    "lines": [
+     "Riyadh's independent car market trades billions of riyals a year.",
+     "And no one had ever counted it."
+    ]
+   },
+   {
+    "id": "T2",
+    "lines": [
+     "So we walked it. Door to door. Five hundred and twenty showrooms."
+    ],
+    "lead": 2.6,
+    "pad": 1.0
+   },
+   {
+    "id": "T3",
+    "lines": [
+     "Thirty one thousand, nine hundred and forty four cars. Three point six billion riyals of stock."
+    ]
+   },
+   {
+    "id": "T4",
+    "lines": [
+     "And on every floor, the same question. How will I pay?"
+    ]
+   },
+   {
+    "id": "T5",
+    "lines": [
+     "AutoLink brings the finance to the floor."
+    ],
+    "pad": 0.6
+   },
+   {
+    "id": "T6",
+    "lines": [
+     "Twenty showrooms signed in the first month."
+    ]
+   },
+   {
+    "id": "T7",
+    "lines": [
+     "AutoLink. From the showroom floor, to KAFD."
+    ],
+    "tail": 2.4
+   }
   ],
   "A": [
-   {"id": "A1", "lead": 0.9, "lines": ["Every day, buyers walk onto your floor.", "They have seen the car. They have agreed the price.", "Then comes the question. How will I pay?"]},
-   {"id": "A2", "lines": ["When the finance is not there, the sale walks out of the door.", "Owners told us: for every ten cars they sell, about four more ready buyers leave without one."]},
-   {"id": "A3", "lines": ["AutoLink brings financing to your floor.", "Your team submits the buyer's request in the AutoLink dealer portal, and follows it, step by step."]},
-   {"id": "A4", "lines": ["Requests, reports and your account, in one dashboard.", "In Arabic, in English, or in Chinese."]},
-   {"id": "A5", "lines": ["And we train your sales team. On the portal, and on the conversation with the buyer."], "pad": 0.4},
-   {"id": "A6", "lines": ["Next on our roadmap: every buyer matched to the right lender, for faster approvals.", "Then your stock online, and new buyers sent to your door."]},
-   {"id": "A7", "lines": ["Twenty showrooms have already signed. Yours could be next.", "AutoLink. Every buyer on your floor, a buyer you can finance."], "tail": 2.6}
+   {
+    "id": "A1",
+    "lead": 0.9,
+    "lines": [
+     "Every day, buyers walk onto your floor.",
+     "They have seen the car. They have agreed the price.",
+     "Then comes the question. How will I pay?"
+    ]
+   },
+   {
+    "id": "A2",
+    "lines": [
+     "When the finance is not there, the sale walks out of the door.",
+     "Owners told us: for every ten cars they sell, about four more ready buyers leave without one."
+    ]
+   },
+   {
+    "id": "A3",
+    "lines": [
+     "AutoLink brings financing to your floor.",
+     "Your team submits the buyer's request in the AutoLink dealer portal, and follows it, step by step."
+    ]
+   },
+   {
+    "id": "A4",
+    "lines": [
+     "Requests, reports and your account, in one dashboard.",
+     "In Arabic, in English, or in Chinese."
+    ]
+   },
+   {
+    "id": "A5",
+    "lines": [
+     "And we train your sales team. On the portal, and on the conversation with the buyer."
+    ],
+    "pad": 0.4
+   },
+   {
+    "id": "A6",
+    "lines": [
+     "Next on our roadmap: every buyer matched to the right lender, for faster approvals.",
+     "Then your stock online, and new buyers sent to your door."
+    ]
+   },
+   {
+    "id": "A7",
+    "lines": [
+     "Twenty showrooms have already signed. Yours could be next.",
+     "AutoLink. Every buyer on your floor, a buyer you can finance."
+    ],
+    "tail": 2.6
+   }
   ],
   "B": [
-   {"id": "B1", "lead": 0.9, "lines": ["Riyadh's independent car market trades billions of riyals a year.", "Until now, no one had counted it."]},
-   {"id": "B2", "lines": ["So we walked it. Door to door, by day and after dark, across Al Qaadiseeya and Al Shiffa."]},
-   {"id": "B3", "lines": ["Five hundred and twenty showrooms. Five hundred and sixteen, pinned on the map.", "Thirty one thousand, nine hundred and forty four cars on the floor. Three point six billion riyals of stock."]},
-   {"id": "B4", "lines": ["Twenty five owners opened their books.", "Al Qaadiseeya alone sells an estimated fifteen point seven billion riyals of cars a year. And that is the conservative figure."]},
-   {"id": "B5", "lines": ["And we found where the money leaks.", "Eleven of thirteen floors have no bank on site. In Al Shiffa, one hundred and ninety four of two hundred and eleven sell for cash only.", "On twenty four floors alone, one point four billion riyals a year walks away, for want of a loan."]},
-   {"id": "B6", "lines": ["No one else holds this. The largest sub-dealer mapping of its kind, on one standard."]},
-   {"id": "B7", "lines": ["And it is already moving.", "In one month, twenty sub-dealers signed with AutoLink. Sixteen more have agreements in hand, and sixty four are in the pipeline.", "We are at the table with nine banks and finance companies."]},
-   {"id": "B8", "lines": ["We are not here to map a market. We are here to move it.", "AutoLink. From the showroom floor, to KAFD."], "tail": 2.6}
+   {
+    "id": "B1",
+    "lead": 0.9,
+    "lines": [
+     "Riyadh's independent car market trades billions of riyals a year.",
+     "Until now, no one had counted it."
+    ]
+   },
+   {
+    "id": "B2",
+    "lines": [
+     "So we walked it. Door to door, by day and after dark, across Al Qaadiseeya and Al Shiffa."
+    ],
+    "lead": 4.6,
+    "pad": 2.2
+   },
+   {
+    "id": "B3",
+    "lines": [
+     "Five hundred and twenty showrooms. Five hundred and sixteen, pinned on the map.",
+     "Thirty one thousand, nine hundred and forty four cars on the floor. Three point six billion riyals of stock."
+    ]
+   },
+   {
+    "id": "B4",
+    "lines": [
+     "Twenty five owners opened their books.",
+     "Al Qaadiseeya alone sells an estimated fifteen point seven billion riyals of cars a year. And that is the conservative figure."
+    ]
+   },
+   {
+    "id": "B5",
+    "lines": [
+     "And we found where the money leaks.",
+     "Eleven of thirteen floors have no bank on site. In Al Shiffa, one hundred and ninety four of two hundred and eleven sell for cash only.",
+     "On twenty four floors alone, one point four billion riyals a year walks away, for want of a loan."
+    ]
+   },
+   {
+    "id": "B6",
+    "lines": [
+     "No one else holds this. The largest sub-dealer mapping of its kind, on one standard."
+    ]
+   },
+   {
+    "id": "B7",
+    "lines": [
+     "And it is already moving.",
+     "In one month, twenty sub-dealers signed with AutoLink. Sixteen more have agreements in hand, and sixty four are in the pipeline.",
+     "We are at the table with nine banks and finance companies."
+    ]
+   },
+   {
+    "id": "B8",
+    "lines": [
+     "We are not here to map a market. We are here to move it.",
+     "AutoLink. From the showroom floor, to KAFD."
+    ],
+    "tail": 2.6
+   }
   ]
  }
 }
