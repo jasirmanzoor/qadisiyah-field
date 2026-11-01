@@ -88,13 +88,13 @@ function drawBG(b, t) {
   gl.viewport(0, 0, bgc.width, bgc.height); gl.useProgram(BGP.p); const u = BGP.u;
   gl.uniform2f(u.uRes, bgc.width, bgc.height); gl.uniform1f(u.uT, t);
   gl.uniform4fv(u.uW, b.w); gl.uniform3fv(u.uC1, b.c1.map(x => x / 255)); gl.uniform3fv(u.uC2, b.c2.map(x => x / 255));
-  gl.uniform3fv(u.uGround, COL.ground.map(x => x / 255)); gl.uniform2fv(u.uRO, b.ro || [.5, 1.05]); gl.uniform1f(u.uAmp, b.amp ?? 1);
+  gl.uniform3fv(u.uGround, (b.ground || COL.ground).map(x => x / 255)); gl.uniform2fv(u.uRO, b.ro || [.5, 1.05]); gl.uniform1f(u.uAmp, b.amp ?? 1);
   gl.drawArrays(gl.TRIANGLES, 0, 3); gl.finish();
 }
-const lerpBG = (a, b, p) => ({ w: a.w.map((x, i) => lerp(x, b.w[i], p)), c1: mixc(a.c1, b.c1, p), c2: mixc(a.c2, b.c2, p), ro: [lerp((a.ro || [.5, 1.05])[0], (b.ro || [.5, 1.05])[0], p), lerp((a.ro || [.5, 1.05])[1], (b.ro || [.5, 1.05])[1], p)], amp: lerp(a.amp ?? 1, b.amp ?? 1, p) });
+const lerpBG = (a, b, p) => ({ w: a.w.map((x, i) => lerp(x, b.w[i], p)), c1: mixc(a.c1, b.c1, p), c2: mixc(a.c2, b.c2, p), ro: [lerp((a.ro || [.5, 1.05])[0], (b.ro || [.5, 1.05])[0], p), lerp((a.ro || [.5, 1.05])[1], (b.ro || [.5, 1.05])[1], p)], amp: lerp(a.amp ?? 1, b.amp ?? 1, p), ground: mixc(a.ground || COL.ground, b.ground || COL.ground, p), vig: lerp(a.vig ?? .55, b.vig ?? .55, p), wipe: b.wipe });
 
 /* ---------------- text ---------------- */
-const FAM = { s: '"IT", "WenQuanYi Zen Hei", "FreeSerif", sans-serif', i: '"IS", serif' };
+const FAM = { s: '"IT", "WenQuanYi Zen Hei", "FreeSerif", sans-serif', i: '"IS", serif', m: '"JB", monospace' };
 let X = g;   // the context scenes draw into (a buffer during transitions)
 const font = (size, wt = 500, fam = 's') => { X.font = `${fam === 'i' ? 'italic 400' : wt} ${size}px ${FAM[fam]}`; };
 // rich line: parts [{s:'text', fam:'i', col:[..]}] laid out on one baseline
@@ -261,9 +261,9 @@ function carIcon(x, y, s, col, a = 1, hollow = false) {   // side-on car, s = le
 
 /* ---------------- grain + vignette ---------------- */
 const grain = (() => { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'), d = x.createImageData(256, 256); let s = 9; for (let i = 0; i < d.data.length; i += 4) { s = (s * 16807) % 2147483647; const v = s & 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; } x.putImageData(d, 0, 0); return c; })();
-function finish(t) {
+function finish(t, vig = .55) {
   const vg = g.createRadialGradient(W / 2, H / 2, H * .35, W / 2, H / 2, H * 1.05);
-  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.55)'); g.fillStyle = vg; g.fillRect(0, 0, W, H);
+  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, `rgba(0,0,0,${vig})`); g.fillStyle = vg; g.fillRect(0, 0, W, H);
   const f = Math.floor(t * 60); g.save(); g.globalAlpha = .045; g.globalCompositeOperation = 'overlay';
   const ox = -((f * 97) % 256), oy = -((f * 57) % 256);
   for (let y = oy; y < H; y += 256) for (let x = ox; x < W; x += 256) g.drawImage(grain, x, y);
@@ -273,7 +273,7 @@ function finish(t) {
 /* ---------------- film runner ---------------- */
 let lt = 0;            // local time of the scene being drawn
 let FILM = null;       // { scenes:[{id,start,end,lines}], total }
-const XF = .62;        // transition length
+const XF = .75;        // transition length
 function sceneAt(t) { const s = FILM.scenes; for (let i = 0; i < s.length; i++) if (t < s[i].end) return i; return s.length - 1; }
 function drawScene(i, t, ctx) {
   const sc = FILM.scenes[i]; const fn = SCENES[sc.id]; X = ctx; lt = t - sc.start;
@@ -287,18 +287,31 @@ window.seek = function (t) {
   if (nx && t > sc.end - XF / 2) { a = i; b = i + 1; p = (t - (sc.end - XF / 2)) / XF; }
   else if (pv && t < sc.start + XF / 2) { a = i - 1; b = i; p = (t - (sc.start - XF / 2)) / XF; }
   const bgOf = j => (BGS[FILM.scenes[j].id] || BGS._)(t - FILM.scenes[j].start);
-  drawBG(a !== null ? lerpBG(bgOf(a), bgOf(b), eio(p)) : bgOf(i), t);
+  const BB = a !== null ? lerpBG(bgOf(a), bgOf(b), eio(p)) : bgOf(i);
+  drawBG(BB, t);
   g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H); g.filter = 'none'; g.globalAlpha = 1;
   if (a === null) drawScene(i, t, g);
   else {
-    const q = eio(clamp(p));
-    for (const [k, j] of [[0, a], [1, b]]) { const c = buf[k].getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, W, H); drawScene(j, t, c); }
-    // zoom-through: the outgoing frame pushes past the lens, the incoming one settles in from behind
-    softDraw(g, buf[0], q * 22, 1 - q, 1 + .12 * q);
-    softDraw(g, buf[1], (1 - q) * 22, q, .94 + .06 * q);
+    const wipe = (BGS[FILM.scenes[b].id] || BGS._)(0).wipe;
+    if (wipe) {
+      // kinetic-poster wipe: four bands of brand colour sweep across, the next scene is behind them
+      const j = p < .5 ? a : b; drawScene(j, t, g);
+      const nb = 4, bh = H / nb;
+      for (let k = 0; k < nb; k++) {
+        const c0 = eio(clamp((p - k * .04) / .34)), c1 = eio(clamp((p - .52 - k * .04) / .34));
+        const xl = c1 * W, xr = c0 * W; if (xr - xl < .5) continue;
+        g.fillStyle = rgba(wipe[k % wipe.length]); g.fillRect(xl, k * bh - 1, xr - xl, bh + 2);
+      }
+    } else {
+      const q = eio(clamp(p));
+      for (const [k, j] of [[0, a], [1, b]]) { const c = buf[k].getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, W, H); drawScene(j, t, c); }
+      softDraw(g, buf[0], q * 22, 1 - q, 1 + .12 * q);
+      softDraw(g, buf[1], (1 - q) * 22, q, .94 + .06 * q);
+    }
   }
-  finish(t);
+  finish(t, BB.vig ?? .55);
 };
+
 let T = 0;
 const IMG = {};
 const loadImg = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = src; });
