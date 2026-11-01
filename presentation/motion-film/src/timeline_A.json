@@ -1,0 +1,124 @@
+{
+ "total": 62.959,
+ "scenes": [
+  {
+   "id": "A1",
+   "start": 0.0,
+   "end": 9.723,
+   "lines": [
+    {
+     "t": 0.9,
+     "dur": 2.336,
+     "text": "Every day, buyers walk onto your floor."
+    },
+    {
+     "t": 3.736,
+     "dur": 2.617,
+     "text": "They have seen the car. They have agreed the price."
+    },
+    {
+     "t": 6.853,
+     "dur": 2.32,
+     "text": "Then comes the question. How will I pay?"
+    }
+   ]
+  },
+  {
+   "id": "A2",
+   "start": 9.723,
+   "end": 20.195,
+   "lines": [
+    {
+     "t": 0.45,
+     "dur": 3.264,
+     "text": "When the finance is not there, the sale walks out of the door."
+    },
+    {
+     "t": 4.214,
+     "dur": 5.708,
+     "text": "Owners told us: for every ten cars they sell, about four more ready buyers leave without one."
+    }
+   ]
+  },
+  {
+   "id": "A3",
+   "start": 20.195,
+   "end": 30.113,
+   "lines": [
+    {
+     "t": 0.45,
+     "dur": 2.376,
+     "text": "AutoLink brings financing to your floor."
+    },
+    {
+     "t": 3.326,
+     "dur": 6.043,
+     "text": "Your team submits the buyer's request in the AutoLink dealer portal, and follows it, step by step."
+    }
+   ]
+  },
+  {
+   "id": "A4",
+   "start": 30.113,
+   "end": 37.036,
+   "lines": [
+    {
+     "t": 0.45,
+     "dur": 3.078,
+     "text": "Requests, reports and your account, in one dashboard."
+    },
+    {
+     "t": 4.028,
+     "dur": 2.345,
+     "text": "In Arabic, in English, or in Chinese."
+    }
+   ]
+  },
+  {
+   "id": "A5",
+   "start": 37.036,
+   "end": 43.01,
+   "lines": [
+    {
+     "t": 0.45,
+     "dur": 4.574,
+     "text": "And we train your sales team. On the portal, and on the conversation with the buyer."
+    }
+   ]
+  },
+  {
+   "id": "A6",
+   "start": 43.01,
+   "end": 52.482,
+   "lines": [
+    {
+     "t": 0.45,
+     "dur": 4.912,
+     "text": "Next on our roadmap: every buyer matched to the right lender, for faster approvals."
+    },
+    {
+     "t": 5.863,
+     "dur": 3.059,
+     "text": "Then your stock online, and new buyers sent to your door."
+    }
+   ]
+  },
+  {
+   "id": "A7",
+   "start": 52.482,
+   "end": 62.959,
+   "lines": [
+    {
+     "t": 0.45,
+     "dur": 3.201,
+     "text": "Twenty showrooms have already signed. Yours could be next."
+    },
+    {
+     "t": 4.151,
+     "dur": 3.726,
+     "text": "AutoLink. Every buyer on your floor, a buyer you can finance."
+    }
+   ]
+  }
+ ]
+}

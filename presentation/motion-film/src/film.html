@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>AutoLink Motion Film</title>
+<style>
+@font-face{font-family:IT;src:url(f/it400.ttf);font-weight:400}
+@font-face{font-family:IT;src:url(f/it500.ttf);font-weight:500}
+@font-face{font-family:IT;src:url(f/it600.ttf);font-weight:600}
+@font-face{font-family:IS;src:url(f/InstrumentSerif.ttf);font-style:italic}
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:#120400}
+canvas{position:absolute;left:0;top:0;width:1920px;height:1080px}
+</style></head>
+<body>
+<canvas id="bg" width="960" height="540"></canvas>
+<canvas id="fg" width="1920" height="1080"></canvas>
+<script src="geo.js"></script>
+<script src="engine.js"></script>
+<script src="scenes.js"></script>
+<script>
+window.ready = (async () => {
+  const film = new URLSearchParams(location.search).get('film') || 'teaser';
+  await Promise.all([400, 500, 600].map(w => document.fonts.load(`${w} 64px IT`)).concat([document.fonts.load('italic 64px IS')]));
+  FILM = await (await fetch(`timeline_${film}.json`)).json();
+  FILM.id = film;
+  const names = ['hq-skyline', 'n-rc-night', 'q-riyadhcars-night', 'kafd-skyline', 'hq-kafd', 'n-redcarpet', 'q-luxhall', 's-hall', 'n-porsche-row', 'q-barimi-rolls', 'n-rc-hall', 's-sunset-row', 'q-street-fullspeed', 'n-gclass-front', 's-jeeps', 'q-safh-dark', 'n-hexhall', 's-glass', 'q-porsche'];
+  await Promise.all(names.map(async n => { IMG[n] = await loadImg(`img/${n}.jpg`); }));
+  IMG.lockup = await loadImg('img/autolink-lockup.png');
+  window.seek(0);
+  return { film, total: FILM.total, scenes: FILM.scenes.map(s => s.id) };
+})();
+</script>
+</body></html>

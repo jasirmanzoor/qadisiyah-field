@@ -1,0 +1,66 @@
+<!doctype html><meta charset="utf-8"><title>motion film score</title>
+<script>
+// Score in code (Web Audio, OfflineAudioContext), shaped by the film's timeline: each scene has a mood, every scene
+// change gets a soft hit at the centre of its transition, a riser leads into the close and a big hit lands on the logo.
+const MOOD = {
+  T1: 'tension', B1: 'tension', T2: 'walk', B2: 'walk', T3: 'build', B3: 'build', B4: 'build', B6: 'build',
+  T4: 'question', A1: 'question', A2: 'tension', B5: 'tension',
+  T5: 'lift', A3: 'lift', A4: 'lift', A6: 'lift', A5: 'warm',
+  T6: 'triumph', A7: 'triumph', B7: 'triumph', T7: 'resolve', B8: 'resolve',
+};
+// D minor world for the problem, F / Bb major for the answer
+const CH = {
+  tension: [[73.42, 146.83, 174.61, 220], [58.27, 116.54, 174.61, 233.08]],
+  walk: [[73.42, 146.83, 220, 293.66], [65.41, 130.81, 196, 261.63]],
+  build: [[58.27, 116.54, 174.61, 293.66], [65.41, 130.81, 196, 329.63]],
+  question: [[73.42, 146.83, 174.61, 261.63]],
+  lift: [[87.31, 174.61, 220, 349.23], [65.41, 130.81, 196, 329.63]],
+  warm: [[58.27, 116.54, 146.83, 233.08], [87.31, 174.61, 220, 261.63]],
+  triumph: [[58.27, 116.54, 174.61, 293.66], [87.31, 174.61, 261.63, 349.23], [65.41, 130.81, 196, 392]],
+  resolve: [[73.42, 146.83, 220, 293.66], [87.31, 174.61, 220, 349.23]],
+};
+const ENERGY = { tension: .55, walk: .75, build: .85, question: .25, lift: .8, warm: .5, triumph: 1, resolve: .6 };
+window.renderScore = async function (tl) {
+  const SR = 48000, DUR = tl.total, TAIL = 3;
+  const ctx = new OfflineAudioContext(2, Math.ceil(SR * (DUR + TAIL)), SR);
+  const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3; comp.attack.value = .005; comp.release.value = .2; comp.connect(ctx.destination);
+  const ir = ctx.createBuffer(2, SR * 3, SR);
+  for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); let s = 5 + c * 13; for (let i = 0; i < d.length; i++) { s = (s * 16807) % 2147483647; d[i] = (s / 1073741823.5 - 1) * Math.pow(1 - i / d.length, 3); } }
+  const verb = ctx.createConvolver(); verb.buffer = ir; const vg = ctx.createGain(); vg.gain.value = .28; verb.connect(vg); vg.connect(comp);
+  const bus = ctx.createGain(); bus.connect(comp); bus.connect(verb);
+  const nb = (() => { const b = ctx.createBuffer(1, SR * 2, SR), d = b.getChannelData(0); let s = 3; for (let i = 0; i < d.length; i++) { s = (s * 16807) % 2147483647; d[i] = s / 1073741823.5 - 1; } return b; })();
+  const tone = (t, f, dur, type, g, cut, att = .01, pan = 0, dest = bus) => { const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; const fl = ctx.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.setValueAtTime(cut, t); fl.frequency.exponentialRampToValueAtTime(Math.max(90, cut * .25), t + dur); const a = ctx.createGain(); a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(g, t + att); a.gain.exponentialRampToValueAtTime(.0001, t + dur); const p = ctx.createStereoPanner(); p.pan.value = pan; o.connect(fl); fl.connect(a); a.connect(p); p.connect(dest); o.start(t); o.stop(t + dur + .05); };
+  const pad = (t, fs, dur, g, bright) => fs.slice(1).forEach((f, i) => [-.07, .07].forEach((dt, j) => { const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = dt * 100; const fl = ctx.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.setValueAtTime(400, t); fl.frequency.linearRampToValueAtTime(400 + 1400 * bright, t + dur * .6); fl.frequency.linearRampToValueAtTime(600, t + dur); const a = ctx.createGain(); const at = Math.min(.8, dur * .3); a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(g / 3, t + at); a.gain.setValueAtTime(g / 3, Math.max(t + at, t + dur - .5)); a.gain.linearRampToValueAtTime(0, t + dur + .3); const p = ctx.createStereoPanner(); p.pan.value = j ? .4 : -.4; o.connect(fl); fl.connect(a); a.connect(p); p.connect(bus); o.start(t); o.stop(t + dur + .4); }));
+  const kick = (t, g) => { const o = ctx.createOscillator(), a = ctx.createGain(); o.frequency.setValueAtTime(130, t); o.frequency.exponentialRampToValueAtTime(42, t + .1); a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(g, t + .003); a.gain.exponentialRampToValueAtTime(.001, t + .38); o.connect(a); a.connect(comp); o.start(t); o.stop(t + .4); };
+  const noise = (t, dur, type, f, q, g, pan = 0, att = .002) => { const n = ctx.createBufferSource(); n.buffer = nb; n.loop = true; const fl = ctx.createBiquadFilter(); fl.type = type; fl.frequency.value = f; fl.Q.value = q; const a = ctx.createGain(); a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(g, t + att); a.gain.exponentialRampToValueAtTime(.0001, t + dur); const p = ctx.createStereoPanner(); p.pan.value = pan; n.connect(fl); fl.connect(a); a.connect(p); p.connect(bus); n.start(t); n.stop(t + dur + .05); };
+  const whoosh = (tc, len, g) => { const t0 = tc - len * .7, t1 = tc + len * .3; const n = ctx.createBufferSource(); n.buffer = nb; n.loop = true; const fl = ctx.createBiquadFilter(); fl.type = 'bandpass'; fl.Q.value = 1.2; fl.frequency.setValueAtTime(300, t0); fl.frequency.exponentialRampToValueAtTime(4200, tc); fl.frequency.exponentialRampToValueAtTime(900, t1); const a = ctx.createGain(); a.gain.setValueAtTime(.0001, t0); a.gain.exponentialRampToValueAtTime(g, tc); a.gain.exponentialRampToValueAtTime(.0001, t1); const p = ctx.createStereoPanner(); p.pan.setValueAtTime(-.5, t0); p.pan.linearRampToValueAtTime(.5, t1); n.connect(fl); fl.connect(a); a.connect(p); p.connect(bus); n.start(t0); n.stop(t1 + .05); };
+  const hit = (t, big) => { const o = ctx.createOscillator(), a = ctx.createGain(); o.frequency.setValueAtTime(big ? 100 : 80, t); o.frequency.exponentialRampToValueAtTime(32, t + (big ? 1 : .5)); a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(big ? .95 : .45, t + .004); a.gain.exponentialRampToValueAtTime(.001, t + (big ? 2 : .9)); o.connect(a); a.connect(comp); o.start(t); o.stop(t + 2.1); noise(t, big ? 1.4 : .5, 'lowpass', big ? 6000 : 3500, .5, big ? .32 : .12); if (big) [293.66, 440, 587.33, 880].forEach((f, i) => tone(t, f, 3, 'triangle', .07 / (i + 1), 6000, .003, i % 2 ? .3 : -.3)); };
+  const riser = (t0, t1, g) => { const n = ctx.createBufferSource(); n.buffer = nb; n.loop = true; const fl = ctx.createBiquadFilter(); fl.type = 'bandpass'; fl.Q.value = 2; fl.frequency.setValueAtTime(250, t0); fl.frequency.exponentialRampToValueAtTime(6500, t1); const a = ctx.createGain(); a.gain.setValueAtTime(.0001, t0); a.gain.exponentialRampToValueAtTime(g, t1 - .02); a.gain.linearRampToValueAtTime(0, t1); n.connect(fl); fl.connect(a); a.connect(bus); n.start(t0); n.stop(t1 + .05); };
+  const BEAT = .6;   // 100 BPM
+  const scenes = tl.scenes;
+  scenes.forEach((s, i) => {
+    const m = MOOD[s.id] || 'build', ch = CH[m], e = ENERGY[m], d = s.end - s.start;
+    const per = d / ch.length;
+    ch.forEach((c, k) => pad(s.start + k * per, c, per, .2 + .08 * e, e));
+    const k0 = Math.ceil(s.start / BEAT), k1 = Math.floor(s.end / BEAT);
+    for (let k = k0; k < k1; k++) {
+      const t = k * BEAT, c = ch[Math.min(ch.length - 1, Math.floor((t - s.start) / per))];
+      if (m !== 'question' && m !== 'resolve') tone(t, c[0] / 1, .5, 'sine', .22 * e, 300, .01);
+      if (e >= .55) for (let h = 0; h < 2; h++) tone(t + h * BEAT / 2, c[1 + ((k * 2 + h) % 3)] * 2, .26, 'triangle', .045 * e, 2600, .003, h ? .35 : -.35);
+      if (e >= .75 && m !== 'resolve') kick(t, .55 * e);
+      if (e >= .85) noise(t + BEAT / 2, .04, 'highpass', 8500, .6, .05);
+      if (m === 'question' && k % 2 === 0) tone(t, c[3] * 2, 1.6, 'sine', .06, 3000, .005, .2);
+    }
+    if (i > 0) { whoosh(s.start, .7, .16); hit(s.start, false); }
+  });
+  const last = scenes[scenes.length - 1];
+  riser(Math.max(0, last.start - 2.2), last.start, .22); hit(last.start + .02, true);
+  const buf = await ctx.startRendering();
+  const n = Math.round(SR * DUR), L = buf.getChannelData(0), R = buf.getChannelData(1); let pk = 0;
+  for (let i = 0; i < n; i++) pk = Math.max(pk, Math.abs(L[i]), Math.abs(R[i]));
+  const kk = .89 / pk, pcm = new Int16Array(n * 2);
+  for (let i = 0; i < n; i++) { const f = i > n - SR * 1.2 ? (n - i) / (SR * 1.2) : 1; pcm[2 * i] = L[i] * kk * f * 32767; pcm[2 * i + 1] = R[i] * kk * f * 32767; }
+  const by = new Uint8Array(pcm.buffer); let s = ''; for (let i = 0; i < by.length; i += 0x8000) s += String.fromCharCode.apply(null, by.subarray(i, i + 0x8000));
+  return { sr: SR, b64: btoa(s) };
+};
+</script>

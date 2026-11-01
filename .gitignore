@@ -13,3 +13,8 @@ tmp/
 .env.*
 # rendered films exceed GitHub's 100 MB file limit; kept locally
 presentation/two-part-film/*.mp4
+
+# narrator voice model (download: github.com/thewh1teagle/kokoro-onnx releases, model-files-v1.0)
+presentation/tts/
+# motion-film renders and audio stems are rebuilt from source (narrate.py, score.html, mix.py)
+presentation/motion-film/src/out/

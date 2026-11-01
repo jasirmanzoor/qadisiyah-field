@@ -176,7 +176,16 @@ const OUT_FS = `#version 300 es
 precision highp float; uniform sampler2D uA; out vec4 o;
 void main(){ vec3 c = texelFetch(uA, ivec2(gl_FragCoord.xy), 0).rgb; o = vec4(c, 1.); }`;
 
-const PQ = prog(QUAD_VS, QUAD_FS), PD = prog(FS_VS, DOF_FS), PO = prog(FS_VS, OUT_FS);
+// motion blur is accumulated before depth of field: each sub-frame adds its colour and depth, then one DOF pass
+const ACC_FS = `#version 300 es
+precision highp float; uniform sampler2D uC; uniform sampler2D uD; uniform float uW;
+layout(location=0) out vec4 oC; layout(location=1) out vec4 oD;
+void main(){ ivec2 p = ivec2(gl_FragCoord.xy); oC = texelFetch(uC, p, 0)*uW; oD = vec4(texelFetch(uD, p, 0).r*uW, 0., 0., uW); }`;
+const COPY_FS = `#version 300 es
+precision highp float; uniform sampler2D uC; uniform sampler2D uD;
+layout(location=0) out vec4 oC; layout(location=1) out vec4 oD;
+void main(){ ivec2 p = ivec2(gl_FragCoord.xy); oC = texelFetch(uC, p, 0); oD = vec4(texelFetch(uD, p, 0).r, 0., 0., 1.); }`;
+const PQ = prog(QUAD_VS, QUAD_FS), PD = prog(FS_VS, DOF_FS), PO = prog(FS_VS, OUT_FS), PACC = prog(FS_VS, ACC_FS), PCP = prog(FS_VS, COPY_FS);
 gl.bindVertexArray(gl.createVertexArray());
 
 function tex(w, h, ifmt, fmt, type, mip) { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t); gl.texStorage2D(gl.TEXTURE_2D, mip ? Math.floor(Math.log2(Math.max(w, h))) + 1 : 1, ifmt, w, h); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, mip ? gl.LINEAR_MIPMAP_LINEAR : gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); return t; }
@@ -188,6 +197,11 @@ gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, sce
 gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, sceneD, 0);
 gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
 const fbA = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fbA); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, accT, 0);
+const accC = tex(W, H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, false), accD = tex(W, H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, false);
+const fbM = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fbM);
+gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, accC, 0);
+gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, accD, 0);
+gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
 
 function imgTex(img) {
   const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
@@ -341,9 +355,25 @@ window.setSub = n => { SUB = n; };
 window.seek = function (t) {
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbA); gl.clearBufferfv(gl.COLOR, 0, [0, 0, 0, 0]);
   const span = .7 / 60;
-  for (let k = 0; k < SUB; k++) {
-    const ts = SUB === 1 ? t : t - span / 2 + span * k / (SUB - 1);
-    const cam = drawScene(Math.max(0, ts)); dof(cam, 1 / SUB);
+  if (SUB === 1) { dof(drawScene(Math.max(0, t)), 1); }
+  else {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbM); gl.clearBufferfv(gl.COLOR, 0, [0, 0, 0, 0]); gl.clearBufferfv(gl.COLOR, 1, [0, 0, 0, 0]);
+    for (let k = 0; k < SUB; k++) {
+      drawScene(Math.max(0, t - span / 2 + span * k / (SUB - 1)));
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbM); gl.viewport(0, 0, W, H); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);
+      gl.useProgram(PACC.p);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, sceneC); gl.uniform1i(PACC.u.uC, 0);
+      gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, sceneD); gl.uniform1i(PACC.u.uD, 1);
+      gl.uniform1f(PACC.u.uW, 1 / SUB); gl.drawArrays(gl.TRIANGLES, 0, 3);
+    }
+    // the blended sub-frames become the scene that the single DOF pass reads
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbS); gl.viewport(0, 0, W, H); gl.disable(gl.BLEND);
+    gl.useProgram(PCP.p);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, accC); gl.uniform1i(PCP.u.uC, 0);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, accD); gl.uniform1i(PCP.u.uD, 1);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.bindTexture(gl.TEXTURE_2D, sceneC); gl.generateMipmap(gl.TEXTURE_2D);
+    dof(camera(Math.max(0, t)), 1);
   }
   gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, W, H); gl.disable(gl.BLEND);
   gl.useProgram(PO.p); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, accT); gl.uniform1i(PO.u.uA, 0);

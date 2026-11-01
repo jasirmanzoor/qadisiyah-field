@@ -1,0 +1,94 @@
+{
+ "total": 36.465,
+ "scenes": [
+  {
+   "id": "T1",
+   "start": 0.0,
+   "end": 7.611,
+   "lines": [
+    {
+     "t": 0.9,
+     "dur": 4.0,
+     "text": "Riyadh's independent car market trades billions of riyals a year."
+    },
+    {
+     "t": 5.401,
+     "dur": 1.66,
+     "text": "And no one had ever counted it."
+    }
+   ]
+  },
+  {
+   "id": "T2",
+   "start": 7.611,
+   "end": 12.487,
+   "lines": [
+    {
+     "t": 0.45,
+     "dur": 3.876,
+     "text": "So we walked it. Door to door. Five hundred and twenty showrooms."
+    }
+   ]
+  },
+  {
+   "id": "T3",
+   "start": 12.487,
+   "end": 19.733,
+   "lines": [
+    {
+     "t": 0.45,
+     "dur": 6.247,
+     "text": "Thirty one thousand, nine hundred and forty four cars. Three point six billion riyals of stock."
+    }
+   ]
+  },
+  {
+   "id": "T4",
+   "start": 19.733,
+   "end": 23.864,
+   "lines": [
+    {
+     "t": 0.45,
+     "dur": 3.131,
+     "text": "And on every floor, the same question. How will I pay?"
+    }
+   ]
+  },
+  {
+   "id": "T5",
+   "start": 23.864,
+   "end": 27.827,
+   "lines": [
+    {
+     "t": 0.45,
+     "dur": 2.362,
+     "text": "AutoLink brings the finance to the floor."
+    }
+   ]
+  },
+  {
+   "id": "T6",
+   "start": 27.827,
+   "end": 31.079,
+   "lines": [
+    {
+     "t": 0.45,
+     "dur": 2.252,
+     "text": "Twenty showrooms signed in the first month."
+    }
+   ]
+  },
+  {
+   "id": "T7",
+   "start": 31.079,
+   "end": 36.465,
+   "lines": [
+    {
+     "t": 0.45,
+     "dur": 2.536,
+     "text": "AutoLink. From the showroom floor, to KAFD."
+    }
+   ]
+  }
+ ]
+}
