@@ -1,0 +1,174 @@
+{
+ "voice": "af_heart",
+ "parts": [
+  {
+   "id": "A",
+   "title": "For the showroom",
+   "scenes": [
+    {
+     "id": "A1",
+     "lead": 1.6,
+     "lines": [
+      "Every day, buyers walk onto your floor.",
+      "They have seen the car. They have agreed the price.",
+      "Then comes the question: how will I pay?"
+     ],
+     "pad": 3
+    },
+    {
+     "id": "A2",
+     "lead": 0.8,
+     "lines": [
+      "For most buyers, the answer is finance. And when the finance is not there, the sale walks out of the door.",
+      "Showroom owners told us: for every ten cars they sell, about four more ready buyers leave without one."
+     ],
+     "pad": 2
+    },
+    {
+     "id": "A3",
+     "lead": 0.9,
+     "tail": 1.2,
+     "lines": [
+      "AutoLink was built to close that gap."
+     ],
+     "pad": 1
+    },
+    {
+     "id": "A4",
+     "lead": 0.6,
+     "lines": [
+      "With AutoLink, financing comes to your floor.",
+      "Your team submits the buyer's request through the AutoLink dealer portal, then follows it, step by step.",
+      "Your buyer does not have to leave to find a loan."
+     ],
+     "pad": 4
+    },
+    {
+     "id": "A5",
+     "lead": 0.6,
+     "lines": [
+      "The portal works for your showroom, too. Your requests, your reports and your account, in one dashboard.",
+      "In Arabic, in English, or in Chinese."
+     ],
+     "pad": 2.5
+    },
+    {
+     "id": "A6",
+     "lead": 0.6,
+     "lines": [
+      "And we do not just hand you a login. Our team sits down with your sales staff and trains them, on the portal, and on the conversation with the buyer.",
+      "Let them finish. Reflect before you respond. Ask one clarifying question. Then answer, briefly."
+     ],
+     "pad": 3
+    },
+    {
+     "id": "A7",
+     "lead": 0.7,
+     "lines": [
+      "And this is only the beginning. Next on our roadmap: matching every buyer to the right lender, for faster approvals.",
+      "Then, your stock online, and new buyers sent straight to your door."
+     ],
+     "pad": 2.5
+    },
+    {
+     "id": "A8",
+     "lead": 0.6,
+     "tail": 4.2,
+     "lines": [
+      "Twenty showrooms have already signed with AutoLink. Yours could be next.",
+      "AutoLink. Every buyer on your floor, a buyer you can finance."
+     ],
+     "pad": 2.5
+    }
+   ]
+  },
+  {
+   "id": "B",
+   "title": "What we have built",
+   "scenes": [
+    {
+     "id": "B1",
+     "lead": 2.4,
+     "lines": [
+      "Riyadh's independent car market trades billions of riyals a year.",
+      "Until now, no one had ever counted it."
+     ],
+     "pad": 3
+    },
+    {
+     "id": "B2",
+     "lead": 0.7,
+     "lines": [
+      "So we walked it. A small field team, door to door, by day and after dark, across Al Qaadiseeya and Al Shiffa.",
+      "Every showroom, recorded on one uniform sheet: stock, prices, finance and contacts."
+     ],
+     "pad": 4
+    },
+    {
+     "id": "B3",
+     "lead": 0.7,
+     "lines": [
+      "Five hundred and twenty showrooms. Five hundred and sixteen, pinned at their GPS coordinates.",
+      "Thirty one thousand, nine hundred and forty four cars, counted on the floor. Three point six billion riyals of stock on display."
+     ],
+     "pad": 4
+    },
+    {
+     "id": "B4",
+     "lead": 0.7,
+     "lines": [
+      "Then we sat down with the owners. Twenty five of them opened their books.",
+      "From their numbers, Al Qaadiseeya alone sells an estimated fifteen point seven billion riyals of cars a year. And that is the conservative figure."
+     ],
+     "pad": 3
+    },
+    {
+     "id": "B5",
+     "lead": 0.7,
+     "lines": [
+      "And we found where the money leaks. Eleven of thirteen floors have no bank on site.",
+      "In Al Shiffa, one hundred and ninety four of two hundred and eleven floors sell for cash only.",
+      "On just twenty four floors, ready buyers worth one point four billion riyals a year walk away, for want of a loan."
+     ],
+     "pad": 3
+    },
+    {
+     "id": "B6",
+     "lead": 0.7,
+     "lines": [
+      "No one else holds this. It is the largest sub-dealer mapping of its kind, on one standard, ahead of every established player."
+     ],
+     "pad": 3
+    },
+    {
+     "id": "B7",
+     "lead": 0.7,
+     "lines": [
+      "And it is already moving. We built a dealer portal for financing requests, trained the sales teams to use it, and earned the owners' trust, over coffee and dates.",
+      "In one month, twenty sub-dealers signed with AutoLink, and sixteen more have agreements in hand. Sixty four in the pipeline.",
+      "And we are already at the table with nine banks and finance companies."
+     ],
+     "pad": 3.5
+    },
+    {
+     "id": "B8",
+     "lead": 0.8,
+     "lines": [
+      "Our founder put it simply.",
+      "We are not here to map a market. We are here to move it. For every dealer, every buyer, every lender."
+     ],
+     "pad": 3
+    },
+    {
+     "id": "B9",
+     "lead": 0.6,
+     "tail": 4.8,
+     "lines": [
+      "AutoLink. From the showroom floor, to KAFD."
+     ],
+     "pad": 2
+    }
+   ]
+  }
+ ]
+}

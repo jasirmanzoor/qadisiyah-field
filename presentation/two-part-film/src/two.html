@@ -1,0 +1,540 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>AutoLink Two-Part Film</title>
+<style>
+@font-face{font-family:IT;src:url(f/it400.ttf);font-weight:400}
+@font-face{font-family:IT;src:url(f/it500.ttf);font-weight:500}
+@font-face{font-family:IT;src:url(f/it600.ttf);font-weight:600}
+@font-face{font-family:IS;src:url(f/InstrumentSerif.ttf);font-style:italic}
+@font-face{font-family:AR;src:url(f/ar.ttf);font-weight:500}
+@font-face{font-family:SC;src:url(f/sc.ttf);font-weight:500}
+:root{--bg:#080403;--ink:#f4efe9;--dim:rgba(244,239,233,.56);--faint:rgba(244,239,233,.14);--line:rgba(244,239,233,.12);--ac:#32dae6;--card:#110a07}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#000}
+body{font-family:IT,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;font-feature-settings:"tnum" 1}
+#stage{position:absolute;inset:0;overflow:hidden;background:var(--bg)}
+.sc{position:absolute;inset:0;overflow:hidden;display:none}
+.a{position:absolute}
+.ph{position:absolute;inset:0;overflow:hidden}
+.ph img{position:absolute;left:0;top:0;transform-origin:0 0}
+.shade{position:absolute;inset:0;pointer-events:none}
+.m{display:inline-block;overflow:hidden;vertical-align:top;padding:0 .04em .18em;margin:0 -.04em -.18em}
+.mi{display:inline-block;white-space:pre}
+em,.it{font-family:IS,serif;font-style:italic;font-weight:400;letter-spacing:-.01em}
+.ac{color:var(--ac)}
+.kick{font-size:17px;font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:var(--dim)}
+.h1{font-size:92px;font-weight:600;letter-spacing:-.045em;line-height:1.02}
+.h2{font-size:64px;font-weight:600;letter-spacing:-.04em;line-height:1.05}
+.body{font-size:30px;font-weight:400;color:var(--dim);line-height:1.4;letter-spacing:-.01em}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px}
+.lt{left:120px;bottom:110px}
+.panel{position:absolute;top:0;height:1080px;overflow:hidden}
+.panel img{position:absolute;left:0;top:0;transform-origin:0 0}
+.frame{position:absolute;border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08)}
+.frame img{display:block;width:100%;height:100%;object-fit:cover}
+.dot{position:absolute;border-radius:50%}
+#black{position:absolute;inset:0;background:#000;pointer-events:none}
+</style></head>
+<body>
+<div id="stage"></div>
+<div id="black"></div>
+<script src="pins2.js"></script>
+<script>
+"use strict";
+const $ = (h) => { const d = document.createElement("div"); d.innerHTML = h.trim(); return d.firstChild; };
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, p) => a + (b - a) * p;
+const sine = (x) => .5 - .5 * Math.cos(Math.PI * clamp(x));
+const eo = (x) => 1 - Math.pow(1 - clamp(x), 3);           // ease-out cubic
+const eo5 = (x) => 1 - Math.pow(1 - clamp(x), 5);
+const ramp = (t, a, d) => clamp((t - a) / d);
+const fmt = (n) => Math.round(n).toLocaleString("en-US");
+let TL, SCENES = [];
+const IMG = {};                                            // src → {w,h}
+
+// ---------- primitives (all pure functions of time) ----------
+// masked word reveal: element of .m>.mi spans; in at tin (stagger), out at tout
+function words(html, cls = "") {
+  // wrap every word in a mask, keeping the styling (em, .ac) of the tags around it
+  const tmp = document.createElement("div"); tmp.innerHTML = html; let out = "";
+  const walk = (node, wraps) => {
+    for (const c of node.childNodes) {
+      if (c.nodeType === 3) {
+        c.textContent.split(/(\s+)/).forEach((w) => {
+          if (!w) return; if (/^\s+$/.test(w)) { out += " "; return; }
+          const open = wraps.map((e) => e.outerHTML.slice(0, e.outerHTML.indexOf(">") + 1)).join(""), close = wraps.slice().reverse().map((e) => `</${e.tagName.toLowerCase()}>`).join("");
+          out += `<span class="m"><span class="mi ${cls}">${open}${w}${close}</span></span>`;
+        });
+      } else if (c.nodeType === 1) { if (c.tagName === "BR") out += "<br>"; else walk(c, wraps.concat([c.cloneNode(false)])); }
+    }
+  };
+  walk(tmp, []); return out;
+}
+function reveal(root, t, tin, tout, stag = .06, dIn = .7, dOut = .45) {
+  const ws = root.querySelectorAll(".mi");
+  ws.forEach((w, i) => {
+    const a = tin + i * stag; let y = 105, o = 1;
+    if (t >= a) y = 105 * (1 - eo5(ramp(t, a, dIn)));
+    if (tout != null && t >= tout + i * stag * .5) { const q = eo(ramp(t, tout + i * stag * .5, dOut)); y = -105 * q; }
+    w.style.transform = `translate3d(0,${y.toFixed(2)}%,0)`;
+  });
+}
+function fade(el, t, tin, tout, dIn = .6, dOut = .5) {
+  let o = t < tin ? 0 : sine(ramp(t, tin, dIn));
+  if (tout != null && t > tout) o *= 1 - sine(ramp(t, tout, dOut));
+  el.style.opacity = o.toFixed(4); return o;
+}
+// Ken Burns photo: cover the box, then move from a to b ({s,x,y} where x,y are -1..1 pan within slack)
+function kb(box, src, w, h) {
+  const el = $(`<div class="ph"></div>`); el.style.width = w + "px"; el.style.height = h + "px";
+  const im = document.createElement("img"); im.dataset.src = src; el.appendChild(im); box.appendChild(el);
+  return { el, im, w, h };
+}
+function kbSet(k, p, a, b) {
+  const info = IMG[k.im.dataset.src]; if (!info) return;
+  const cover = Math.max(k.w / info.w, k.h / info.h);
+  const s = cover * lerp(a.s, b.s, p), iw = info.w * s, ih = info.h * s;
+  const sx = (iw - k.w) / 2, sy = (ih - k.h) / 2;
+  const x = -sx + sx * lerp(a.x || 0, b.x || 0, p), y = -sy + sy * lerp(a.y || 0, b.y || 0, p);
+  k.im.style.width = info.w + "px"; k.im.style.height = info.h + "px";
+  k.im.style.transform = `translate3d(${x.toFixed(3)}px,${y.toFixed(3)}px,0) scale(${s.toFixed(6)})`;
+}
+// shot sequencer inside a scene: shots = [{t0,t1,src,a,b,x:'fade'|'cut'}]
+function shotList(root, shots) {
+  const ks = shots.map((sh) => { const k = kb(root, sh.src, 1920, 1080); k.el.style.opacity = 0; return Object.assign(k, sh); });
+  return (t) => {
+    ks.forEach((k, i) => {
+      const on = t >= k.t0 - .01 && t < k.t1 + (k.xo || .6);
+      k.el.style.visibility = on ? "visible" : "hidden"; if (!on) return;
+      const p = clamp((t - k.t0) / (k.t1 - k.t0 + (k.xo || .6)));
+      kbSet(k, p, k.a, k.b);
+      const din = k.x === "cut" ? .001 : (k.din || .6);
+      k.el.style.opacity = clamp((t - k.t0) / din).toFixed(4);
+      k.el.style.zIndex = i;
+    });
+  };
+}
+const shadeBottom = (root, a = .78) => root.appendChild($(`<div class="shade" style="background:linear-gradient(0deg,rgba(6,3,2,${a}) 0%,rgba(6,3,2,${a * .5}) 30%,rgba(6,3,2,0) 58%)"></div>`));
+const shadeLeft = (root, a = .82) => root.appendChild($(`<div class="shade" style="background:linear-gradient(90deg,rgba(6,3,2,${a}) 0%,rgba(6,3,2,${a * .55}) 38%,rgba(6,3,2,0) 70%)"></div>`));
+// portrait panels that rise in one after another and drift
+function panels(root, srcs, t0, t1, opt = {}) {
+  const n = srcs.length, gap = opt.gap ?? 14, W = (1920 - gap * (n - 1)) / n;
+  const ps = srcs.map((src, i) => {
+    const box = $(`<div class="panel"></div>`); box.style.left = i * (W + gap) + "px"; box.style.width = W + "px"; root.appendChild(box);
+    const k = kb(box, src, W, 1080); return { box, k, i };
+  });
+  return (t) => ps.forEach(({ box, k, i }) => {
+    const a = t0 + i * (opt.stag ?? .22), q = eo5(ramp(t, a, 1.1));
+    box.style.clipPath = `inset(${(100 * (1 - q)).toFixed(3)}% 0 0 0)`;
+    const p = clamp((t - t0) / (t1 - t0));
+    kbSet(k, p, { s: 1.12, y: i % 2 ? -.6 : .6 }, { s: 1.02, y: i % 2 ? .6 : -.6 });
+  });
+}
+function lockup(root, cx, y, w) {
+  const k = w / 970;
+  const g = $(`<div class="a" style="left:${cx - w / 2}px;top:${y}px;width:${w}px;height:${247 * k}px"></div>`);
+  const wm = $(`<div class="a" style="left:0;top:0;width:${w}px;height:${114 * k}px;background:url(../mf/lockup.png) 0 0/${w}px auto no-repeat"></div>`);
+  const ai = $(`<div class="a" style="left:${339 * k}px;top:${184 * k}px;width:${363 * k}px;height:${60 * k}px;background:url(../mf/lockup.png) ${-339 * k}px ${-184 * k}px/${w}px auto no-repeat"></div>`);
+  const b1 = $(`<div class="a" style="left:${2 * k}px;top:${201 * k}px;width:${238 * k}px;height:${16 * k}px;border-radius:${8 * k}px;background:var(--ac);transform-origin:100% 50%"></div>`);
+  const b2 = $(`<div class="a" style="left:${747 * k}px;top:${201 * k}px;width:${220 * k}px;height:${16 * k}px;border-radius:${8 * k}px;background:var(--ac);transform-origin:0 50%"></div>`);
+  [wm, ai, b1, b2].forEach((e) => g.appendChild(e)); root.appendChild(g);
+  return (t, t0) => {
+    const pb = eo5(ramp(t, t0, .9)), pa = eo5(ramp(t, t0 + .35, .8)), pw = eo5(ramp(t, t0 + .6, 1.0));
+    b1.style.transform = `scaleX(${pb.toFixed(4)})`; b2.style.transform = `scaleX(${pb.toFixed(4)})`;
+    ai.style.clipPath = `inset(0 ${(50 * (1 - pa)).toFixed(2)}% 0 ${(50 * (1 - pa)).toFixed(2)}%)`;
+    wm.style.clipPath = `inset(${(100 * (1 - pw)).toFixed(2)}% 0 0 0)`; wm.style.transform = `translate3d(0,${(18 * (1 - pw)).toFixed(2)}px,0)`;
+  };
+}
+
+// ---------- scenes ----------
+const P = (f) => "../portfolio/" + f;
+const DEF = {};
+// helpers to read narration times (scene-relative)
+const Lt = (sc, i) => sc.lines[i].t - sc.start, Le = (sc, i) => sc.lines[i].t + sc.lines[i].dur - sc.start;
+
+DEF.A1 = (root, sc) => {
+  const D = sc.end - sc.start, l2 = Lt(sc, 1), l3 = Lt(sc, 2);
+  const s1 = shotList(root, [
+    { t0: 0, t1: l2 - .1, src: P("bp3/nightfloor.jpg"), a: { s: 1.16, x: -.4, y: .2 }, b: { s: 1.04, x: .3, y: -.1 }, x: "cut" },
+  ]);
+  const pv = $(`<div class="a" style="inset:0"></div>`); root.appendChild(pv);
+  const pn = panels(pv, [P("photos/q-riyadhcars-night.jpg"), P("photos/n-rc-night.jpg"), P("photos/q-safh-dark.jpg")], l2 - .1, l3 + .6);
+  const s3 = $(`<div class="a" style="inset:0"></div>`); root.appendChild(s3);
+  const s3f = shotList(s3, [{ t0: l3 - .15, t1: D, src: P("bp3/sclass.jpg"), a: { s: 1.02, x: .2 }, b: { s: 1.12, x: -.2 }, din: .7 }]);
+  shadeBottom(root, .7);
+  const kick = $(`<div class="a kick" style="left:120px;top:96px">${words("AutoLink · For our dealer partners")}</div>`); root.appendChild(kick);
+  const q = $(`<div class="a h1 lt" style="max-width:1300px">${words("How will I <em>pay?</em>")}</div>`); root.appendChild(q);
+  return (t) => {
+    s1(t); pv.style.visibility = t > l2 - .2 && t < l3 + .8 ? "visible" : "hidden"; pn(t); s3f(t);
+    reveal(kick, t, 1.0, l2 - .6, .04); reveal(q, t, Lt(sc, 2) + 1.2, D - .2, .1);
+  };
+};
+DEF.A2 = (root, sc) => {
+  const D = sc.end - sc.start, g0 = Lt(sc, 1) - .2;
+  const sh = shotList(root, [
+    { t0: 0, t1: Lt(sc, 0) + 3.6, src: P("bp3/covered.jpg"), a: { s: 1.04, x: -.6 }, b: { s: 1.10, x: .5 }, din: .5 },
+    { t0: Lt(sc, 0) + 3.6, t1: g0, src: P("photos/s-hall.jpg"), a: { s: 1.12, y: .4 }, b: { s: 1.03, y: -.3 }, din: .7 },
+  ]);
+  const ov = $(`<div class="a" style="inset:0;background:var(--bg)"></div>`); root.appendChild(ov);
+  const cars = []; const row = $(`<div class="a" style="left:120px;top:300px;width:1680px;height:120px"></div>`); ov.appendChild(row);
+  for (let i = 0; i < 14; i++) { const d = $(`<div class="dot" style="left:${i * 116}px;top:30px;width:64px;height:64px"></div>`); row.appendChild(d); cars.push(d); }
+  const big = $(`<div class="a h1" style="left:120px;top:470px;max-width:1500px">${words("For every <span class='ac'>10</span> cars sold, about <span class='ac'>4</span> more ready buyers leave <em>without one.</em>")}</div>`);
+  ov.appendChild(big);
+  const src = $(`<div class="a kick" style="left:122px;top:780px">${words("What showroom owners told us · owner interviews, Al Qadisiyah")}</div>`); ov.appendChild(src);
+  return (t) => {
+    sh(t); const o = fade(ov, t, g0, null, .7);
+    ov.style.visibility = o > 0 ? "visible" : "hidden";
+    cars.forEach((d, i) => {
+      const a = g0 + .5 + i * .09, p = eo5(ramp(t, a, .6));
+      const sold = i < 10;
+      d.style.transform = `scale(${p.toFixed(4)})`;
+      d.style.background = sold ? "var(--ink)" : "transparent";
+      d.style.border = sold ? "none" : "3px solid var(--ac)";
+      if (!sold) d.style.opacity = (1 - .7 * sine(ramp(t, g0 + 3.2 + (i - 10) * .25, 1.2))).toFixed(3);
+      if (!sold) d.style.transform += ` translate3d(${(60 * sine(ramp(t, g0 + 3.2 + (i - 10) * .25, 1.2))).toFixed(2)}px,0,0)`;
+    });
+    reveal(big, t, g0 + .9, null, .05); reveal(src, t, g0 + 2.2, null, .02);
+  };
+};
+DEF.A3 = (root, sc) => {
+  const lk = lockup(root, 960, 420, 760);
+  const ln = $(`<div class="a h2" style="left:0;width:1920px;top:720px;text-align:center;font-weight:500;color:var(--dim)">${words("Built to close <em class='ac'>that gap.</em>")}</div>`); root.appendChild(ln);
+  return (t) => { lk(t, .15); reveal(ln, t, Lt(sc, 0) + .8, null, .07); };
+};
+DEF.A4 = (root, sc) => {
+  const D = sc.end - sc.start, l1 = Lt(sc, 1), l2 = Lt(sc, 2);
+  const sh = shotList(root, [{ t0: 0, t1: l1 - .3, src: P("bp3/train1.jpg"), a: { s: 1.04, x: .4, y: -.3 }, b: { s: 1.14, x: -.1, y: -.5 }, din: .6 }]);
+  shadeLeft(root, .7);
+  const t1 = $(`<div class="a h2 lt" style="bottom:120px">${words("Financing comes <em>to your floor.</em>")}</div>`); root.appendChild(t1);
+  // the dealer portal, step by step (step names from AutoLink's dealer guide)
+  const pg = $(`<div class="a" style="inset:0;background:var(--bg)"></div>`); root.appendChild(pg);
+  const kick = $(`<div class="a kick" style="left:120px;top:120px">${words("The AutoLink dealer portal")}</div>`); pg.appendChild(kick);
+  const steps = [["01", "Log in"], ["02", "Dashboard"], ["03", "Submit the buyer's request"], ["04", "Track it, step by step"]];
+  const line = $(`<div class="a" style="left:150px;top:420px;width:1000px;height:2px;background:var(--faint);transform-origin:0 50%"></div>`); pg.appendChild(line);
+  const prog = $(`<div class="a" style="left:150px;top:420px;width:1000px;height:2px;background:var(--ac);transform-origin:0 50%"></div>`); pg.appendChild(prog);
+  const node = steps.map(([n, l], i) => {
+    const x = 150 + i * (1000 / 3);
+    const c = $(`<div class="dot" style="left:${x - 14}px;top:407px;width:28px;height:28px;border:2px solid var(--faint);background:var(--bg)"></div>`);
+    const tx = $(`<div class="a" style="left:${x - 14}px;top:470px;width:300px"><div class="kick" style="color:var(--ac)">${words(n)}</div><div style="margin-top:14px;font-size:34px;font-weight:600;letter-spacing:-.025em;line-height:1.15">${words(l)}</div></div>`);
+    pg.appendChild(c); pg.appendChild(tx); return { c, tx };
+  });
+  const shot = $(`<div class="frame" style="left:1290px;top:200px;width:520px;height:616px"><img data-src="../bog/mk/m-093.ppm.png"></div>`); pg.appendChild(shot);
+  const cap = $(`<div class="a kick" style="left:1290px;top:850px">${words("From the dealer guide")}</div>`); pg.appendChild(cap);
+  const end = $(`<div class="a" style="inset:0"></div>`); root.appendChild(end);
+  const she = shotList(end, [{ t0: l2 - .4, t1: D, src: P("bp3/portal_screen.jpg"), a: { s: 1.06, y: .5 }, b: { s: 1.0, y: -.2 }, din: .6 }]);
+  // portal_screen is portrait: show it as a framed inset over a soft field instead of full-bleed
+  end.innerHTML = ""; const eb = $(`<div class="a" style="inset:0;background:var(--bg)"></div>`); end.appendChild(eb);
+  const ef = $(`<div class="frame" style="left:1060px;top:90px;width:540px;height:900px"><img data-src="${P("bp3/portal_screen.jpg")}"></div>`); end.appendChild(ef);
+  const et = $(`<div class="a h2" style="left:120px;top:420px;width:860px">${words("Your buyer does not have to leave <em>to find a loan.</em>")}</div>`); end.appendChild(et);
+  return (t) => {
+    sh(t); reveal(t1, t, Lt(sc, 0) + .3, l1 - .7, .07);
+    const o = fade(pg, t, l1 - .35, null, .5); pg.style.visibility = o > 0 && t < l2 + .2 ? "visible" : "hidden";
+    reveal(kick, t, l1 - .1, null, .03);
+    const ls = l1 + .2, le = Le(sc, 1) - .2;
+    const pr = clamp((t - ls) / (le - ls));
+    line.style.transform = `scaleX(${eo5(ramp(t, l1 - .2, .9)).toFixed(4)})`;
+    prog.style.transform = `scaleX(${sine(pr).toFixed(4)})`;
+    node.forEach(({ c, tx }, i) => {
+      const at = ls + (le - ls) * (i / 3);
+      const on = t >= at; c.style.borderColor = on ? "var(--ac)" : "var(--faint)"; c.style.background = on ? "var(--ac)" : "var(--bg)";
+      c.style.transform = `scale(${(1 + .25 * Math.sin(Math.PI * clamp((t - at) / .35))).toFixed(4)})`;
+      reveal(tx, t, at - .15, null, .05);
+    });
+    const so = eo5(ramp(t, l1 + .4, 1.0)); shot.style.opacity = so; shot.style.transform = `translate3d(0,${(40 * (1 - so)).toFixed(2)}px,0) rotate(${(2 - 2 * so).toFixed(3)}deg)`;
+    reveal(cap, t, l1 + 1.0, null, .03);
+    const eo_ = fade(end, t, l2 - .45, null, .6); end.style.visibility = eo_ > 0 ? "visible" : "hidden";
+    const ep = clamp((t - l2) / (D - l2 + .5)); ef.style.transform = `translate3d(0,${(30 - 60 * ep).toFixed(2)}px,0) scale(${(1.04 - .04 * ep).toFixed(4)})`;
+    reveal(et, t, l2 + .1, null, .07);
+  };
+};
+DEF.A5 = (root, sc) => {
+  const D = sc.end - sc.start, l1 = Lt(sc, 1);
+  const k = $(`<div class="a kick" style="left:120px;top:120px">${words("One dashboard for your showroom")}</div>`); root.appendChild(k);
+  // dashboard sections, named as in the dealer guide
+  const tiles = [["Requests", "Every buyer's financing request, in one list"], ["Reports", "Your showroom's activity, at a glance"], ["Account", "Your team, your settings"]];
+  const T = tiles.map(([h, b], i) => {
+    const c = $(`<div class="a card" style="left:${120 + i * 572}px;top:260px;width:536px;height:380px;padding:46px"><div class="kick" style="color:var(--ac)">${words("0" + (i + 1))}</div><div style="margin-top:110px;font-size:54px;font-weight:600;letter-spacing:-.035em">${words(h)}</div><div class="body" style="margin-top:14px;font-size:26px">${words(b)}</div></div>`);
+    root.appendChild(c); return c;
+  });
+  const langs = [["العربية", "AR"], ["English", "IT"], ["中文", "SC"]];
+  const LG = langs.map(([s, f], i) => { const c = $(`<div class="a" style="left:${120 + i * 250}px;top:740px;height:76px;padding:0 34px;border-radius:999px;border:1.5px solid rgba(244,239,233,.3);display:flex;align-items:center;font-family:${f},IT;font-size:32px;font-weight:500">${s}</div>`); root.appendChild(c); return c; });
+  return (t) => {
+    reveal(k, t, .2, null, .03);
+    T.forEach((c, i) => { const p = eo5(ramp(t, .5 + i * .3, 1.0)); c.style.opacity = p; c.style.transform = `translate3d(0,${(60 * (1 - p)).toFixed(2)}px,0)`; reveal(c, t, .8 + i * .3, null, .04); });
+    LG.forEach((c, i) => { const a = l1 + i * .55, p = eo5(ramp(t, a, .7)); c.style.opacity = p; c.style.transform = `translate3d(0,${(24 * (1 - p)).toFixed(2)}px,0)`; c.style.borderColor = t > a + .1 && t < a + .9 ? "var(--ac)" : "rgba(244,239,233,.3)"; });
+  };
+};
+DEF.A6 = (root, sc) => {
+  const D = sc.end - sc.start, l1 = Lt(sc, 1), d1 = sc.lines[1].dur;
+  const sh = shotList(root, [
+    { t0: 0, t1: 5.2, src: P("bp3/train2.jpg"), a: { s: 1.03, x: -.3 }, b: { s: 1.12, x: .3 }, din: .6 },
+    { t0: 5.2, t1: l1 - .5, src: P("bp3/review1.jpg"), a: { s: 1.12, x: .3, y: .2 }, b: { s: 1.03, x: -.2, y: -.1 }, din: .7 },
+  ]);
+  shadeBottom(root, .75);
+  const t1 = $(`<div class="a h2 lt">${words("Your sales team, <em>trained by ours.</em>")}</div>`); root.appendChild(t1);
+  const pg = $(`<div class="a" style="inset:0;background:var(--bg)"></div>`); root.appendChild(pg);
+  const k = $(`<div class="a kick" style="left:120px;top:120px">${words("On the floor · from our training")}</div>`); pg.appendChild(k);
+  const rules = ["Let them finish.", "Reflect before you respond.", "Ask one clarifying question.", "Then answer, briefly."];
+  const R = rules.map((r, i) => { const c = $(`<div class="a" style="left:120px;top:${250 + i * 160}px;font-size:66px;font-weight:600;letter-spacing:-.04em"><span class="kick" style="color:var(--ac);font-size:20px;vertical-align:middle;margin-right:34px">${"0" + (i + 1)}</span>${words(r)}</div>`); pg.appendChild(c); return c; });
+  const cut = [0, .2, .45, .73];
+  return (t) => {
+    sh(t); reveal(t1, t, 1.2, l1 - 1.0, .07);
+    const o = fade(pg, t, l1 - .5, null, .5); pg.style.visibility = o > 0 ? "visible" : "hidden";
+    reveal(k, t, l1 - .3, null, .03);
+    R.forEach((c, i) => { const a = l1 + d1 * cut[i] - .1; reveal(c, t, a, null, .05); c.style.opacity = t < a ? 1 : (lerp(1, .38, sine(ramp(t, a + 1.6, .6))) * (i === 3 ? 1 : 1)).toFixed(3); if (i === 3) c.style.opacity = 1; });
+  };
+};
+DEF.A7 = (root, sc) => {
+  const D = sc.end - sc.start, l0 = Lt(sc, 0), l1 = Lt(sc, 1);
+  const k = $(`<div class="a kick" style="left:120px;top:120px">${words("Roadmap")}</div>`); root.appendChild(k);
+  const cols = [["Today", ["Customer financing", "Dealer portal", "Sales-team training"]], ["Next", ["Lender matching", "Faster approvals"]], ["Then", ["Your stock online", "Buyers sent to your door"]]];
+  const at = [l0 - .1, l0 + 3.2, l1];
+  const C = cols.map(([h, items], i) => {
+    const c = $(`<div class="a" style="left:${120 + i * 590}px;top:240px;width:540px"></div>`);
+    const bar = $(`<div style="height:3px;background:${i === 0 ? "var(--ac)" : "rgba(244,239,233,.35)"};transform-origin:0 50%"></div>`); c.appendChild(bar);
+    const hh = $(`<div style="margin-top:34px;font-size:30px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:${i === 0 ? "var(--ac)" : "var(--dim)"}">${words(h)}</div>`); c.appendChild(hh);
+    const it = items.map((s) => { const e = $(`<div style="margin-top:34px;font-size:50px;font-weight:600;letter-spacing:-.035em;line-height:1.08">${words(s)}</div>`); c.appendChild(e); return e; });
+    root.appendChild(c); return { bar, hh, it };
+  });
+  return (t) => {
+    reveal(k, t, .1, null, .03);
+    C.forEach(({ bar, hh, it }, i) => { bar.style.transform = `scaleX(${eo5(ramp(t, at[i], 1.0)).toFixed(4)})`; reveal(hh, t, at[i] + .15, null, .03); it.forEach((e, j) => reveal(e, t, at[i] + .4 + j * .35, null, .05)); });
+  };
+};
+DEF.A8 = (root, sc) => {
+  const D = sc.end - sc.start, L0 = Lt(sc, 0), L1 = Lt(sc, 1);
+  const sh = shotList(root, [{ t0: 0, t1: D, src: P("bp3/sunset.jpg"), a: { s: 1.02, x: -.3 }, b: { s: 1.12, x: .3 }, din: .6 }]);
+  const dk = $(`<div class="a" style="inset:0;background:rgba(6,3,2,.64)"></div>`); root.appendChild(dk);
+  const g = $(`<div class="a" style="inset:0"></div>`); root.appendChild(g);
+  const dots = []; for (let i = 0; i < 20; i++) { const d = $(`<div class="dot" style="left:${120 + (i % 10) * 92}px;top:${300 + Math.floor(i / 10) * 92}px;width:62px;height:62px;background:var(--ac)"></div>`); g.appendChild(d); dots.push(d); }
+  const h1 = $(`<div class="a h1" style="left:120px;top:530px;width:1500px">${words("<span class='ac'>20</span> showrooms have already <em>signed on.</em>")}</div>`); g.appendChild(h1);
+  const h2 = $(`<div class="a body" style="left:122px;top:660px">${words("Yours could be next.")}</div>`); g.appendChild(h2);
+  const e = $(`<div class="a" style="inset:0"></div>`); root.appendChild(e);
+  const lk = lockup(e, 960, 330, 620);
+  const ln = $(`<div class="a h2" style="left:0;width:1920px;top:620px;text-align:center">${words("Every buyer on your floor,")}<br>${words("<em class='ac'>a buyer you can finance.</em>")}</div>`); e.appendChild(ln);
+  return (t) => {
+    sh(t); fade(dk, t, .3, null, .9);
+    const go = fade(g, t, 0, L1 - .6, .01, .5);
+    dots.forEach((d, i) => { const p = eo5(ramp(t, .4 + i * .06, .6)); d.style.transform = `scale(${p.toFixed(4)})`; });
+    reveal(h1, t, L0 + .1, null, .07); reveal(h2, t, L0 + 2.6, null, .05);
+    e.style.visibility = t > L1 - .5 ? "visible" : "hidden"; lk(t, L1 - .3); reveal(ln, t, L1 + 1.0, null, .08);
+  };
+};
+// ---------- Part B ----------
+DEF.B1 = (root, sc) => {
+  const D = sc.end - sc.start, F0 = 150, F1 = 340;   // the clean stretch of the satellite zoom: Saudi Arabia → Riyadh → the city
+  const seq = $(`<div class="ph"><img style="width:1920px;height:1080px"><img style="width:1920px;height:1080px"></div>`); root.appendChild(seq);
+  const [ia, ib] = seq.querySelectorAll("img");
+  shadeBottom(root, .6);
+  const k = $(`<div class="a kick" style="left:120px;top:96px">${words("AutoLink · What we have built")}</div>`); root.appendChild(k);
+  const h = $(`<div class="a h1 lt">${words("No one had ever <em>counted them.</em>")}</div>`); root.appendChild(h);
+  const fn = (n) => `../vid/zoom1/f${String(n).padStart(5, "0")}.jpg`;
+  return (t) => {
+    const f = F0 + (F1 - F0) * clamp(t / (D + .5)), a = Math.floor(f), fr = f - a;
+    if (ia.getAttribute("src") !== fn(a)) ia.setAttribute("src", fn(a));
+    if (ib.getAttribute("src") !== fn(a + 1)) ib.setAttribute("src", fn(a + 1));
+    ib.style.opacity = fr.toFixed(3);
+    reveal(k, t, .8, Lt(sc, 1) - .4, .04); reveal(h, t, Lt(sc, 1) + .2, D - .2, .1);
+  };
+};
+DEF.B2 = (root, sc) => {
+  const D = sc.end - sc.start, l1 = Lt(sc, 1);
+  const sh = shotList(root, [{ t0: 0, t1: 4.4, src: P("bp3/nightlot.jpg"), a: { s: 1.03, x: .5 }, b: { s: 1.12, x: -.4 }, din: .5 }]);
+  const pv = $(`<div class="a" style="inset:0;background:var(--bg)"></div>`); root.appendChild(pv);
+  const pn = panels(pv, [P("bp3/avenue.jpg"), P("bp3/car_laptop.jpg"), P("bp3/fullspeed.jpg"), P("photos/q-street-ibtikar.jpg")], 4.3, l1 + .4);
+  shadeBottom(pv, .7);
+  const h1 = $(`<div class="a h2 lt">${words("Door to door. <em>By day and after dark.</em>")}</div>`); pv.appendChild(h1);
+  const ph = $(`<div class="a" style="inset:0;background:var(--bg)"></div>`); root.appendChild(ph);
+  const fr = [P("field2/ph_app.jpg"), P("field2/ph_earth.jpg"), P("field2/ph_gmaps.jpg")].map((s, i) => { const f = $(`<div class="frame" style="left:${720 + i * 380}px;top:150px;width:340px;height:616px;border-radius:30px"><img data-src="${s}"></div>`); ph.appendChild(f); return f; });
+  const sheet = $(`<div class="frame" style="left:120px;top:560px;width:300px;height:330px;transform:rotate(-3deg)"><img data-src="../bog/mk/m-050.ppm.png"></div>`); ph.appendChild(sheet);
+  const h2 = $(`<div class="a h2" style="left:120px;top:150px;width:560px">${words("One uniform sheet <em>per showroom.</em>")}</div>`); ph.appendChild(h2);
+  const b2 = $(`<div class="a body" style="left:122px;top:420px;width:560px">${words("Stock · prices · finance · contacts")}</div>`); ph.appendChild(b2);
+  return (t) => {
+    sh(t); const o = fade(pv, t, 4.2, null, .5); pv.style.visibility = o > 0 && t < l1 + 1 ? "visible" : "hidden"; pn(t);
+    reveal(h1, t, 5.2, l1 - .5, .07);
+    const o2 = fade(ph, t, l1 - .3, null, .5); ph.style.visibility = o2 > 0 ? "visible" : "hidden";
+    fr.forEach((f, i) => { const p = eo5(ramp(t, l1 + i * .25, 1.1)); f.style.opacity = p; f.style.transform = `translate3d(0,${(80 * (1 - p) - 20 * clamp((t - l1) / (D - l1))).toFixed(2)}px,0)`; });
+    const sp = eo5(ramp(t, l1 + 1.4, 1.0)); sheet.style.opacity = sp; sheet.style.transform = `translate3d(0,${(40 * (1 - sp)).toFixed(2)}px,0) rotate(-3deg)`;
+    reveal(h2, t, l1 + .1, null, .07); reveal(b2, t, l1 + 1.0, null, .06);
+  };
+};
+DEF.B3 = (root, sc) => {
+  const D = sc.end - sc.start, l0 = Lt(sc, 0), l1 = Lt(sc, 1), d0 = sc.lines[0].dur, d1 = sc.lines[1].dur;
+  const bg = $(`<div class="ph"><img src="../vid/zoom1/f00300.jpg" style="width:1920px;height:1080px"></div>`); root.appendChild(bg);
+  root.appendChild($(`<div class="a" style="inset:0;background:rgba(6,3,2,.78)"></div>`));
+  const stats = [[520, "", "showrooms surveyed", "Al Qadisiyah 309 · Al Shifa 211", l0], [516, "", "pinned at their GPS coordinates", "Al Qadisiyah 308 · Al Shifa 208", l0 + d0 * .55], [31944, "", "cars counted on the floor", "Al Qadisiyah 20,831 · Al Shifa 11,113", l1], [3.6, "SAR ", "billion of stock on display", "at the dealers' stated prices", l1 + d1 * .62]];
+  const S = stats.map(([v, pre, lab, sub, at], i) => {
+    const e = $(`<div class="a" style="left:120px;top:300px;width:1700px"><div style="font-size:220px;font-weight:600;letter-spacing:-.06em;line-height:1"><span class="m"><span class="mi"><span class="pre">${pre}</span><span class="v ac">0</span></span></span></div><div style="margin-top:26px;font-size:52px;font-weight:600;letter-spacing:-.03em">${words(lab)}</div><div class="body" style="margin-top:12px">${words(sub)}</div></div>`);
+    root.appendChild(e); return { e, v, at, vEl: e.querySelector(".v") };
+  });
+  const k = $(`<div class="a kick" style="left:120px;top:200px">${words("The census · field-counted")}</div>`); root.appendChild(k);
+  return (t) => {
+    const z = 1.0 + .06 * clamp(t / D); bg.firstChild.style.transform = `scale(${z.toFixed(5)})`; bg.firstChild.style.transformOrigin = "50% 50%";
+    reveal(k, t, .2, null, .03);
+    S.forEach((s, i) => {
+      const nx = S[i + 1] ? S[i + 1].at - .45 : null;
+      reveal(s.e, t, s.at - .1, nx, .05);
+      const tq = Math.floor(t * 60) / 60, p = eo(ramp(tq, s.at - .05, 1.4));
+      s.vEl.textContent = s.v < 10 ? (s.v * p).toFixed(1) + "B" : fmt(s.v * p);
+    });
+  };
+};
+DEF.B4 = (root, sc) => {
+  const D = sc.end - sc.start, l1 = Lt(sc, 1);
+  const sh = shotList(root, [
+    { t0: 0, t1: 3.4, src: P("bp3/meet.jpg"), a: { s: 1.03, x: -.4 }, b: { s: 1.12, x: .2 }, din: .5 },
+    { t0: 3.4, t1: l1 - .4, src: P("bp3/review2.jpg"), a: { s: 1.12, x: .3 }, b: { s: 1.04, x: -.2 }, din: .7 },
+  ]);
+  shadeBottom(root, .75);
+  const h = $(`<div class="a h2 lt">${words("<span class='ac'>25</span> owners <em>opened their books.</em>")}</div>`); root.appendChild(h);
+  const pg = $(`<div class="a" style="inset:0;background:var(--bg)"></div>`); root.appendChild(pg);
+  const k = $(`<div class="a kick" style="left:120px;top:200px">${words("Sub-dealer sales a year · Al Qadisiyah alone")}</div>`); pg.appendChild(k);
+  const n = $(`<div class="a" style="left:120px;top:270px;font-size:240px;font-weight:600;letter-spacing:-.06em;line-height:1"><span class="m"><span class="mi">SAR <span class="ac v">0.0</span>B</span></span></div>`); pg.appendChild(n);
+  const sub = $(`<div class="a body" style="left:122px;top:560px">${words("Estimated from 21 owners' own sales figures · <em style='color:var(--ink)'>the conservative figure</em>")}</div>`); pg.appendChild(sub);
+  const bar = $(`<div class="a" style="left:120px;top:720px;width:1680px;height:3px;background:var(--faint);transform-origin:0 50%"></div>`); pg.appendChild(bar);
+  const fill = $(`<div class="a" style="left:120px;top:718px;width:1680px;height:7px;border-radius:4px;background:var(--ac);transform-origin:0 50%"></div>`); pg.appendChild(fill);
+  const tk = $(`<div class="a kick" style="left:${120 + 1680 * 15.7 / 30}px;top:752px">${words("Conservative · 15.7B")}</div>`); pg.appendChild(tk);
+  const tk2 = $(`<div class="a kick" style="left:${120 + 1680 * 28.5 / 30}px;top:752px;transform:translateX(-100%)">${words("Full pace · 28.5B")}</div>`); pg.appendChild(tk2);
+  return (t) => {
+    sh(t); reveal(h, t, Lt(sc, 0) + 2.3, l1 - .8, .07);
+    const o = fade(pg, t, l1 - .4, null, .5); pg.style.visibility = o > 0 ? "visible" : "hidden";
+    reveal(k, t, l1 - .2, null, .03); reveal(n, t, l1, null, .05);
+    const tq = Math.floor(t * 60) / 60, p = eo(ramp(tq, l1 + .3, 2.6));
+    n.querySelector(".v").textContent = (15.7 * p).toFixed(1);
+    bar.style.transform = `scaleX(${eo5(ramp(t, l1 + .1, 1.0)).toFixed(4)})`;
+    fill.style.transform = `scaleX(${(15.7 / 30 * p).toFixed(4)})`;
+    reveal(sub, t, l1 + 1.4, null, .04); reveal(tk, t, l1 + 2.6, null, .03); reveal(tk2, t, Le(sc, 1) - 1.5, null, .03);
+  };
+};
+DEF.B5 = (root, sc) => {
+  const D = sc.end - sc.start, L0 = Lt(sc, 0), L1 = Lt(sc, 1), L2 = Lt(sc, 2), d0 = sc.lines[0].dur;
+  const k = $(`<div class="a kick" style="left:120px;top:150px">${words("Where the money leaks")}</div>`); root.appendChild(k);
+  const mk = (top) => { const e = $(`<div class="a" style="left:120px;top:${top}px;width:1700px"></div>`); root.appendChild(e); return e; };
+  // 1: 11 of 13 floors, no bank on site
+  const a = mk(230); const dots = [];
+  for (let i = 0; i < 13; i++) { const d = $(`<div class="dot" style="left:${i * 74}px;top:0;width:46px;height:46px"></div>`); a.appendChild(d); dots.push(d); }
+  const at = $(`<div class="a" style="left:1040px;top:-18px;font-size:58px;font-weight:600;letter-spacing:-.035em;white-space:nowrap">${words("<span class='ac'>11</span> of 13 floors: <em>no bank on site</em>")}</div>`); a.appendChild(at);
+  // 2: 195 of 211 cash only
+  const b = mk(430);
+  const btr = $(`<div class="a" style="left:0;top:20px;width:960px;height:10px;border-radius:5px;background:var(--faint)"></div>`); b.appendChild(btr);
+  const bfl = $(`<div class="a" style="left:0;top:20px;width:960px;height:10px;border-radius:5px;background:var(--ac);transform-origin:0 50%"></div>`); b.appendChild(bfl);
+  const bt = $(`<div class="a" style="left:1040px;top:-18px;font-size:58px;font-weight:600;letter-spacing:-.035em;white-space:nowrap">${words("<span class='ac'>194</span> of 211: <em>cash only</em>")}</div>`); b.appendChild(bt);
+  const bs = $(`<div class="a kick" style="left:0;top:60px">${words("Al Shifa floors")}</div>`); b.appendChild(bs);
+  // 3: SAR 1.4B a year walks away
+  const c = mk(610);
+  const cn = $(`<div class="a" style="left:0;top:0;font-size:190px;font-weight:600;letter-spacing:-.06em;line-height:1"><span class="m"><span class="mi">SAR <span class="ac v">0.0</span>B</span></span></div>`); c.appendChild(cn);
+  const ct = $(`<div class="a h2" style="left:0;top:220px;font-size:52px;white-space:nowrap">${words("a year in ready buyers, walking away from <em>just 24 floors.</em>")}</div>`); c.appendChild(ct);
+  return (t) => {
+    reveal(k, t, .1, null, .03);
+    dots.forEach((d, i) => { const p = eo5(ramp(t, L0 + d0 * .45 + i * .06, .5)); const no = i < 11; d.style.transform = `scale(${p.toFixed(4)})`; d.style.background = no ? "transparent" : "var(--ink)"; d.style.border = no ? "3px solid var(--ac)" : "none"; });
+    reveal(at, t, L0 + d0 * .45, null, .05);
+    bfl.style.transform = `scaleX(${(194 / 211 * eo(ramp(t, L1 + .3, 1.6))).toFixed(4)})`; btr.style.opacity = eo(ramp(t, L1, .4));
+    reveal(bt, t, L1 + .2, null, .05); reveal(bs, t, L1 + .5, null, .03);
+    reveal(cn, t, L2 + .2, null, .05); const tq = Math.floor(t * 60) / 60; cn.querySelector(".v").textContent = (1.4 * eo(ramp(tq, L2 + .4, 2.0))).toFixed(1);
+    reveal(ct, t, L2 + 1.0, null, .05);
+  };
+};
+DEF.B6 = (root, sc) => {
+  const D = sc.end - sc.start, L0 = Lt(sc, 0);
+  const cv = document.createElement("canvas"); cv.width = 1920; cv.height = 1080; cv.className = "a"; cv.style.inset = "0"; root.appendChild(cv);
+  const g = cv.getContext("2d");
+  const cosL = Math.cos(24.7 * Math.PI / 180);
+  function fit(list, box) { const xs = list.map((p) => p[2] * cosL).sort((a, b) => a - b), ys = list.map((p) => p[1]).sort((a, b) => a - b); const q = (a, f) => a[Math.floor(f * (a.length - 1))]; const x0 = q(xs, .02), x1 = q(xs, .98), y0 = q(ys, .02), y1 = q(ys, .98); const s = Math.min(box.w / (x1 - x0), box.h / (y1 - y0)); const ox = box.x + (box.w - (x1 - x0) * s) / 2, oy = box.y + (box.h - (y1 - y0) * s) / 2; return list.map((p) => ({ x: clamp(ox + (p[2] * cosL - x0) * s, box.x - 20, box.x + box.w + 20), y: clamp(oy + (y1 - p[1]) * s, box.y - 20, box.y + box.h + 20) })); }
+  const PQ = fit(PINS.filter((p) => p[0] === 0), { x: 980, y: 150, w: 560, h: 560 }), PS = fit(PINS.filter((p) => p[0] === 1), { x: 1560, y: 520, w: 260, h: 260 });
+  const ALL = PQ.concat(PS); ALL.forEach((p, i) => p.t0 = .4 + ((i * 7919) % 997) / 997 * 2.4);
+  const k = $(`<div class="a kick" style="left:120px;top:200px">${words("The data advantage")}</div>`); root.appendChild(k);
+  const h = $(`<div class="a h1" style="left:120px;top:250px;width:820px">${words("A map <em>no one else has.</em>")}</div>`); root.appendChild(h);
+  const b = $(`<div class="a body" style="left:122px;top:500px;width:760px">${words("The largest sub-dealer mapping of its kind, on one standard, ahead of every established player.")}</div>`); root.appendChild(b);
+  const l1 = $(`<div class="a kick" style="left:1000px;top:760px">${words("Al Qadisiyah")}</div>`); root.appendChild(l1);
+  const l2 = $(`<div class="a kick" style="left:1580px;top:820px">${words("Al Shifa")}</div>`); root.appendChild(l2);
+  return (t) => {
+    g.clearRect(0, 0, 1920, 1080);
+    for (const p of ALL) { const q = eo5(ramp(t, p.t0, .8)); if (q <= 0) continue; g.fillStyle = `rgba(50,218,230,${(.85 * q).toFixed(3)})`; g.beginPath(); g.arc(p.x, p.y, 3.2 * q + .2, 0, 6.2832); g.fill(); }
+    reveal(k, t, .1, null, .03); reveal(h, t, L0 + .2, null, .08); reveal(b, t, L0 + 1.6, null, .03); reveal(l1, t, 2.0, null, .03); reveal(l2, t, 2.6, null, .03);
+  };
+};
+DEF.B7 = (root, sc) => {
+  const D = sc.end - sc.start, L1 = Lt(sc, 1), L2 = Lt(sc, 2), d0 = sc.lines[0].dur, d1 = sc.lines[1].dur;
+  const sh = shotList(root, [
+    { t0: 0, t1: d0 * .42, src: P("bp3/train2.jpg"), a: { s: 1.10, x: .4 }, b: { s: 1.02, x: -.2 }, din: .5 },
+    { t0: d0 * .42, t1: d0 * .78, src: P("bp3/review1.jpg"), a: { s: 1.03, x: -.3 }, b: { s: 1.10, x: .3 }, din: .6 },
+    { t0: d0 * .78, t1: L1 - .3, src: P("bp3/dinner.jpg"), a: { s: 1.10, y: .3 }, b: { s: 1.02, y: -.2 }, din: .6 },
+  ]);
+  shadeBottom(root, .75);
+  const caps = [["Dealer portal, <em>built.</em>", 0], ["Sales teams, <em>trained.</em>", d0 * .42], ["Owners' trust, <em>earned.</em>", d0 * .78]].map(([s, at]) => { const e = $(`<div class="a h2 lt">${words(s)}</div>`); root.appendChild(e); return [e, at]; });
+  const pg = $(`<div class="a" style="inset:0;background:var(--bg)"></div>`); root.appendChild(pg);
+  const k = $(`<div class="a kick" style="left:120px;top:150px">${words("Onboarding · first month · 29 Sep – 28 Oct")}</div>`); pg.appendChild(k);
+  // 64 dealers in the pipeline: 20 signed, 16 with agreements sent, 28 in discussion
+  const dots = []; for (let i = 0; i < 64; i++) { const d = $(`<div class="dot" style="left:${120 + (i % 16) * 66}px;top:${230 + Math.floor(i / 16) * 66}px;width:44px;height:44px"></div>`); pg.appendChild(d); dots.push(d); }
+  const leg = [["20", "signed (NDA / MOU)", "var(--ac)"], ["16", "agreements sent", "rgba(244,239,233,.7)"], ["64", "in the pipeline", "rgba(244,239,233,.35)"]].map(([n, l, c], i) => { const e = $(`<div class="a" style="left:1240px;top:${230 + i * 92}px;font-size:46px;font-weight:600;letter-spacing:-.03em;white-space:nowrap"><span style="color:${c}">${n}</span> <span style="font-weight:500;color:var(--dim);font-size:32px">${l}</span></div>`); pg.appendChild(e); return e; });
+  const h = $(`<div class="a h2" style="left:120px;top:560px;width:1600px">${words("<span class='ac'>20</span> sub-dealers signed <em>in one month.</em>")}</div>`); pg.appendChild(h);
+  const sub = $(`<div class="a body" style="left:122px;top:650px">${words("In Riyadh, and already beyond it: Makkah and Qasim.")}</div>`); pg.appendChild(sub);
+  const lend = $(`<div class="a h2" style="left:120px;top:780px;width:1600px">${words("At the table with <span class='ac'>9</span> banks and <em>finance companies.</em>")}</div>`); pg.appendChild(lend);
+  return (t) => {
+    sh(t); caps.forEach(([e, at], i) => reveal(e, t, at + .5, (caps[i + 1] ? caps[i + 1][1] : L1) - .45, .06));
+    const o = fade(pg, t, L1 - .3, null, .5); pg.style.visibility = o > 0 ? "visible" : "hidden";
+    reveal(k, t, L1 - .1, null, .03);
+    dots.forEach((d, i) => {
+      const p = eo5(ramp(t, L1 + .1 + i * .025, .5)); const kind = i < 20 ? 0 : i < 36 ? 1 : 2;
+      d.style.transform = `scale(${p.toFixed(4)})`;
+      d.style.background = kind === 0 ? "var(--ac)" : "transparent";
+      d.style.border = kind === 1 ? "3px solid rgba(244,239,233,.7)" : kind === 2 ? "2px solid rgba(244,239,233,.22)" : "none";
+    });
+    leg.forEach((e, i) => { const p = eo5(ramp(t, L1 + .6 + i * .5, .7)); e.style.opacity = p; e.style.transform = `translate3d(${(30 * (1 - p)).toFixed(2)}px,0,0)`; });
+    reveal(h, t, L1 + .3, null, .06); reveal(sub, t, L1 + d1 * .7, null, .03); reveal(lend, t, L2 + .1, null, .06);
+  };
+};
+DEF.B8 = (root, sc) => {
+  const D = sc.end - sc.start, L1 = Lt(sc, 1);
+  const pn = panels(root, [P("photos/kafd-skyline.jpg"), P("photos/hq-kafd.jpg"), P("photos/kafd-palm.jpg")], 0, D, { stag: .3 });
+  const dk = $(`<div class="a" style="inset:0;background:rgba(6,3,2,.66)"></div>`); root.appendChild(dk);
+  const q = $(`<div class="a" style="left:160px;top:250px;width:1600px;font-family:IS,serif;font-style:italic;font-size:96px;line-height:1.08;letter-spacing:-.01em">${words("“We are not here to map a market. We are here to <span class='ac'>move it.</span> For every dealer, every buyer, every lender.”", "it")}</div>`); root.appendChild(q);
+  const by = $(`<div class="a kick" style="left:162px;top:820px">${words("Founder & CEO · AutoLink AI Tech")}</div>`); root.appendChild(by);
+  return (t) => { pn(t); fade(dk, t, 1.2, null, 1.0); reveal(q, t, L1 - .2, null, .11); reveal(by, t, Le(sc, 1) - .3, null, .03); };
+};
+DEF.B9 = (root, sc) => {
+  const D = sc.end - sc.start;
+  const sh = shotList(root, [{ t0: 0, t1: D, src: P("photos/hq-skyline.jpg"), a: { s: 1.05, y: .4 }, b: { s: 1.12, y: -.2 }, din: .6 }]);
+  // portrait photo: framed in a soft field, not stretched full-bleed
+  root.innerHTML = ""; const bg = $(`<div class="a" style="inset:0;background:var(--bg)"></div>`); root.appendChild(bg);
+  const lk = lockup(root, 960, 300, 700);
+  const t1 = $(`<div class="a" style="left:0;width:1920px;top:600px;text-align:center;font-size:30px;font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:var(--dim)">${words("Riyadh Sub-Dealer Portfolio")}</div>`); root.appendChild(t1);
+  const t2 = $(`<div class="a h2" style="left:0;width:1920px;top:660px;text-align:center">${words("From the showroom floor, <em class='ac'>to KAFD.</em>")}</div>`); root.appendChild(t2);
+  const t3 = $(`<div class="a body" style="left:0;width:1920px;top:780px;text-align:center;font-size:26px">${words("520 showrooms · 516 pinned · 31,944 cars · 20 dealers signed in month one")}</div>`); root.appendChild(t3);
+  return (t) => { lk(t, .3); reveal(t1, t, 1.3, null, .03); reveal(t2, t, Lt(sc, 0) + .9, null, .07); reveal(t3, t, Lt(sc, 0) + 2.4, null, .02); };
+};
+
+// ---------- director ----------
+async function build() {
+  TL = await (await fetch("timeline.json")).json();
+  const stage = document.getElementById("stage");
+  for (const sc of TL.scenes) {
+    const root = $(`<div class="sc" id="sc-${sc.id}"></div>`); stage.appendChild(root);
+    const upd = DEF[sc.id](root, sc);
+    SCENES.push({ sc, root, upd });
+  }
+  // image sizes
+  const srcs = new Set(); document.querySelectorAll("img[data-src]").forEach((i) => srcs.add(i.dataset.src));
+  await Promise.all([...srcs].map((s) => new Promise((res) => { const im = new Image(); im.onload = () => { IMG[s] = { w: im.naturalWidth, h: im.naturalHeight }; res(); }; im.onerror = () => { console.error("missing " + s); res(); }; im.src = s; })));
+  document.querySelectorAll("img[data-src]").forEach((i) => { i.src = i.dataset.src; });
+}
+const XF = .45;   // dissolve between scenes
+window.seek = async function (t) {
+  for (const { sc, root, upd } of SCENES) {
+    const on = t >= sc.start - .001 && t < sc.end + XF;
+    root.style.display = on ? "block" : "none";
+    if (!on) continue;
+    root.style.opacity = sc.start === 0 || TL.scenes.find((s) => Math.abs(s.end - sc.start) < .01) == null ? 1 : clamp((t - sc.start) / XF).toFixed(4);
+    root.style.zIndex = SCENES.findIndex((s) => s.sc === sc);
+    upd(t - sc.start);
+  }
+  // black: fade up at the start of each part, down at the end of each part
+  const partEdges = []; ["A", "B"].forEach((p) => { const ss = TL.scenes.filter((s) => s.part === p); partEdges.push([ss[0].start, ss[ss.length - 1].end]); });
+  let b = 1;
+  for (const [a, e] of partEdges) if (t >= a && t <= e + .01) b = Math.max(1 - sine(ramp(t, a, .9)), sine(ramp(t, e - 1.4, 1.4)));
+  document.getElementById("black").style.opacity = b.toFixed(4);
+  const pend = [...document.querySelectorAll(".sc img")].filter((i) => i.closest(".sc").style.display === "block" && i.src && !i.complete);
+  await Promise.all(pend.map((i) => i.decode().catch(() => {})));
+};
+window.ready = (async () => { await document.fonts.load("600 90px IT"); await document.fonts.load("italic 90px IS"); await document.fonts.load("500 30px AR"); await document.fonts.load("500 30px SC"); await build(); await window.seek(0); return TL.total; })();
+</script>
+</body></html>

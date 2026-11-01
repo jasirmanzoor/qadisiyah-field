@@ -1,0 +1,316 @@
+{
+ "total": 281.703,
+ "scenes": [
+  {
+   "id": "A1",
+   "part": "A",
+   "start": 0.0,
+   "end": 14.153,
+   "lines": [
+    {
+     "t": 1.6,
+     "dur": 2.336,
+     "text": "Every day, buyers walk onto your floor."
+    },
+    {
+     "t": 4.686,
+     "dur": 2.681,
+     "text": "They have seen the car. They have agreed the price."
+    },
+    {
+     "t": 8.117,
+     "dur": 2.336,
+     "text": "Then comes the question: how will I pay?"
+    }
+   ]
+  },
+  {
+   "id": "A2",
+   "part": "A",
+   "start": 14.153,
+   "end": 31.234,
+   "lines": [
+    {
+     "t": 14.953,
+     "dur": 6.385,
+     "text": "For most buyers, the answer is finance. And when the finance is not there, the sale walks out of the door."
+    },
+    {
+     "t": 22.088,
+     "dur": 6.446,
+     "text": "Showroom owners told us: for every ten cars they sell, about four more ready buyers leave without one."
+    }
+   ]
+  },
+  {
+   "id": "A3",
+   "part": "A",
+   "start": 31.234,
+   "end": 36.462,
+   "lines": [
+    {
+     "t": 32.134,
+     "dur": 2.128,
+     "text": "AutoLink was built to close that gap."
+    }
+   ]
+  },
+  {
+   "id": "A4",
+   "part": "A",
+   "start": 36.462,
+   "end": 54.947,
+   "lines": [
+    {
+     "t": 37.062,
+     "dur": 2.663,
+     "text": "With AutoLink, financing comes to your floor."
+    },
+    {
+     "t": 40.475,
+     "dur": 6.46,
+     "text": "Your team submits the buyer's request through the AutoLink dealer portal, then follows it, step by step."
+    },
+    {
+     "t": 47.685,
+     "dur": 2.562,
+     "text": "Your buyer does not have to leave to find a loan."
+    }
+   ]
+  },
+  {
+   "id": "A5",
+   "part": "A",
+   "start": 54.947,
+   "end": 67.901,
+   "lines": [
+    {
+     "t": 55.547,
+     "dur": 6.006,
+     "text": "The portal works for your showroom, too. Your requests, your reports and your account, in one dashboard."
+    },
+    {
+     "t": 62.303,
+     "dur": 2.398,
+     "text": "In Arabic, in English, or in Chinese."
+    }
+   ]
+  },
+  {
+   "id": "A6",
+   "part": "A",
+   "start": 67.901,
+   "end": 88.358,
+   "lines": [
+    {
+     "t": 68.501,
+     "dur": 8.724,
+     "text": "And we do not just hand you a login. Our team sits down with your sales staff and trains them, on the portal, and on the conversation with the buyer."
+    },
+    {
+     "t": 77.975,
+     "dur": 6.683,
+     "text": "Let them finish. Reflect before you respond. Ask one clarifying question. Then answer, briefly."
+    }
+   ]
+  },
+  {
+   "id": "A7",
+   "part": "A",
+   "start": 88.358,
+   "end": 103.878,
+   "lines": [
+    {
+     "t": 89.058,
+     "dur": 7.159,
+     "text": "And this is only the beginning. Next on our roadmap: matching every buyer to the right lender, for faster approvals."
+    },
+    {
+     "t": 96.968,
+     "dur": 3.71,
+     "text": "Then, your stock online, and new buyers sent straight to your door."
+    }
+   ]
+  },
+  {
+   "id": "A8",
+   "part": "A",
+   "start": 103.878,
+   "end": 119.964,
+   "lines": [
+    {
+     "t": 104.478,
+     "dur": 4.2,
+     "text": "Twenty showrooms have already signed with AutoLink. Yours could be next."
+    },
+    {
+     "t": 109.428,
+     "dur": 3.836,
+     "text": "AutoLink. Every buyer on your floor, a buyer you can finance."
+    }
+   ]
+  },
+  {
+   "id": "B1",
+   "part": "B",
+   "start": 121.964,
+   "end": 135.257,
+   "lines": [
+    {
+     "t": 124.364,
+     "dur": 4.054,
+     "text": "Riyadh's independent car market trades billions of riyals a year."
+    },
+    {
+     "t": 129.168,
+     "dur": 2.389,
+     "text": "Until now, no one had ever counted it."
+    }
+   ]
+  },
+  {
+   "id": "B2",
+   "part": "B",
+   "start": 135.257,
+   "end": 154.45,
+   "lines": [
+    {
+     "t": 135.957,
+     "dur": 7.181,
+     "text": "So we walked it. A small field team, door to door, by day and after dark, across Al Qaadiseeya and Al Shiffa."
+    },
+    {
+     "t": 143.888,
+     "dur": 5.862,
+     "text": "Every showroom, recorded on one uniform sheet: stock, prices, finance and contacts."
+    }
+   ]
+  },
+  {
+   "id": "B3",
+   "part": "B",
+   "start": 154.45,
+   "end": 175.374,
+   "lines": [
+    {
+     "t": 155.15,
+     "dur": 6.202,
+     "text": "Five hundred and twenty showrooms. Five hundred and sixteen, pinned at their GPS coordinates."
+    },
+    {
+     "t": 162.102,
+     "dur": 8.572,
+     "text": "Thirty one thousand, nine hundred and forty four cars, counted on the floor. Three point six billion riyals of stock on display."
+    }
+   ]
+  },
+  {
+   "id": "B4",
+   "part": "B",
+   "start": 175.374,
+   "end": 194.533,
+   "lines": [
+    {
+     "t": 176.074,
+     "dur": 4.09,
+     "text": "Then we sat down with the owners. Twenty five of them opened their books."
+    },
+    {
+     "t": 180.914,
+     "dur": 9.919,
+     "text": "From their numbers, Al Qaadiseeya alone sells an estimated fifteen point seven billion riyals of cars a year. And that is the conservative figure."
+    }
+   ]
+  },
+  {
+   "id": "B5",
+   "part": "B",
+   "start": 194.533,
+   "end": 218.284,
+   "lines": [
+    {
+     "t": 195.233,
+     "dur": 4.838,
+     "text": "And we found where the money leaks. Eleven of thirteen floors have no bank on site."
+    },
+    {
+     "t": 200.821,
+     "dur": 5.955,
+     "text": "In Al Shiffa, one hundred and ninety four of two hundred and eleven floors sell for cash only."
+    },
+    {
+     "t": 207.526,
+     "dur": 7.058,
+     "text": "On just twenty four floors, ready buyers worth one point four billion riyals a year walk away, for want of a loan."
+    }
+   ]
+  },
+  {
+   "id": "B6",
+   "part": "B",
+   "start": 218.284,
+   "end": 230.772,
+   "lines": [
+    {
+     "t": 218.984,
+     "dur": 8.088,
+     "text": "No one else holds this. It is the largest sub-dealer mapping of its kind, on one standard, ahead of every established player."
+    }
+   ]
+  },
+  {
+   "id": "B7",
+   "part": "B",
+   "start": 230.772,
+   "end": 258.644,
+   "lines": [
+    {
+     "t": 231.472,
+     "dur": 9.824,
+     "text": "And it is already moving. We built a dealer portal for financing requests, trained the sales teams to use it, and earned the owners' trust, over coffee and dates."
+    },
+    {
+     "t": 242.046,
+     "dur": 7.772,
+     "text": "In one month, twenty sub-dealers signed with AutoLink, and sixteen more have agreements in hand. Sixty four in the pipeline."
+    },
+    {
+     "t": 250.568,
+     "dur": 3.876,
+     "text": "And we are already at the table with nine banks and finance companies."
+    }
+   ]
+  },
+  {
+   "id": "B8",
+   "part": "B",
+   "start": 258.644,
+   "end": 271.402,
+   "lines": [
+    {
+     "t": 259.444,
+     "dur": 1.463,
+     "text": "Our founder put it simply."
+    },
+    {
+     "t": 261.657,
+     "dur": 6.045,
+     "text": "We are not here to map a market. We are here to move it. For every dealer, every buyer, every lender."
+    }
+   ]
+  },
+  {
+   "id": "B9",
+   "part": "B",
+   "start": 271.402,
+   "end": 281.403,
+   "lines": [
+    {
+     "t": 272.002,
+     "dur": 2.601,
+     "text": "AutoLink. From the showroom floor, to KAFD."
+    }
+   ]
+  }
+ ]
+}

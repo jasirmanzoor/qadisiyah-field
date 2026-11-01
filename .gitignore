@@ -11,3 +11,5 @@ tmp/
 .grok/status
 .env
 .env.*
+# rendered films exceed GitHub's 100 MB file limit; kept locally
+presentation/two-part-film/*.mp4

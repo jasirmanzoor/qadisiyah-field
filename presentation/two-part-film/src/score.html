@@ -1,0 +1,107 @@
+<!doctype html><meta charset="utf-8"><title>score</title>
+<script>
+// Two cues on one timeline. Part A (dealers): warm A minor, 90 BPM. Part B (investors): cinematic D minor, 84 BPM.
+window.renderScore = async function (TL) {
+  const SR = 48000, DUR = TL.total + 1;
+  const ctx = new OfflineAudioContext(2, Math.ceil(SR * DUR), SR);
+  const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 2.5; comp.attack.value = .01; comp.release.value = .25;
+  comp.connect(ctx.destination);
+  const dry = ctx.createGain(); dry.gain.value = .9; dry.connect(comp);
+  // synthetic hall reverb
+  const rv = ctx.createConvolver(); { const n = SR * 3.6, b = ctx.createBuffer(2, n, SR); let s = 11; for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < n; i++) { s = (s * 16807) % 2147483647; d[i] = (s / 1073741823.5 - 1) * Math.pow(1 - i / n, 2.6) * (i < SR * .02 ? i / (SR * .02) : 1); } } rv.buffer = b; }
+  const wet = ctx.createGain(); wet.gain.value = .32; rv.connect(wet); wet.connect(comp);
+  const bus = (w = .35) => { const g = ctx.createGain(); g.connect(dry); const s = ctx.createGain(); s.gain.value = w; g.connect(s); s.connect(rv); return g; };
+  const B_PAD = bus(.6), B_PNO = bus(.45), B_LOW = bus(.08), B_PERC = bus(.12), B_FX = bus(.5);
+  const noiseBuf = (() => { const b = ctx.createBuffer(1, SR * 3, SR), d = b.getChannelData(0); let s = 5; for (let i = 0; i < d.length; i++) { s = (s * 16807) % 2147483647; d[i] = s / 1073741823.5 - 1; } return b; })();
+  const env = (g, t, a, peak, dur, rel) => { g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + a); g.gain.setValueAtTime(peak, t + Math.max(a, dur - rel)); g.gain.linearRampToValueAtTime(0, t + dur); };
+  const mtof = (m) => 440 * Math.pow(2, (m - 69) / 12);
+  function pad(t, notes, dur, g = .05) {
+    for (const m of notes) for (const det of [-7, 0, 6]) {
+      const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = mtof(m); o.detune.value = det;
+      const f = ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 700; f.Q.value = .4;
+      const a = ctx.createGain(); env(a, t, 1.6, g / 3, dur, 1.8);
+      o.connect(f); f.connect(a); a.connect(B_PAD); o.start(t); o.stop(t + dur + .1);
+    }
+  }
+  function piano(t, m, v = .12, dec = 2.6) {
+    const f0 = mtof(m);
+    [[1, 1], [2, .45], [3, .22], [4, .12], [5, .06]].forEach(([h, amp], i) => {
+      const o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = f0 * h * (1 + i * .0007);
+      const a = ctx.createGain(); a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(v * amp, t + .004); a.gain.exponentialRampToValueAtTime(.0001, t + dec / (1 + i * .6));
+      o.connect(a); a.connect(B_PNO); o.start(t); o.stop(t + dec + .1);
+    });
+  }
+  function bass(t, m, dur, v = .16) {
+    const o = ctx.createOscillator(); o.type = "triangle"; o.frequency.value = mtof(m);
+    const o2 = ctx.createOscillator(); o2.type = "sine"; o2.frequency.value = mtof(m - 12);
+    const a = ctx.createGain(); a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(v, t + .02); a.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(a); o2.connect(a); a.connect(B_LOW); o.start(t); o2.start(t); o.stop(t + dur + .05); o2.stop(t + dur + .05);
+  }
+  function pluck(t, m, v = .035) {
+    const o = ctx.createOscillator(); o.type = "triangle"; o.frequency.value = mtof(m);
+    const f = ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.setValueAtTime(2600, t); f.frequency.exponentialRampToValueAtTime(500, t + .25);
+    const a = ctx.createGain(); a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(v, t + .003); a.gain.exponentialRampToValueAtTime(.0001, t + .32);
+    o.connect(f); f.connect(a); a.connect(B_PNO); o.start(t); o.stop(t + .4);
+  }
+  function kick(t, v = .5) { const o = ctx.createOscillator(), a = ctx.createGain(); o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(44, t + .14); a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(v, t + .004); a.gain.exponentialRampToValueAtTime(.001, t + .5); o.connect(a); a.connect(B_PERC); o.start(t); o.stop(t + .55); }
+  function noise(t, dur, type, f, q, v, dest = B_PERC, att = .002) { const n = ctx.createBufferSource(); n.buffer = noiseBuf; const fl = ctx.createBiquadFilter(); fl.type = type; fl.frequency.value = f; fl.Q.value = q; const a = ctx.createGain(); a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(v, t + att); a.gain.exponentialRampToValueAtTime(.0001, t + dur); n.connect(fl); fl.connect(a); a.connect(dest); n.start(t); n.stop(t + dur + .05); }
+  const hat = (t, v = .025) => noise(t, .05, "highpass", 8000, .7, v);
+  function boom(t, v = .55) { const o = ctx.createOscillator(), a = ctx.createGain(); o.frequency.setValueAtTime(70, t); o.frequency.exponentialRampToValueAtTime(30, t + 1.6); a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(v, t + .01); a.gain.exponentialRampToValueAtTime(.001, t + 2.6); o.connect(a); a.connect(B_FX); o.start(t); o.stop(t + 2.7); noise(t, 2.2, "lowpass", 1800, .4, .12, B_FX, .004); }
+  function swell(t0, t1, v = .09) { const n = ctx.createBufferSource(); n.buffer = noiseBuf; n.loop = true; const f = ctx.createBiquadFilter(); f.type = "bandpass"; f.Q.value = 1.4; f.frequency.setValueAtTime(250, t0); f.frequency.exponentialRampToValueAtTime(4200, t1); const a = ctx.createGain(); a.gain.setValueAtTime(.0001, t0); a.gain.exponentialRampToValueAtTime(v, t1 - .03); a.gain.linearRampToValueAtTime(0, t1 + .05); n.connect(f); f.connect(a); a.connect(B_FX); n.start(t0); n.stop(t1 + .1); }
+  const S = Object.fromEntries(TL.scenes.map((s) => [s.id, s]));
+  // ----- cue A: A minor, 90 BPM -----
+  {
+    const bt = 60 / 90, bar = bt * 4, t0 = 0, tEnd = S.A8.end;
+    const prog = [[57, [69, 72, 76]], [53, [69, 72, 77]], [48, [67, 72, 76]], [55, [67, 71, 74]]];   // Am F C G
+    const motif = [76, 74, 72, 74, 76, 79, 76, 72];
+    for (let b = 0; t0 + b * bar < tEnd - 2; b++) {
+      const t = t0 + b * bar, [root, ch] = prog[Math.floor(b / 2) % 4];
+      const full = t >= S.A4.start - .1 && t < S.A8.start, mid = t >= S.A2.start;
+      if (b % 2 === 0) pad(t, ch.map((m) => m - 12), bar * 2 + .4, mid ? .06 : .045);
+      bass(t, root - 12, bar * .95, mid ? .14 : .08);
+      for (let i = 0; i < 4; i++) {
+        const tb = t + i * bt;
+        if (i % 2 === 0 || full) piano(tb, motif[(b * 4 + i) % 8] - (mid ? 0 : 12), full ? .07 : .06, 2.4);
+        if (full) { kick(tb, i % 2 ? .22 : .38); hat(tb + bt / 2, .018); pluck(tb + bt / 2, ch[(i + 1) % 3] + 12, .022); }
+      }
+    }
+    swell(S.A3.start - 1.6, S.A3.start + .45); boom(S.A3.start + .45, .5);
+    swell(S.A8.start + Lt(S.A8, 1) - 1.6, S.A8.start + Lt(S.A8, 1) - .2, .07);
+    pad(S.A8.start + Lt(S.A8, 1) - .3, [57, 64, 69, 72, 76], tEnd - (S.A8.start + Lt(S.A8, 1)) + .6, .06);
+    piano(S.A8.start + Lt(S.A8, 1) - .3, 69, .09, 5); piano(S.A8.start + Lt(S.A8, 1) - .3, 76, .06, 5);
+  }
+  // ----- cue B: D minor, 84 BPM -----
+  {
+    const bt = 60 / 84, bar = bt * 4, t0 = S.B1.start, tEnd = S.B9.end;
+    const prog = [[50, [62, 65, 69]], [46, [62, 65, 70]], [53, [60, 65, 69]], [48, [60, 64, 67]]];   // Dm Bb F C
+    for (let b = 0; t0 + b * bar < tEnd - 1.5; b++) {
+      const t = t0 + b * bar, [root, ch] = prog[Math.floor(b / 2) % 4];
+      const inQuote = t >= S.B8.start - .2 && t < S.B9.start;
+      const lvl = t < S.B2.start ? 0 : t < S.B3.start ? 1 : t < S.B8.start ? 2 : 0;
+      if (b % 2 === 0) pad(t, ch.map((m) => m - 12), bar * 2 + .4, lvl ? .06 : .05);
+      bass(t, root - 12, bar * .95, lvl ? .15 : .09);
+      for (let i = 0; i < 8; i++) {
+        const te = t + i * bt / 2;
+        if (lvl >= 1) pluck(te, (i % 2 ? ch[1] : root) + (i % 4 === 3 ? 12 : 0), lvl === 2 ? .03 : .022);
+        if (lvl === 2 && i % 2 === 0) { kick(te, i % 4 === 0 ? .36 : .18); }
+        if (lvl === 2 && i % 2 === 1) hat(te, .016);
+      }
+      if (lvl === 0 || inQuote) piano(t, ch[2] + (inQuote ? 0 : -12), .07, 3.2);
+    }
+    // the four counters land on a soft hit each
+    swell(S.B3.start - 1.4, S.B3.start + .3, .07);
+    for (const [sid, i] of [["B3", 0], ["B3", 1], ["B4", 1], ["B5", 2], ["B7", 1]]) boom(S[sid].lines[i].t + .05, .32);
+    swell(S.B9.start - 1.5, S.B9.start + .3, .08); boom(S.B9.start + .3, .55);
+    pad(S.B9.start + .3, [50, 57, 62, 65, 69], tEnd - S.B9.start + .2, .065);
+    piano(S.B9.start + .3, 62, .1, 6); piano(S.B9.start + .3, 69, .07, 6);
+  }
+  function Lt(sc, i) { return sc.lines[i].t - sc.start; }
+  const buf = await ctx.startRendering();
+  const L = buf.getChannelData(0), R = buf.getChannelData(1); let pk = 0;
+  for (let i = 0; i < L.length; i++) pk = Math.max(pk, Math.abs(L[i]), Math.abs(R[i]));
+  const k = Math.pow(10, -1.5 / 20) / pk, n = Math.round(SR * TL.total), pcm = new Int16Array(n * 2);
+  for (let i = 0; i < n; i++) { pcm[2 * i] = Math.max(-32767, Math.min(32767, L[i] * k * 32767)); pcm[2 * i + 1] = Math.max(-32767, Math.min(32767, R[i] * k * 32767)); }
+  const bytes = new Uint8Array(pcm.buffer); let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return { sr: SR, b64: btoa(s), peak: pk };
+};
+</script>
