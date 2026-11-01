@@ -1,5 +1,5 @@
 {
- "total": 39.615,
+ "total": 39.608,
  "scenes": [
   {
    "id": "T1",
@@ -33,19 +33,19 @@
   {
    "id": "T3",
    "start": 15.637,
-   "end": 22.883,
+   "end": 22.877,
    "lines": [
     {
      "t": 0.45,
-     "dur": 6.247,
-     "text": "Thirty one thousand, nine hundred and forty four cars. Three point six billion riyals of stock."
+     "dur": 6.24,
+     "text": "Thirty one thousand, eight hundred and sixty nine cars. Three point six billion riyals of stock."
     }
    ]
   },
   {
    "id": "T4",
-   "start": 22.883,
-   "end": 27.014,
+   "start": 22.877,
+   "end": 27.008,
    "lines": [
     {
      "t": 0.45,
@@ -56,8 +56,8 @@
   },
   {
    "id": "T5",
-   "start": 27.014,
-   "end": 30.977,
+   "start": 27.008,
+   "end": 30.97,
    "lines": [
     {
      "t": 0.45,
@@ -68,8 +68,8 @@
   },
   {
    "id": "T6",
-   "start": 30.977,
-   "end": 34.229,
+   "start": 30.97,
+   "end": 34.223,
    "lines": [
     {
      "t": 0.45,
@@ -80,8 +80,8 @@
   },
   {
    "id": "T7",
-   "start": 34.229,
-   "end": 39.615,
+   "start": 34.223,
+   "end": 39.608,
    "lines": [
     {
      "t": 0.45,

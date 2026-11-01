@@ -203,7 +203,7 @@ SC2.T3 = (lt, D, L) => {
   city(cam, { grow: 1, a: .28 });
   hud(lt, 'CENSUS · ON THE FLOOR');
   const t0 = ln2(L, 0), t1 = t0 + ldur(L, 0) * .52;
-  decrypt('31,944', { x: W / 2, y: 520, size: 300, align: 'center', t0: t0 + .1, dur: 1.1 });
+  decrypt('31,869', { x: W / 2, y: 520, size: 300, align: 'center', t0: t0 + .1, dur: 1.1 });
   mono('CARS COUNTED ON THE FLOOR', W / 2, 590, 26, C2.teal, S(lt - t0 - .6, 200), 'center');
   decrypt('SAR 3.6B', { x: W / 2, y: 830, size: 170, align: 'center', col: C2.teal, t0: t1, dur: .9 });
   mono('STOCK ON DISPLAY', W / 2, 890, 26, C2.grey, S(lt - t1 - .5, 200), 'center');
@@ -544,8 +544,8 @@ SC2.B3 = (lt, D, L) => {
   const t0 = ln2(L, 0), tm = t0 + ldur(L, 0) * .5, t1 = ln2(L, 1), tn = t1 + ldur(L, 1) * .58;
   const cells = [
     { x: MX, y: 170, w: 790, h: 360, v: '520', lab: 'SHOWROOMS · DOOR TO DOOR', t: t0 + .05 },
-    { x: 980, y: 170, w: 790, h: 360, v: '516', lab: 'PINNED AT GPS COORDINATES', t: tm },
-    { x: MX, y: 570, w: 790, h: 360, v: '31,944', lab: 'CARS COUNTED ON THE FLOOR', t: t1 + .05 },
+    { x: 980, y: 170, w: 790, h: 360, v: '514', lab: 'PINNED AT GPS COORDINATES', t: tm },
+    { x: MX, y: 570, w: 790, h: 360, v: '31,869', lab: 'CARS COUNTED ON THE FLOOR', t: t1 + .05 },
     { x: 980, y: 570, w: 790, h: 360, v: 'SAR 3.6B', lab: 'STOCK ON DISPLAY', t: tn, col: C2.teal },
   ];
   cells.forEach(c => {
@@ -587,9 +587,9 @@ SC2.B5 = (lt, D, L) => {
     X.restore();
     count(0, 11, { x: MX, y: 620, size: 150, wt: 900, col: C2.ink, t0: t1 + .15, dur: .6, tin: t1, post: 'OF 13 FLOORS · NO BANK ON SITE', postSize: 30, tout: t2 - .3 });
     const rp = eio(clamp((lt - tr) / 1.2)), cx = 1340, cy = 450;
-    X.save(); X.globalAlpha = a1 * S(lt - (tr - .3), 160); X.lineWidth = 34; X.lineCap = 'round'; X.strokeStyle = 'rgba(0,0,0,.18)'; X.beginPath(); X.arc(cx, cy, 150, 0, 7); X.stroke(); X.strokeStyle = rgba(C2.ink); X.beginPath(); X.arc(cx, cy, 150, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (194 / 211) * rp); X.stroke(); X.restore();
+    X.save(); X.globalAlpha = a1 * S(lt - (tr - .3), 160); X.lineWidth = 34; X.lineCap = 'round'; X.strokeStyle = 'rgba(0,0,0,.18)'; X.beginPath(); X.arc(cx, cy, 150, 0, 7); X.stroke(); X.strokeStyle = rgba(C2.ink); X.beginPath(); X.arc(cx, cy, 150, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (194 / 210) * rp); X.stroke(); X.restore();
     count(0, 194, { x: cx, y: cy + 28, size: 92, wt: 900, col: C2.ink, align: 'center', t0: tr, dur: 1.2, tin: tr - .2, tout: t2 - .3 });
-    slam('OF 211 AL SHIFA FLOORS: CASH ONLY', { x: cx, y: 690, size: 40, col: C2.ink, t0: tr + .4, tout: t2 - .3, from: 1.1 });
+    slam('OF 210 AL SHIFA FLOORS: CASH ONLY', { x: cx, y: 690, size: 40, col: C2.ink, t0: tr + .4, tout: t2 - .3, from: 1.1 });
   }
   if (lt > t2 - .2) {
     const fb = eio(clamp((lt - (t2 - .2)) / .45)); X.fillStyle = rgba(C2.ink); X.fillRect(0, 0, W * fb, H);
@@ -620,7 +620,7 @@ SC2.B7 = (lt, D, L) => {
   rollCounter(20, { x: MX - 10, y: 560, size: 320, t0: t1 });
   inkLine('sub-dealers signed in one month', { x: MX, y: 640, size: 40, wt: 700, tin: t1 + .3, stag: .008 });
   mono('NAMES WITHHELD · UNDER NDA', MX + 4, 690, 20, C2.grey, S(lt - t1 - .6, 200));
-  const st = [['16', 'more with agreements in hand', t1 + ldur(L, 1) * .45, C2.ink], ['64', 'in the pipeline', t1 + ldur(L, 1) * .78, C2.ink], ['9', 'banks and finance companies at the table', t2 + .2, C2.tealD]];
+  const st = [['16', 'more agreements sent', t1 + ldur(L, 1) * .45, C2.ink], ['64', 'in the pipeline', t1 + ldur(L, 1) * .78, C2.ink], ['9', 'banks and finance companies at the table', t2 + .2, C2.tealD]];
   st.forEach(([v, s, t, col], k) => {
     const p = S(lt - (t - .2), 220); if (p < .004) return;
     const x = 960, y = 280 + k * 220;
