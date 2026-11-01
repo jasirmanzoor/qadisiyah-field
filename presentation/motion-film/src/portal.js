@@ -2,7 +2,7 @@
 // The AutoLink Dealer Portal, rebuilt as vector layers from the real screens (dealer SOP deck + portal screenshots):
 // the login card (English / العربية / 中文), the sidebar (Loans: Applications, Estimator, Application Form, Model Library,
 // Inventory, Products; Account: Security Center), the Loan Estimator, the eight-step application form and the Model Library.
-// Personal and commercial details stay out: no dealer name, user name, buyer data or financer names.
+// Shown as in the live portal (cleared for sub-dealer audiences): dealer, user, application number and financer offers.
 const PB = { blue: [44, 91, 246], blueL: [75, 130, 255], bar: [0, 76, 214], act: [216, 227, 245], side: [241, 245, 249], line: [226, 230, 236],
   text: [31, 41, 55], mute: [120, 128, 140], head: [236, 236, 238], pale: [236, 242, 254], navy: [2, 27, 84] };
 const UI = '"ID", "FreeSerif", sans-serif', SERIF = '"FreeSerif", serif';
@@ -74,7 +74,7 @@ function shell(active, crumb, lang = 'en') {
   X.fillStyle = rgba(PB.side); X.fillRect(0, 0, 300, VH); X.fillStyle = rgba(PB.line); X.fillRect(300, 0, 1.5, VH);
   logoSmall(34, 30, 52);
   uiText('Dealer Admin Portal', 34, 112, 17, PB.mute, 400, SERIF);
-  X.fillStyle = rgba(PB.blue, .18); rr(34, 124, 210, 18, 9); X.fill();   // the dealer's own name sits here (left out)
+  uiText('Nojoom Riyadh Cars Company', 34, 140, 17, PB.blue, 600);
   let y = 196;
   for (const [s, sub] of NAV) {
     if (!sub) { y += 10; X.strokeStyle = rgba(PB.text, .8); X.lineWidth = 2; if (s === 'Loans') { X.strokeRect(36, y - 18, 22, 16); } else { X.beginPath(); X.arc(47, y - 16, 7, 0, 7); X.stroke(); } uiText(s, 74, y, 21, PB.text, 700, SERIF); uiText('⌄', 268, y - 4, 18, PB.mute, 500); y += 52; continue; }
@@ -84,7 +84,8 @@ function shell(active, crumb, lang = 'en') {
   // header
   X.fillStyle = '#fbfbfc'; X.fillRect(301, 0, VW - 301, 76); X.fillStyle = rgba(PB.line); X.fillRect(301, 76, VW - 301, 1.5);
   uiText('☰', 330, 46, 20, PB.mute, 500); uiText('Loans', 372, 46, 20, PB.blue, 500); uiText('/', 434, 46, 20, PB.mute, 400); uiText(crumb, 452, 46, 20, PB.mute, 400);
-  langPill(VW - 300, 15, lang);
+  langPill(VW - 560, 15, lang);
+  uiText('Salem al anezi (سالم العنيزي)', VW - 90, 46, 19, PB.text, 500, UI, 'right');
   X.strokeStyle = rgba(PB.line); X.lineWidth = 1.5; X.beginPath(); X.arc(VW - 60, 38, 20, 0, 7); X.stroke(); X.beginPath(); X.arc(VW - 60, 33, 6, 0, 7); X.stroke(); X.beginPath(); X.arc(VW - 60, 49, 10, Math.PI, 0); X.stroke();
 }
 // eight-step application form stepper (the real labels)
@@ -105,8 +106,8 @@ function stepper8(x, y, w, cur) {
 function appNoBar(x, y, w, a = 1) {
   X.save(); X.globalAlpha = a; X.fillStyle = rgba(PB.pale); rr(x, y, w, 64, 12); X.fill();
   uiText('Application No.', x + 22, y + 40, 19, PB.mute, 500);
-  X.fillStyle = rgba(PB.blue, .28); rr(x + 180, y + 24, 260, 18, 9); X.fill();   // the number itself is left out
-  X.fillStyle = '#fff'; rr(x + 462, y + 14, 74, 36, 8); X.fill(); X.strokeStyle = rgba(PB.blue, .5); X.lineWidth = 1.5; X.stroke(); uiText('Copy', x + 499, y + 38, 17, PB.blue, 600, UI, 'center');
+  uiText('AO20260811CVGG49CPDM79', x + 180, y + 40, 19, PB.blue, 600);
+  X.fillStyle = '#fff'; rr(x + 472, y + 14, 74, 36, 8); X.fill(); X.strokeStyle = rgba(PB.blue, .5); X.lineWidth = 1.5; X.stroke(); uiText('Copy', x + 509, y + 38, 17, PB.blue, 600, UI, 'center');
   X.restore();
 }
 /* pages */
@@ -154,6 +155,17 @@ function pageModels() {
   X.fillStyle = rgba(PB.head); X.fillRect(350, 130, VW - 400, 56); cols.forEach((c, i) => uiText(c, xs[i], 166, 19, PB.text, 600));
   const rows = [['SUV', 'JETOUR', 'T1', 'Luxury', '2026', 'Petrol'], ['Sedan', 'PORSCHE', 'Panamera', 'GTS 4.8L V8', '', ''], ['Sedan', 'MERCEDES', 'S CLASS', 'S Class', '', ''], ['exotic', 'FERRARI', 'Fiorano 599', '6.0L V12 COUPE', '', ''], ['Sedan', 'PORSCHE', 'Panamera', '3.6L V6', '', ''], ['Sedan', 'ASTON MARTIN', 'Rapide', '5.9L V12', '', ''], ['Sedan', 'BMW', '2 SERIES', '2 Series', '', '']];
   rows.forEach((r, k) => { const y = 186 + k * 92, a = S(lt - k * .06, 300); X.globalAlpha *= 1; X.save(); X.globalAlpha = X.globalAlpha * a; r.forEach((c, i) => uiText(c, xs[i], y + 54, 19, PB.text, 400)); uiText('Operations Platform', xs[6], y + 54, 19, PB.text, 400); X.fillStyle = rgba(PB.line); X.fillRect(350, y + 91, VW - 400, 1.5); X.restore(); });
+}
+function pageProducts() {
+  shell('Products', 'Products');
+  X.fillStyle = '#fff'; rr(330, 100, VW - 360, 772, 16); X.fill(); X.strokeStyle = rgba(PB.line); X.lineWidth = 1.5; X.stroke();
+  const cols = ['Financer', 'Product Name', 'Profit Rate', 'Tenure (Months)', 'Maximum Loan Amount', 'Min. Down'], xs = [360, 610, 930, 1060, 1210, 1420];
+  X.fillStyle = rgba(PB.head); X.fillRect(350, 130, VW - 400, 56); cols.forEach((c, i) => uiText(c, xs[i], 166, 18, PB.text, 600));
+  const rows = [['Alinma Bank', 'Alinma Salary-Transfer Offer', '4%', '60', '2,000,000 SAR', '0%'], ['Alinma Bank', 'Alinma Non-Salary-Transfer Offer', '4%', '60', '1,000,000 SAR', '0%'],
+    ['Emirates NBD', 'Emirates NBD Offer', '3.99%', '60', '750,000 SAR', '0%'], ['Emirates NBD', 'Emirates NBD Offer (Self Employed)', '6.99%', '60', '1,000,000 SAR', '10%'],
+    ['Saudi Fransi (J-B)', 'J-B Offer (Chinese Car)', '6.99%', '60', '600,000 SAR', '5%'], ['Tamweel AlOula', 'Tamweel Al Oula Offer', '9%', '60', '600,000 SAR', '0%'],
+    ['Al Rajhi Bank', 'ARB Campaigns Category D', '5.8%', '60', '1,000,000 SAR', '10%']];
+  rows.forEach((r, k) => { const y = 186 + k * 92; X.save(); X.globalAlpha *= S(lt - k * .06, 300); r.forEach((c, i) => uiText(c, xs[i], y + 54, i === 1 ? 17 : 18, i === 0 ? PB.text : PB.text, i === 0 ? 600 : 400)); uiText('View', VW - 72, y + 54, 18, PB.blue, 500, UI, 'right'); X.fillStyle = rgba(PB.line); X.fillRect(350, y + 91, VW - 400, 1.5); X.restore(); });
 }
 // draw a portal page into a glass frame of w x h
 function portal(w, h, fn) { X.save(); X.scale(w / VW, h / VH); fn(); X.restore(); }
@@ -207,13 +219,13 @@ SC2.A4 = (lt, D, L) => {
   const t0 = ln2(L, 0), t1 = ln2(L, 1), per = ldur(L, 0) * .9 / 3;
   inkLine('One dashboard.', { x: MX, y: 230, size: 96, wt: 900, ls: -4, col: C2.navy, tin: t0 });
   const k = clamp(Math.floor((lt - t0) / per), 0, 2);
-  const labs = [['Requests', 'every application, one list'], ['Your stock', 'model library and inventory'], ['Your account', 'security center']];
+  const labs = [['Requests', 'every application, step by step'], ['Offers', 'every lender’s products, in one table'], ['Your account', 'security center']];
   labs.forEach(([a, b], i) => { const on = i === k && lt < t1 - .1; line(a, { x: MX, y: 360 + i * 92, size: 44, wt: 900, ls: -1, col: on ? C2.blue : C2.navy, a: on ? 1 : .35, tin: t0 + i * .1, stag: .01 }); line(b, { x: MX, y: 396 + i * 92, size: 22, wt: 500, col: C2.grey, a: on ? 1 : .5, tin: t0 + i * .1 + .1, stag: .004 }); });
   const p = S(lt + .1, 100), ry = lerp(.4, .08, p), cx = 1260, cy = 590, gw = 1040, gh = 585;
   const lang = lt < t1 + ldur(L, 1) * .3 ? 'en' : lt < t1 + ldur(L, 1) * .62 ? 'ar' : 'zh';
   const drop = sm(t1 - .1, t1 + .2, lt) * (1 - sm(D - .5, D - .2, lt));
   glass(cx, cy, gw, gh, { ry, a: p, lift: p }, (w, h) => portal(w, h, () => {
-    if (lt < t1 - .15) { if (k === 0) pageForm(lt, 6.2); else if (k === 1) pageModels(); else { shell('Security Center', 'Security Center'); uiText('Reset Password', 700, 220, 30, PB.text, 700); ['Mobile', 'SMS Verification Code', 'New Password', 'Confirm New Password'].forEach((s, i) => { uiText(s, 700, 290 + i * 110, 19, PB.text, 500); field(700, 302 + i * 110, 600, 56, ['Enter mobile number', 'Enter verification code', 'At least 8 chars, letters and numbers', 'Enter password again'][i], ''); }); X.fillStyle = rgba(PB.blue); rr(700, 760, 600, 60, 10); X.fill(); uiText('Confirm And Change', 1000, 798, 22, [255, 255, 255], 600, UI, 'center'); } }
+    if (lt < t1 - .15) { if (k === 0) pageForm(lt, 6.2); else if (k === 1) pageProducts(); else { shell('Security Center', 'Security Center'); uiText('Reset Password', 700, 220, 30, PB.text, 700); ['Mobile', 'SMS Verification Code', 'New Password', 'Confirm New Password'].forEach((s, i) => { uiText(s, 700, 290 + i * 110, 19, PB.text, 500); field(700, 302 + i * 110, 600, 56, ['Enter mobile number', 'Enter verification code', 'At least 8 chars, letters and numbers', 'Enter password again'][i], ''); }); X.fillStyle = rgba(PB.blue); rr(700, 760, 600, 60, 10); X.fill(); uiText('Confirm And Change', 1000, 798, 22, [255, 255, 255], 600, UI, 'center'); } }
     else loginScreen({ lang, dropdown: drop });
   }));
   inkLine('In Arabic, English', { x: MX, y: 760, size: 40, wt: 900, col: C2.blue, tin: t1, stag: .008 });
