@@ -82,7 +82,14 @@ for r in Q:
         finance=None, cred=(r.get("Information Credibility") or None), photos=ph_by_app.get(sid, [])))
 
 # ---------- Al Shifa ----------
-_, SH = table("Al Shifa - Mapped", 0)
+SHIFA = __import__("os").environ.get("SHIFA_XLSX")   # Al Shifa re-mapping of 21 Oct 2026: every floor walked and pinned again
+_, SH0 = table("Al Shifa - Mapped", 0)
+if SHIFA:
+    _, SH = load(SHIFA)[1]("shifa maaradh", 0)
+    # a floor surveyed on the first walk but closed since stays in the survey count, off the map and out of the finance answers
+    have = {r["SD ID"] for r in SH}
+    SH += [dict(r, **{"Lat": None, "Long": None, "Finance options": None}) for r in SH0 if r["SD ID"] not in have]
+else: SH = SH0
 app_shifa = {k: v for k, v in app.items() if (v.get("flags", {}) or {}).get("market") == "shifa" or str(k).startswith("S")}
 by_ar = {norm_ar(v.get("nameAr") or rows.get(k, {}).get("ar")): k for k, v in app_shifa.items() if (v.get("nameAr") or rows.get(k, {}).get("ar"))}
 by_en = {norm_en(v.get("name") or rows.get(k, {}).get("en")): k for k, v in app_shifa.items()}
@@ -97,7 +104,7 @@ for r in SH:
     if (lat is None or lng is None) and aid and app[aid].get("lat"): lat, lng, from_app = app[aid]["lat"], app[aid]["lng"], True   # sheet shows #N/A
     elif lat is None or lng is None: lat = lng = None
     b, ocn = brands_of(r.get("Main brands"))
-    fin = str(r.get("Finance options") or "").lower()
+    fin = str(r.get("Finance options") or r.get("Contracted financial institutions/Banks") or "").lower()
     census.append(dict(id=r["SD ID"], app=aid, mk="S", en=r.get("Name EN"), ar=r.get("Name AR"),
         status={"active": "active", "closed": "closed", "maybe closing": "closing", "floor empty": "empty"}.get(st.lower(), "open-floor" if st.lower().startswith("open floor") else st.lower()),
         lat=lat, lng=lng, loc=((loc_quality(aid) if from_app else "verified") if lat else "missing"), street=None,  # sheet coordinates were walked on site (confirmed by the field lead, 18 Oct 2026)
@@ -107,6 +114,7 @@ for r in SH:
         finance=("cash" if "cash" in fin else "all" if "all banks" in fin else "new-only" if "new models" in fin else None), cred=None,
         photos=ph_by_app.get(aid, []) if aid else []))
 for c in census:
+    if SHIFA and c["mk"] == "S" and c["id"] not in have: c.update(lat=None, lng=None, loc="missing", finance=None)
     if c["inv"] == 0 and c["status"] != "active": c["inv"] = None
     c["photos"] = sorted(set(c["photos"]))
 
