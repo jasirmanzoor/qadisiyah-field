@@ -18,6 +18,7 @@ canvas{position:absolute;left:0;top:0;width:1920px;height:1080px}
 <script src="scenes.js"></script>
 <script src="scenes2.js"></script>
 <script src="bits.js"></script>
+<script src="portal.js"></script>
 <script>
 Object.assign(SCENES, SC2); Object.assign(BGS, BG2);
 window.ready = (async () => {
@@ -26,6 +27,8 @@ window.ready = (async () => {
   FILM = await (await fetch(`timeline_${film}.json`)).json(); FILM.id = film;
   const names = ['n-rc-night', 'q-riyadhcars-night', 'n-redcarpet', 'q-luxhall', 's-hall', 'n-porsche-row', 'q-barimi-rolls', 'n-rc-hall', 's-sunset-row', 'n-gclass-front', 'q-safh-dark', 's-glass', 'q-porsche', 'n-hexhall', 's-jeeps'];
   await Promise.all(names.map(async n => { IMG[n] = await loadImg(`img/${n}.jpg`); }));
+  for (const n of ['loopmark', 'wordmark']) IMG[n] = await loadImg(`img/brand/${n}.png`);
+  IMG.keyvisual = await loadImg('img/brand/keyvisual.jpg');
   window.seek(0);
   return { film, total: FILM.total, scenes: FILM.scenes.map(s => s.id) };
 })();

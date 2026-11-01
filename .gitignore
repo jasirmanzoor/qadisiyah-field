@@ -18,3 +18,5 @@ presentation/two-part-film/*.mp4
 presentation/tts/
 # motion-film renders and audio stems are rebuilt from source (narrate.py, score.html, mix.py)
 presentation/motion-film/src/out/
+# from the confidential dealer SOP deck; kept out of this public repo
+presentation/motion-film/src/img/brand/keyvisual.jpg

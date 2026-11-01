@@ -5,8 +5,8 @@
 //   the answer  -> bright studio: porcelain light, floating glass screens of the portal, soft shadows
 // Type: Inter Display (900 for the slams), JetBrains Mono for the HUD.
 const C2 = {
-  void: [4, 6, 8], teal: [50, 218, 230], tealD: [12, 120, 130], white: [246, 247, 248], porcelain: [234, 237, 240],
-  ink: [12, 14, 18], flame: [255, 84, 30], sand: [232, 220, 200], grey: [128, 136, 146],
+  void: [3, 6, 14], teal: [86, 132, 255], tealD: [44, 91, 246], white: [246, 247, 250], porcelain: [235, 239, 246],
+  ink: [6, 20, 62], navy: [2, 27, 84], blue: [44, 91, 246], ui: [241, 245, 249], flame: [255, 84, 30], sand: [232, 220, 200], grey: [128, 136, 146],
 };
 FAM.s = '"ID", "WenQuanYi Zen Hei", "FreeSerif", sans-serif';
 const MX = 150;
@@ -21,14 +21,18 @@ const WIPE_A = [C2.teal, C2.flame, C2.ink, C2.sand], WIPE_B = [C2.ink, C2.teal, 
 /* ---------------- shared pieces ---------------- */
 const tmp = document.createElement('canvas'); tmp.width = W; tmp.height = H; const tx = tmp.getContext('2d');
 // vector AutoLink lockup (so it can sit on white or black): AUTOLINK, teal rule, AI TECH
+const tintCache = {};
+function tinted(img, col) { const k = col.join(','); if (tintCache[k]) return tintCache[k]; const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const x = c.getContext('2d'); x.drawImage(img, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = rgba(col); x.fillRect(0, 0, c.width, c.height); return (tintCache[k] = c); }
+// the AutoLink AI tech logo: glass loop + wordmark (navy on light, white on dark); s = scale of a 300 px-tall lockup
 function mark(x, y, s, col, a = 1, tin = -9) {
-  const p = S(lt - tin, 140); if (p < .004) return;
-  X.save(); X.globalAlpha = a * p; X.translate(x, y + (1 - p) * 20); X.scale(s, s);
-  X.textAlign = 'center'; X.textBaseline = 'alphabetic';
-  X.font = `700 100px ${FAM.s}`; X.letterSpacing = '22px'; X.fillStyle = rgba(col); X.fillText('AUTOLINK', 11, 0);
-  X.font = `700 34px ${FAM.s}`; X.letterSpacing = '14px'; X.fillStyle = rgba(C2.teal); X.fillText('AI TECH', 7, 66);
-  X.letterSpacing = '0px'; X.fillStyle = rgba(C2.teal);
-  const rw = 170 * p; X.fillRect(-120 - rw - 18, 52, rw, 5); X.fillRect(120 + 18, 52, rw, 5);
+  const p = S(lt - tin, 140); if (p < .004 || !IMG.loopmark || !IMG.wordmark) return;
+  const lh = 300 * s, lw = lh * IMG.loopmark.width / IMG.loopmark.height, wh = lh * .62, ww = wh * IMG.wordmark.width / IMG.wordmark.height, gap = lh * .06;
+  const tot = lw + gap + ww, x0 = x - tot / 2;
+  X.save(); X.globalAlpha = a * p; X.translate(0, (1 - p) * 24);
+  // the loop turns in, the wordmark rises behind it
+  X.save(); X.translate(x0 + lw / 2, y); X.rotate((1 - p) * -.5); X.scale(.85 + .15 * p, .85 + .15 * p); X.drawImage(IMG.loopmark, -lw / 2, -lh / 2, lw, lh); X.restore();
+  const q = S(lt - tin - .15, 140); X.globalAlpha = a * q;
+  X.drawImage(tinted(IMG.wordmark, col), x0 + lw + gap + (1 - q) * 30, y - wh / 2 + lh * .04, ww, wh);
   X.restore();
 }
 // DecryptedText: characters resolve left to right out of code glyphs
