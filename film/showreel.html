@@ -505,9 +505,9 @@ function bar8(t){
   }else{
     // solid diamonds, side diamonds merge into the top one, which folds into the dash
     const top=DIA[1].c;
-    [0,2].forEach(k=>{const d=DIA[k];const cx=L(d.c[0],top[0],merge),cy=L(d.c[1],top[1],merge);const hs=LOGO.s/2*(1-merge*.9);
+    [0,2].forEach(k=>{const d=DIA[k];const cx=L(d.c[0],top[0],merge),cy=L(d.c[1],top[1],merge);const hs=LOGO.s/2*(1-merge);
       const pcx=L(d.c[0],top[0],sp(t-DT,14.6,20));x.fillStyle=d.col;
-      if(merge<.995)smear(cx-pcx,0,(gx)=>{poly(diamond(cx+gx,cy,hs,hs,D(45)));x.fill();});});
+      if(hs>.6)smear(cx-pcx,0,(gx)=>{poly(diamond(cx+gx,cy,hs,hs,D(45)));x.fill();});});
     const cx=L(top[0],CX,fin), cy=L(top[1],CY,fin);
     const pcy=L(top[1],CY,eio(P(t-DT,14.7,.27)));
     x.fillStyle=O1;
@@ -537,7 +537,7 @@ window.seek=function(t){
 window.ready=(async()=>{await Promise.all([900,800,700,600].map(w=>document.fonts.load(F(w,40))));buildTex();window.seek(0);return true;})();
 
 /* =================== SOUNDTRACK (OfflineAudioContext) =================== */
-window.renderAudio=async function(){
+window.renderAudio=async function(speed=1){
   const sr=48000,dur=15,ac=new OfflineAudioContext(2,sr*dur,sr);
   const comp=ac.createDynamicsCompressor();comp.threshold.value=-12;comp.ratio.value=6;comp.attack.value=.003;comp.release.value=.12;
   const master=ac.createGain();master.gain.value=.85;master.connect(comp);comp.connect(ac.destination);
@@ -575,7 +575,7 @@ window.renderAudio=async function(){
   // WAV encode
   const n=buf.length,ch=2,bytes=44+n*ch*2,ab=new ArrayBuffer(bytes),dv=new DataView(ab);
   const ws=(o,s)=>{for(let i=0;i<s.length;i++)dv.setUint8(o+i,s.charCodeAt(i));};
-  ws(0,'RIFF');dv.setUint32(4,bytes-8,true);ws(8,'WAVE');ws(12,'fmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,ch,true);dv.setUint32(24,sr,true);dv.setUint32(28,sr*ch*2,true);dv.setUint16(32,ch*2,true);dv.setUint16(34,16,true);ws(36,'data');dv.setUint32(40,n*ch*2,true);
+  ws(0,'RIFF');dv.setUint32(4,bytes-8,true);ws(8,'WAVE');ws(12,'fmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,ch,true);const osr=Math.round(sr*speed);dv.setUint32(24,osr,true);dv.setUint32(28,osr*ch*2,true);dv.setUint16(32,ch*2,true);dv.setUint16(34,16,true);ws(36,'data');dv.setUint32(40,n*ch*2,true);
   const L0=buf.getChannelData(0),R0=buf.getChannelData(1);let o=44;
   for(let i=0;i<n;i++){for(const d of [L0,R0]){const v=Math.max(-1,Math.min(1,d[i]*.95));dv.setInt16(o,v<0?v*32768:v*32767,true);o+=2;}}
   let bin='';const u8=new Uint8Array(ab);for(let i=0;i<u8.length;i+=32768)bin+=String.fromCharCode.apply(null,u8.subarray(i,i+32768));
