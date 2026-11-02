@@ -5,8 +5,8 @@ const { chromium } = createRequire(import.meta.url)(process.env.PW || 'playwrigh
 const out = process.argv[2] || 'soundtrack.wav';
 const b = await chromium.launch(); const p = await b.newPage();
 const b64 = await p.evaluate(async () => {
-  const SR = 48000, DUR = 38, BT = 0.5;
-  const RZ = 30, BIG = 32, END = 34, FOLD = 37.42; // riser start, strongest bar, end title, fold to line
+  const SR = 48000, DUR = 40, BT = 0.5, OFF = 2; // OFF: new 2 s opening bar
+  const RZ = 30 + OFF, BIG = 32 + OFF, END = 34 + OFF, FOLD = 37.42 + OFF; // riser start, strongest bar, end title, fold to line
   const ac = new OfflineAudioContext(2, SR * DUR, SR);
   let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const master = ac.createDynamicsCompressor(); master.threshold.value = -14; master.ratio.value = 4; master.attack.value = 0.003; master.release.value = 0.12;
@@ -54,12 +54,12 @@ const b64 = await p.evaluate(async () => {
     if (t < FOLD) kick(t, t >= BIG && t < END ? 1.1 : 1);
     if (t < END && !(t >= RZ + 1.5 && t < BIG)) { const r = roots[bar % 4]; bass(t + 0.25, r * 2, 0.22); bass(t + 0.375, r, 0.1, 0.12); }
     if (t < RZ || (t >= BIG && t < END)) { hat(t + 0.25, 0.14); hat(t + 0.125, 0.05); hat(t + 0.375, 0.05); }
-    if ((t >= 6 && t < 10) || (t >= 14 && t < 28)) { const a = arp[bar % 4]; for (let s = 0; s < 4; s++) pluck(t + s * 0.125, a[(k * 4 + s) % 3] * (s === 3 ? 2 : 1), 0.045); }
+    const u = t - OFF; if ((u >= 6 && u < 10) || (u >= 14 && u < 28)) { const a = arp[bar % 4]; for (let s = 0; s < 4; s++) pluck(t + s * 0.125, a[(k * 4 + s) % 3] * (s === 3 ? 2 : 1), 0.045); }
     if (t >= END && t < FOLD - 0.2) pluck(t, [880, 1046.5, 1318.5, 1174.66][k % 4], 0.03);
   }
   // logo pops: a soft tick for each bank / finance company landing
-  for (let i = 0; i < 8; i++) pluck(22.08 + i * 0.19, 1760, 0.035);
-  for (let i = 0; i < 11; i++) pluck(24.08 + i * 0.15, 2093, 0.03);
+  for (let i = 0; i < 8; i++) pluck(OFF + 22.08 + i * 0.19, 1760, 0.035);
+  for (let i = 0; i < 11; i++) pluck(OFF + 24.08 + i * 0.15, 2093, 0.03);
   // riser RZ → BIG
   for (let i = 0; i < 32; i++) { const t = RZ + i * 0.0625; if (i % 2 === 0 || t >= RZ + 1) hat(t, 0.04 + 0.2 * (i / 32), 0.06); }
   { const n = noise(), f = ac.createBiquadFilter(), g = ac.createGain(); f.type = 'bandpass'; f.Q.value = 2; f.frequency.setValueAtTime(300, RZ); f.frequency.exponentialRampToValueAtTime(9000, BIG - 0.02);
@@ -70,7 +70,8 @@ const b64 = await p.evaluate(async () => {
     g.gain.setValueAtTime(0.0001, RZ); g.gain.exponentialRampToValueAtTime(0.06, BIG - 0.05); g.gain.linearRampToValueAtTime(0.0001, BIG);
     o.connect(lp); lp.connect(g); g.connect(master); o.start(RZ); o.stop(BIG + 0.01); }
   // scene-change hits
-  for (const t of [2, 4, 6, 10, 14, 18, 22, 24, 26, 28, 30]) hit(t);
+  for (const t of [2, 4, 6, 10, 14, 18, 22, 24, 26, 28, 30]) hit(t + OFF);
+  hit(2.0); // opening: wide night shot
   hit(BIG, true); hit(END, true);
   // end chord under the title, decays to silence for the loop
   for (const f of [220, 261.63, 329.63, 440]) { const o = ac.createOscillator(), g = ac.createGain(); o.type = 'triangle'; o.frequency.value = f;

@@ -6,9 +6,10 @@ canvas{display:block;width:1920px;height:1080px}
 </style></head>
 <body><canvas id="c" width="1920" height="1080"></canvas>
 <script src="data.js"></script>
+<script src="brand/brand.js"></script>
 <script>
 /* AUTOLINK — "MAPPED."  120 BPM · 30 s · every pixel is f(t) */
-const W=1920,H=1080,BT=0.5,DUR=38;
+const W=1920,H=1080,BT=0.5,DUR=40;
 const C={blue:'#2B4BFF',sky:'#A9C1FF',orange:'#FF5B1F',ink:'#0B0B0F',white:'#FFFFFF'};
 const F='"Inter Display"';
 const cv=document.getElementById('c'), X=cv.getContext('2d');
@@ -197,6 +198,50 @@ function hookCols(t){ // 1.5 → 2.0 : columns, new photos roll in
     font(46,700);ctx.fillStyle=C.white;ctx.fillText('001 / 520',cx+24,HR.y+HR.h*0.5+48);ctx.restore()}
 }
 
+/* Bars 1–2 (new) — OPENING on the new showroom photos: wide → 3 cols → wide → 2 cols → 3 cols */
+const N={sun:63,night:64,gen:65,grow:66,urus:67,carpet:68,four:69};
+const HOOK1=[{id:N.gen,fx:.5},{id:N.carpet,fx:.3},{id:N.four,fx:.45}];
+const HOOK2=[{id:N.grow,fx:.4},{id:N.urus,fx:.55}];
+const HOOK3=[{id:N.gen,fx:.55},{id:N.four,fx:.5},{id:N.night,fx:.8}];
+function colsN(n,g){const w=(HR.w-(n-1)*g)/n;return Array.from({length:n},(_,k)=>({x:HR.x+k*(w+g),y:HR.y,w,h:HR.h}))}
+function imgPt(i,r,z,fx,fy,u,v){const im=IM[i];const IW=im.width,IH=im.height,a=r.w/r.h;let sw,sh;
+  if(a>IW/IH){sw=IW/z;sh=sw/a}else{sh=IH/z;sw=sh*a}
+  const sx=cl((IW-sw)*fx,0,IW-sw),sy=cl((IH-sh)*fy,0,IH-sh);return [r.x+(u*IW-sx)/sw*r.w, r.y+(v*IH-sy)/sh*r.h, r.w/sw]}
+function drawSun(t){const z=1.5+0.08*(t-0.5);img(N.sun,HR.x,HR.y,HR.w,HR.h,z,0.5,0.92);
+  const p=imgPt(N.sun,HR,z,0.5,0.92,0.507,0.727);brushEllipse(p[0],p[1],205*p[2],62*p[2],-0.03,eo(P(t,1.0,0.42)),C.orange,13,2)}
+function drawNight(t){const z=1.0+0.05*(t-2.0);img(N.night,HR.x,HR.y,HR.w,HR.h,z,0.5,0.5);
+  const p=imgPt(N.night,HR,z,0.5,0.5,0.468,0.53);brushEllipse(p[0],p[1],560*p[2],205*p[2],0.02,eo(P(t,2.12,0.4)),C.orange,13,5)}
+function slot(o,r,z=1){img(o.id,r.x,r.y,r.w,r.h,z,o.fx,0.5)}
+function swap(r,u,dir,drawOld,drawNew){ctx.save();clipRect(r.x,r.y,r.w,r.h);const oy=-dir*u*r.h;
+  if(u<1){ctx.save();ctx.translate(0,oy);drawOld();ctx.restore()}
+  if(u>0){ctx.save();ctx.translate(0,oy+dir*r.h);drawNew();ctx.restore()}ctx.restore()}
+function chip001(t){const cx=HR.x+HR.w*0.5+380,cy=HR.y+HR.h*0.5-6;const cp=eo(P(t,1.12,0.3)),ex=eio(P(t,1.5,0.3));if(cp<=0||ex>=1)return;
+  ctx.save();clipRect(cx,cy,300*cp,74);ctx.translate(-ex*300,0);rect(cx,cy,300,74,C.ink);
+  word('001 / 520',{t,x:cx+24,y:cy+54,size:46,color:C.white,tin:1.16,wt:700,ls:0});ctx.restore()}
+function sOpen(t){
+  if(t<0.5){const w=lerp(120,1680,eio(P(t,0,0.5)));rect(960-w/2,536,w,8,C.blue);return}
+  if(t<1.5){const op=eo(P(t,0.5,0.42)),h=lerp(8,HR.h,op),y=540-h/2;
+    ctx.save();clipRect(HR.x,y,HR.w,h);drawSun(t);ctx.restore();
+    const bt=lerp(8,0,eo(P(t,0.78,0.3)));rect(HR.x,y-bt,HR.w,bt,C.blue);rect(HR.x,y+h,HR.w,bt,C.blue);chip001(t);return}
+  if(t<2.0){const c=colsN(3,24*eo(P(t,1.5,0.3)));
+    c.forEach((r,k)=>swap(r,eio(P(t,1.56+k*0.05,0.36)),k===1?-1:1,()=>drawSun(t),()=>slot(HOOK1[k],r)));chip001(t);return}
+  if(t<2.5){const c=colsN(3,24*(1-eio(P(t,2.0,0.4))));
+    c.forEach((r,k)=>swap(r,eio(P(t,2.0+k*0.04,0.34)),k===1?1:-1,()=>slot(HOOK1[k],r),()=>drawNight(t)));return}
+  if(t<3.0){const c=colsN(2,24*eo(P(t,2.5,0.3)));
+    c.forEach((r,k)=>swap(r,eio(P(t,2.54+k*0.05,0.36)),k?-1:1,()=>drawNight(t),()=>slot(HOOK2[k],r)));return}
+  const m=eio(P(t,3.0,0.42)),c2=colsN(2,24),c3=colsN(3,24);
+  const mid={x:960,y:HR.y,w:0,h:HR.h};
+  const R=[lerpR(c2[0],c3[0],m),lerpR(mid,c3[1],m),lerpR(c2[1],c3[2],m)];
+  swap(R[0],eio(P(t,3.04,0.36)),1,()=>slot(HOOK2[0],R[0]),()=>slot(HOOK3[0],R[0]));
+  if(R[1].w>0.5){ctx.save();clipRect(R[1].x,R[1].y,R[1].w,R[1].h);slot(HOOK3[1],R[1]);ctx.restore()}
+  swap(R[2],eio(P(t,3.08,0.36)),-1,()=>slot(HOOK2[1],R[2]),()=>slot(HOOK3[2],R[2]));
+  // 3.5: surveyed ticks pop, then retract before the 520 carve
+  R.forEach((r,k)=>{const s=eo(P(t,3.5+k*0.05,0.22))*(1-eio(P(t,3.8,0.16)));if(s<=0)return;
+    const x=r.x+r.w-64,y=r.y+64,rr=36*s;ctx.fillStyle=C.blue;ctx.beginPath();ctx.arc(x,y,rr,0,7);ctx.fill();
+    ctx.save();ctx.strokeStyle=C.white;ctx.lineWidth=rr*0.22;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();
+    ctx.moveTo(x-rr*.42,y+rr*.02);ctx.lineTo(x-rr*.1,y+rr*.32);ctx.lineTo(x+rr*.45,y-rr*.3);ctx.stroke();ctx.restore()});
+}
+
 /* Bar 2 — KINETIC TYPE: columns become photo-filled 520, then copy rolls */
 const DIG={size:600,y:560};
 function digitBoxes(size,cy){font(size);ctx.letterSpacing=(-0.04*size)+'px';const s='520',w=ctx.measureText(s).width,x0=960-w/2;const out=[];
@@ -218,8 +263,7 @@ function s520(t){
     const L=LX; L.setTransform(1,0,0,1,0,0);L.clearRect(0,0,W,H);
     const sv=ctx;ctx=L;
     ctx.save();clipRect(tx,ty,tw,th);
-    img([3,28,10][k],r.x+(tx-r.x)*0+0,0,0,0);
-    img([3,28,10][k],tx-(1-m)*0,ty,tw,th,1+0.4*m,0.5,0.5);
+    img(HOOK3[k].id,tx,ty,tw,th,1+0.4*m,HOOK3[k].fx,0.5);
     if(fill>0)rect(tx,ty+th*(1-fill),tw,th*fill+2,C.blue);
     ctx.restore();
     ctx.globalCompositeOperation='destination-in';
@@ -652,32 +696,36 @@ function sWall(t){
   ctx.setTransform(1,0,0,1,0,0);chip(t);
 }
 function wallFly(t,items,fly){
-  for(const it of items){const s=MARK.slots[it.k%MARK.slots.length];
+  const SL=window.BRAND.slots;
+  for(const it of items){const s=SL[(it.k*7)%SL.length];
     const st=eio(cl((fly-hash(it.k)*0.25)/0.75));
     const x0=(it.TL[0]+it.TR[0])/2+ (it.BL[0]-it.TL[0])/2, y0=(it.TL[1]+it.BL[1])/2+(it.TR[1]-it.TL[1])/2;
     const w0=Math.hypot(it.TR[0]-it.TL[0],it.TR[1]-it.TL[1]), h0=Math.hypot(it.BL[0]-it.TL[0],it.BL[1]-it.TL[1]);
-    const cell=MARK.a*Math.SQRT2/9+1.2;
+    const cell=12.5;
     const x=lerp(x0,s[0],st),y=lerp(y0,s[1],st),w=lerp(w0,cell,st),h=lerp(h0,cell,st);
-    ctx.save();ctx.translate(x,y);ctx.rotate(Math.PI/4*st);
+    ctx.save();ctx.translate(x,y);
     if(st<0.55)ctx.drawImage(WALLB,it.i*120,it.j*67.5,120,67.5,-w/2,-h/2,w,h);
-    else rect(-w/2,-h/2,w,h,MARK.D[s[2]][2]);
+    else rect(-w/2,-h/2,w,h,s[2]);
     ctx.restore();}
 }
 
 /* Bar 15 — END TITLE → back to the line */
 function diamond(cx,cy,a){return [[cx,cy-a],[cx+a,cy],[cx,cy+a],[cx-a,cy]]}
-function sEnd(t){
-  const col=eio(P(t,37.42,0.5)); // collapse into the opening line
+function sEnd(t){ // official autolink AI tech lockup
+  const B=window.BRAND,k=B.LW/B.w,LX=B.LX,LY=B.LY;
+  const col=eio(P(t,37.42,0.5)); // fold into the opening line
   const push=1+0.035*P(t,34,3.4);
-  const lineX=[[940,980],[900,940],[980,1020]];
-  MARK.D.forEach((dd,k)=>{
-    const a=MARK.a*push; const cx=MARK.cx+(dd[0])*push, cy=MARK.cy+dd[1]*push;
-    const dm=diamond(cx,cy,a);
-    const lx=lineX[k];const ln=[[lx[0],536],[lx[1],536],[lx[1],544],[lx[0],544]];
-    const pts=dm.map((p,i)=>[lerp(p[0],ln[i][0],col),lerp(p[1],ln[i][1],col)]);
-    ctx.fillStyle=k===2?mixC(C.sky,C.blue,col):C.blue;ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fill();
-  });
-  word('AUTOLINK',{t,x:960,y:720,size:170,align:'center',tin:34.02,tout:37.2,stg:0.03,ls:-0.03});
+  const cx=960,cy=LY+B.h*k/2;const pt=(x,y)=>[cx+(x-cx)*push,cy+(y-cy)*push];
+  const [ax,ay]=pt(LX,LY),aw=B.split*k*push,ah=B.h*k*push;
+  ctx.drawImage(LOGO,0,0,B.split,B.h,lerp(ax,900,col),lerp(ay,536,col),lerp(aw,120,col),lerp(ah,8,col));
+  if(col>0){const w=120*col;rect(960-w/2,536,w,8,C.blue)}
+  // the landed tiles dissolve into the crisp mark
+  const dp=eo(P(t,34.0,0.24));if(dp<1){const q=12.5*(1-dp);for(const sl of B.slots){ctx.fillStyle=sl[2];ctx.fillRect(sl[0]-q/2,sl[1]-q/2,q,q)}}
+  // wordmark lines rise in behind masks, leave upward
+  [[0,B.mid,34.04,37.2],[B.mid,B.h-B.mid,34.14,37.26]].forEach(([sy,sh,tin,tout])=>{
+    const [dx,dy]=pt(LX+B.split*k,LY+sy*k),dw=(B.w-B.split)*k*push,dh=sh*k*push;
+    const off=(1-eo(P(t,tin,0.42)))*dh*1.1-eio(P(t,tout,0.3))*dh*1.1;
+    if(t<tin||t>tout+0.32)return;ctx.save();clipRect(dx-10,dy,dw+20,dh);ctx.drawImage(LOGO,B.split,sy,B.w-B.split,sh,dx,dy+off,dw,dh);ctx.restore()});
   word('THE SUB-DEALER MARKET, ORGANIZED.',{t,x:960,y:810,size:38,wt:800,ls:0.06,align:'center',tin:34.5,tout:35.5,stg:0.006});
   word('AI-DRIVEN FINANCE FOR 520 SHOWROOMS',{t,x:960,y:810,size:38,wt:800,ls:0.06,align:'center',tin:35.5,tout:36.5,stg:0.006,color:C.blue});
   word('RIYADH · KINGDOM OF SAUDI ARABIA',{t,x:960,y:810,size:38,wt:800,ls:0.06,align:'center',tin:36.5,tout:37.2,stg:0.006});
@@ -688,8 +736,9 @@ function scene(t){
   ctx=AX;ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
   rect(0,0,W,H,C.white);
   t=((t%DUR)+DUR)%DUR;
-  if(t<2.0)sHook(t);
-  else if(t<4.5)s520(t);
+  if(t<4.0){sOpen(t);return}
+  t-=2; // the rest of the film runs on its original clock, 2 s later
+  if(t<4.5)s520(t);
   else if(t<6.0){s520(t);sNow(t)}
   else if(t<10.0){sCollage(t)}
   else if(t<14.0){sMorph(t)}
@@ -710,7 +759,8 @@ window.seek=function(t){
 window.ready=(async()=>{
   const faces=[['fonts/InterDisplay-Black.otf','900'],['fonts/InterDisplay-Bold.otf','800'],['fonts/InterDisplay-Bold.otf','700'],['fonts/InterDisplay-SemiBold.otf','600']];
   for(const [u,w] of faces){const f=new FontFace('Inter Display',`url(${u})`,{weight:w});await f.load();document.fonts.add(f)}
-  const ims=await Promise.all(Array.from({length:63},(_,i)=>loadImg(`img/p${String(i).padStart(2,'0')}.jpg`)));
+  const ims=await Promise.all(Array.from({length:63},(_,i)=>loadImg(`img/p${String(i).padStart(2,'0')}.jpg`)).concat(Array.from({length:7},(_,i)=>loadImg(`img/n${i}.jpg`))));
+  window.LOGO=await loadImg('brand/lockup.png');
   ims.forEach((m,i)=>IM[i]=m);
   const order=['albilad','ajb','alinma','anb','alrajhi','snb','riyad','enbd','raya','nama','tarabut','aljabr','taajeer','nfh','tamam','aloula','alj','yanal','yusr'];
   const names={aljabr:'Al Jabr Finance'};const bgs={ajb:'#6B6B6B',enbd:'#0B2147',yusr:'#0E3460'};
