@@ -1,5 +1,5 @@
 {
- "total": 141.682,
+ "total": 141.89,
  "scenes": [
   {
    "id": "B1",
@@ -125,7 +125,7 @@
   {
    "id": "B7",
    "start": 108.243,
-   "end": 123.344,
+   "end": 123.552,
    "lines": [
     {
      "t": 0.45,
@@ -139,15 +139,15 @@
     },
     {
      "t": 11.275,
-     "dur": 3.275,
-     "text": "We are at the table with nine banks and finance companies."
+     "dur": 3.483,
+     "text": "We are at the table with eighteen banks and finance companies."
     }
    ]
   },
   {
    "id": "B7b",
-   "start": 123.344,
-   "end": 132.585,
+   "start": 123.552,
+   "end": 132.793,
    "lines": [
     {
      "t": 0.6,
@@ -163,8 +163,8 @@
   },
   {
    "id": "B8",
-   "start": 132.585,
-   "end": 141.682,
+   "start": 132.793,
+   "end": 141.89,
    "lines": [
     {
      "t": 0.45,

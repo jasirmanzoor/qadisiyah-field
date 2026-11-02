@@ -620,7 +620,7 @@ SC2.B7 = (lt, D, L) => {
   rollCounter(20, { x: MX - 10, y: 560, size: 320, t0: t1 });
   inkLine('sub-dealers signed in one month', { x: MX, y: 640, size: 40, wt: 700, tin: t1 + .3, stag: .008 });
   mono('NAMES WITHHELD · UNDER NDA', MX + 4, 690, 20, C2.grey, S(lt - t1 - .6, 200));
-  const st = [['16', 'more agreements sent', t1 + ldur(L, 1) * .45, C2.ink], ['64', 'in the pipeline', t1 + ldur(L, 1) * .78, C2.ink], ['9', 'banks and finance companies at the table', t2 + .2, C2.tealD]];
+  const st = [['16', 'more agreements sent', t1 + ldur(L, 1) * .45, C2.ink], ['64', 'in the pipeline', t1 + ldur(L, 1) * .78, C2.ink], ['18', 'lenders at the table', t2 + .2, C2.tealD]];
   st.forEach(([v, s, t, col], k) => {
     const p = S(lt - (t - .2), 220); if (p < .004) return;
     const x = 960, y = 280 + k * 220;

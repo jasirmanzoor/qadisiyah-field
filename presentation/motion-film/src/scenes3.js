@@ -30,9 +30,9 @@ function logoTile(k, x, y, w, h, p, spot) {
   X.shadowColor = 'rgba(20,40,90,.14)'; X.shadowBlur = 34; X.shadowOffsetY = 16; X.fillStyle = '#fff'; rr(-w / 2, -h / 2, w, h, 22); X.fill(); X.shadowColor = 'transparent';
   X.strokeStyle = 'rgba(44,91,246,.10)'; X.lineWidth = 1.5; X.stroke();
   const im = IMG['p-' + k];
-  if (k === 'aljabr' || !im) {   // the sheet's Al Jabr logo is cropped: a clean wordmark instead
+  if (!im) {   // a missing logo falls back to a wordmark
     X.fillStyle = '#e03a33'; rr(-w * .36, -h * .2, 10, h * .4, 5); X.fill();
-    X.font = `800 30px ${FAM.s}`; X.fillStyle = rgba(C2.navy); X.textAlign = 'left'; X.fillText('Al Jabr', -w * .36 + 24, -2); X.font = `500 22px ${FAM.s}`; X.fillStyle = rgba(C2.grey); X.fillText('Finance', -w * .36 + 24, 26); X.textAlign = 'left';
+    X.font = `800 30px ${FAM.s}`; X.fillStyle = rgba(C2.navy); X.textAlign = 'left'; X.fillText(k, -w * .36 + 24, -2); X.font = `500 22px ${FAM.s}`; X.fillStyle = rgba(C2.grey); X.fillText('Finance', -w * .36 + 24, 26); X.textAlign = 'left';
   } else {
     const pad = 20, bw = w - pad * 2, bh = h - pad * 2, s = Math.min(bw / im.width, bh / im.height);
     X.drawImage(im, -im.width * s / 2, -im.height * s / 2, im.width * s, im.height * s);

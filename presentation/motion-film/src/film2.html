@@ -32,7 +32,7 @@ window.ready = (async () => {
   await Promise.all(names.map(async n => { IMG[n] = await loadImg(`img/${n}.jpg`); }));
   for (const n of ['loopmark', 'wordmark']) IMG[n] = await loadImg(`img/brand/${n}.png`);
   IMG.keyvisual = await loadImg('img/brand/keyvisual.jpg');
-  for (const k of ['albilad','alinma','anb','alrajhi','snb','riyad','enbd','raya','nama','tarabut','taajeer','nfh','tamam','tamweel','alj','yanal','alyusr']) IMG['p-' + k] = await loadImg(`img/partners/${k}.png`);
+  for (const k of ['albilad','alinma','anb','alrajhi','snb','riyad','enbd','raya','nama','tarabut','aljabr','taajeer','nfh','tamam','tamweel','alj','yanal','alyusr']) IMG['p-' + k] = await loadImg(`img/partners/${k}.png`);
   await DR.load('');
   window.seek(0);
   return { film, total: FILM.total, scenes: FILM.scenes.map(s => s.id) };
