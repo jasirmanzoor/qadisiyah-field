@@ -8,7 +8,7 @@ canvas{display:block;width:1920px;height:1080px}
 <script src="data.js"></script>
 <script>
 /* AUTOLINK — "MAPPED."  120 BPM · 30 s · every pixel is f(t) */
-const W=1920,H=1080,BT=0.5;
+const W=1920,H=1080,BT=0.5,DUR=38;
 const C={blue:'#2B4BFF',sky:'#A9C1FF',orange:'#FF5B1F',ink:'#0B0B0F',white:'#FFFFFF'};
 const F='"Inter Display"';
 const cv=document.getElementById('c'), X=cv.getContext('2d');
@@ -453,7 +453,7 @@ function sData(t){
   const g=eio(P(t,19.05,0.45));
   const flip=P(t,20.0,0.42); const fs=Math.abs(Math.cos(Math.PI*eio(flip)));const back=eio(flip)>0.5;
   const net=eio(P(t,20.5,0.4)); // card shrinks left
-  const conv=eio(P(t,21.62,0.36)); // everything converges into the AI node
+  const conv=eio(P(t,27.62,0.36)); // everything converges into the AI node
   const sc=lerp(1,0.42,net)*(1-conv), ox=lerp(lerp(0,-700,net),AI[0]-960,conv);
   if(t<19.05){
     // axis + caption
@@ -463,6 +463,7 @@ function sData(t){
     word('SAR 3.6BN',{t,x:1800,y:300,size:210,align:'right',color:C.ink,tin:18.5,tout:19.0,stg:0.03});
     word('STOCK ON DISPLAY',{t,x:1796,y:380,size:34,wt:700,ls:0.04,align:'right',tin:18.58,tout:19.0});
     return}
+  ctx.save();netCam(t);
   ctx.save();
   ctx.translate(960+ox,545);ctx.scale(sc*(t>=20?fs:1),sc);ctx.translate(-960,-545);
   const sp={x:CARD.x+44,y:CARD.y+60,w:CARD.w-88,h:150};
@@ -490,6 +491,8 @@ function sData(t){
   ctx.restore();
   // network: card → AUTOLINK AI → the banks & finance companies (logo wall)
   if(t>=20.5) network2(t,conv);
+  ctx.restore();
+  if(t>=20.9) netHeads(t);
 }
 const AI=[640,540];
 const LG={w:250,h:100,g:12,x:804,y:258};
@@ -519,7 +522,7 @@ function network2(t,conv){
   ctx.beginPath();ctx.moveTo(A0[0],A0[1]);ctx.lineTo(lerp(A0[0],AI[0],lp),lerp(A0[1],AI[1],lp));ctx.stroke();
   // fan of lines (drawn under the tiles)
   ctx.lineWidth=1.6;
-  const T=i=>i<8?20.84+i*0.022:21.02+(i-8)*0.024;
+  const T=i=>i<8?22.08+i*0.19:24.08+(i-8)*0.15;
   LGS.forEach((lg,i)=>{const r=logoSlot(i);const q=eo(P(t,T(i)-0.06,0.22));if(q<=0)return;
     const tx=lerp(r.x,AI[0],conv),ty=lerp(r.y+r.h/2,AI[1],conv);
     ctx.beginPath();ctx.moveTo(AI[0],AI[1]);ctx.lineTo(lerp(AI[0],tx,q),lerp(AI[1],ty,q));ctx.stroke()});
@@ -529,11 +532,26 @@ function network2(t,conv){
     const r={x:lerp(r0.x,AI[0]-r0.w/2,conv),y:lerp(r0.y,AI[1]-r0.h/2,conv),w:r0.w,h:r0.h};
     logoTile(lg,r,lerp(0.55,1,q)*(q>0?1:0)*(1-conv))});
   // AI node
-  const ap=eo(P(t,20.72,0.26));const ar=lerp(56,0,eio(P(t,21.8,0.2)))*ap;
+  const ap=eo(P(t,20.72,0.26));const ar=lerp(56,0,eio(P(t,27.8,0.2)))*ap;
   if(ar>0){ctx.save();ctx.translate(AI[0],AI[1]);ctx.rotate(Math.PI/4);rect(-ar,-ar,ar*2,ar*2,C.orange);ctx.restore();}
-  word('AUTOLINK AI',{t,x:AI[0],y:AI[1]+128,size:40,wt:900,ls:0,align:'center',tin:20.8,tout:21.55});
-  word('FINANCE, FACILITATED.',{t,x:960,y:190,size:100,align:'center',tin:21.0,tout:21.6,color:C.ink});
-  word('BANKS & FINANCE COMPANIES',{t,x:LG.x,y:905,size:30,wt:800,ls:0.05,tin:21.1,tout:21.45});
+  word('AUTOLINK AI',{t,x:AI[0],y:AI[1]+128,size:40,wt:900,ls:0,align:'center',tin:20.8,tout:21.8});
+  word('AUTOLINK AI',{t,x:AI[0],y:AI[1]+128,size:40,wt:900,ls:0,align:'center',tin:26.1,tout:27.55});
+}
+function netCam(t){ // identity → banks close-up → finance close-up → full wall
+  const S0={s:1,fx:960,fy:540,ax:960,ay:540}, S1={s:1.7,fx:1322,fy:364,ax:960,ay:640}, S2={s:1.6,fx:1322,fy:660,ax:960,ay:450};
+  const k1=eio(P(t,21.8,0.42)),k2=eio(P(t,23.8,0.42)),k3=eio(P(t,25.8,0.45));
+  const L=(a,b,u)=>({s:Math.exp(lerp(Math.log(a.s),Math.log(b.s),u)),fx:lerp(a.fx,b.fx,u),fy:lerp(a.fy,b.fy,u),ax:lerp(a.ax,b.ax,u),ay:lerp(a.ay,b.ay,u)});
+  let c=L(L(L(S0,S1,k1),S2,k2),S0,k3);
+  const drift=1+0.025*(P(t,22,2)+P(t,24,2)-k2-k3) + 0.02*P(t,26.2,1.6);
+  ctx.translate(c.ax,c.ay);ctx.scale(c.s*drift,c.s*drift);ctx.translate(-c.fx,-c.fy);
+}
+function netHeads(t){ // screen-space kinetic type over the network
+  word('EVERY SHOWROOM,',{t,x:960,y:210,size:110,align:'center',tin:20.95,tout:21.5});
+  word('CONNECTED TO FINANCE.',{t,x:960,y:210,size:110,align:'center',tin:21.5,tout:21.85,color:C.blue});
+  word('BANKS',{t,x:120,y:330,size:170,tin:22.05,tout:23.82});
+  word('FINANCE COMPANIES',{t,x:120,y:930,size:140,tin:24.05,tout:25.82,color:C.blue});
+  word('FINANCE, FACILITATED.',{t,x:960,y:190,size:100,align:'center',tin:26.3,tout:27.55,color:C.ink});
+  word('BANKS & FINANCE COMPANIES',{t,x:LG.x,y:905,size:30,wt:800,ls:0.05,tin:26.4,tout:27.45});
 }
 
 /* Bar 12 — TYPE STACK: NO ONE HAD / MAPPED / THIS MARKET / BEFORE. */
@@ -649,38 +667,37 @@ function wallFly(t,items,fly){
 /* Bar 15 — END TITLE → back to the line */
 function diamond(cx,cy,a){return [[cx,cy-a],[cx+a,cy],[cx,cy+a],[cx-a,cy]]}
 function sEnd(t){
-  const col=eio(P(t,29.42,0.5)); // collapse into line
-  const push=1+0.03*P(t,28,1.4);
-  const segs=[[920,1000],[900,940],[980,1020]]; // line thirds (x0,x1) for T,L,R  (line: 900..1020)
-  const order=[1,0,2]; // L,T,R left→right: L=900-940, T=940-980, R=980-1020
+  const col=eio(P(t,37.42,0.5)); // collapse into the opening line
+  const push=1+0.035*P(t,34,3.4);
   const lineX=[[940,980],[900,940],[980,1020]];
   MARK.D.forEach((dd,k)=>{
     const a=MARK.a*push; const cx=MARK.cx+(dd[0])*push, cy=MARK.cy+dd[1]*push;
     const dm=diamond(cx,cy,a);
     const lx=lineX[k];const ln=[[lx[0],536],[lx[1],536],[lx[1],544],[lx[0],544]];
-    // map diamond verts (top,right,bottom,left) → rect (TL,TR,BR,BL)
     const pts=dm.map((p,i)=>[lerp(p[0],ln[i][0],col),lerp(p[1],ln[i][1],col)]);
     ctx.fillStyle=k===2?mixC(C.sky,C.blue,col):C.blue;ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fill();
   });
-  word('AUTOLINK',{t,x:960,y:720,size:170,align:'center',tin:28.02,tout:29.25,stg:0.03,ls:-0.03});
-  word('THE SUB-DEALER MARKET, ORGANIZED.',{t,x:960,y:810,size:38,wt:800,ls:0.06,align:'center',tin:28.5,tout:29.25,stg:0.006});
+  word('AUTOLINK',{t,x:960,y:720,size:170,align:'center',tin:34.02,tout:37.2,stg:0.03,ls:-0.03});
+  word('THE SUB-DEALER MARKET, ORGANIZED.',{t,x:960,y:810,size:38,wt:800,ls:0.06,align:'center',tin:34.5,tout:35.5,stg:0.006});
+  word('AI-DRIVEN FINANCE FOR 520 SHOWROOMS',{t,x:960,y:810,size:38,wt:800,ls:0.06,align:'center',tin:35.5,tout:36.5,stg:0.006,color:C.blue});
+  word('RIYADH · KINGDOM OF SAUDI ARABIA',{t,x:960,y:810,size:38,wt:800,ls:0.06,align:'center',tin:36.5,tout:37.2,stg:0.006});
 }
 
 /* ======================= COMPOSITOR ======================= */
 function scene(t){
   ctx=AX;ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
   rect(0,0,W,H,C.white);
-  t=((t%30)+30)%30;
+  t=((t%DUR)+DUR)%DUR;
   if(t<2.0)sHook(t);
   else if(t<4.5)s520(t);
   else if(t<6.0){s520(t);sNow(t)}
   else if(t<10.0){sCollage(t)}
   else if(t<14.0){sMorph(t)}
   else if(t<18.0){s3D(t)}
-  else if(t<22.0)sData(t);
-  else if(t<24.0)sType(t);
-  else if(t<26.0)sSplit(t);
-  else if(t<28.0)sWall(t);
+  else if(t<28.0)sData(t);
+  else if(t<30.0)sType(t-6);
+  else if(t<32.0)sSplit(t-6);
+  else if(t<34.0)sWall(t-6);
   else sEnd(t);
 }
 function hookColsUnder(t){}

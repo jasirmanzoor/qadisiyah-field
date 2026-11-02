@@ -5,7 +5,8 @@ const { chromium } = createRequire(import.meta.url)(process.env.PW || 'playwrigh
 const out = process.argv[2] || 'soundtrack.wav';
 const b = await chromium.launch(); const p = await b.newPage();
 const b64 = await p.evaluate(async () => {
-  const SR = 48000, DUR = 30, BT = 0.5;
+  const SR = 48000, DUR = 38, BT = 0.5;
+  const RZ = 30, BIG = 32, END = 34, FOLD = 37.42; // riser start, strongest bar, end title, fold to line
   const ac = new OfflineAudioContext(2, SR * DUR, SR);
   let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const master = ac.createDynamicsCompressor(); master.threshold.value = -14; master.ratio.value = 4; master.attack.value = 0.003; master.release.value = 0.12;
@@ -49,33 +50,32 @@ const b64 = await p.evaluate(async () => {
 
   const roots = [55, 43.65, 65.41, 49.0]; // A F C G
   const arp = [[440, 523.25, 659.25], [349.23, 440, 523.25], [392, 523.25, 659.25], [392, 493.88, 587.33]];
-  for (let k = 0; k < 60; k++) { const t = k * BT; const bar = Math.floor(k / 4); const end = t >= 29.4;
-    if (!end) kick(t, t >= 26 && t < 28 ? 1.1 : 1);
-    if (t >= 28 && t < 29.4) {} // end title: kicks only
-    // 8th-note bass (off the kick) except in the end title
-    if (t < 28 && !(t >= 25.5 && t < 26)) { const r = roots[bar % 4]; bass(t + 0.25, r * 2, 0.22); bass(t + 0.125 * 3 + 0.0, r, 0.1, 0.12); }
-    // hats
-    if (t < 24 || (t >= 26 && t < 28)) { hat(t + 0.25, 0.14); hat(t + 0.125, 0.05); hat(t + 0.375, 0.05); }
-    // arp plucks on 16ths in bars of data/3D
-    if ((t >= 6 && t < 10) || (t >= 14 && t < 22)) { const a = arp[bar % 4]; for (let s = 0; s < 4; s++) pluck(t + s * 0.125, a[(k * 4 + s) % 3] * (s === 3 ? 2 : 1), 0.045); }
+  for (let k = 0; k < DUR * 2; k++) { const t = k * BT; const bar = Math.floor(k / 4);
+    if (t < FOLD) kick(t, t >= BIG && t < END ? 1.1 : 1);
+    if (t < END && !(t >= RZ + 1.5 && t < BIG)) { const r = roots[bar % 4]; bass(t + 0.25, r * 2, 0.22); bass(t + 0.375, r, 0.1, 0.12); }
+    if (t < RZ || (t >= BIG && t < END)) { hat(t + 0.25, 0.14); hat(t + 0.125, 0.05); hat(t + 0.375, 0.05); }
+    if ((t >= 6 && t < 10) || (t >= 14 && t < 28)) { const a = arp[bar % 4]; for (let s = 0; s < 4; s++) pluck(t + s * 0.125, a[(k * 4 + s) % 3] * (s === 3 ? 2 : 1), 0.045); }
+    if (t >= END && t < FOLD - 0.2) pluck(t, [880, 1046.5, 1318.5, 1174.66][k % 4], 0.03);
   }
-  // riser 24 → 26: snare roll + filtered noise sweep + rising saw
-  for (let i = 0; i < 32; i++) { const t = 24 + i * 0.0625; if (i % 2 === 0 || t >= 25) hat(t, 0.04 + 0.2 * (i / 32), 0.06); }
-  { const n = noise(), f = ac.createBiquadFilter(), g = ac.createGain(); f.type = 'bandpass'; f.Q.value = 2; f.frequency.setValueAtTime(300, 24); f.frequency.exponentialRampToValueAtTime(9000, 25.98);
-    g.gain.setValueAtTime(0.0001, 24); g.gain.exponentialRampToValueAtTime(0.55, 25.97); g.gain.linearRampToValueAtTime(0.0001, 26.0);
-    const n2 = noise(); n.loop = true; n.connect(f); f.connect(g); g.connect(master); n.start(24); n.stop(26.01); }
+  // logo pops: a soft tick for each bank / finance company landing
+  for (let i = 0; i < 8; i++) pluck(22.08 + i * 0.19, 1760, 0.035);
+  for (let i = 0; i < 11; i++) pluck(24.08 + i * 0.15, 2093, 0.03);
+  // riser RZ → BIG
+  for (let i = 0; i < 32; i++) { const t = RZ + i * 0.0625; if (i % 2 === 0 || t >= RZ + 1) hat(t, 0.04 + 0.2 * (i / 32), 0.06); }
+  { const n = noise(), f = ac.createBiquadFilter(), g = ac.createGain(); f.type = 'bandpass'; f.Q.value = 2; f.frequency.setValueAtTime(300, RZ); f.frequency.exponentialRampToValueAtTime(9000, BIG - 0.02);
+    g.gain.setValueAtTime(0.0001, RZ); g.gain.exponentialRampToValueAtTime(0.55, BIG - 0.03); g.gain.linearRampToValueAtTime(0.0001, BIG);
+    n.loop = true; n.connect(f); f.connect(g); g.connect(master); n.start(RZ); n.stop(BIG + 0.01); }
   for (const det of [-8, 0, 7]) { const o = ac.createOscillator(), lp = ac.createBiquadFilter(), g = ac.createGain(); o.type = 'sawtooth'; o.detune.value = det;
-    o.frequency.setValueAtTime(110, 24); o.frequency.exponentialRampToValueAtTime(880, 25.98); lp.type = 'lowpass'; lp.frequency.setValueAtTime(400, 24); lp.frequency.exponentialRampToValueAtTime(6000, 25.98);
-    g.gain.setValueAtTime(0.0001, 24); g.gain.exponentialRampToValueAtTime(0.06, 25.95); g.gain.linearRampToValueAtTime(0.0001, 26.0);
-    o.connect(lp); lp.connect(g); g.connect(master); o.start(24); o.stop(26.01); }
+    o.frequency.setValueAtTime(110, RZ); o.frequency.exponentialRampToValueAtTime(880, BIG - 0.02); lp.type = 'lowpass'; lp.frequency.setValueAtTime(400, RZ); lp.frequency.exponentialRampToValueAtTime(6000, BIG - 0.02);
+    g.gain.setValueAtTime(0.0001, RZ); g.gain.exponentialRampToValueAtTime(0.06, BIG - 0.05); g.gain.linearRampToValueAtTime(0.0001, BIG);
+    o.connect(lp); lp.connect(g); g.connect(master); o.start(RZ); o.stop(BIG + 0.01); }
   // scene-change hits
-  for (const t of [2, 4, 6, 10, 14, 18, 22, 24]) hit(t);
-  hit(26, true); hit(28, true);
-  // end chord swell under the title, decays to silence for the loop
+  for (const t of [2, 4, 6, 10, 14, 18, 22, 24, 26, 28, 30]) hit(t);
+  hit(BIG, true); hit(END, true);
+  // end chord under the title, decays to silence for the loop
   for (const f of [220, 261.63, 329.63, 440]) { const o = ac.createOscillator(), g = ac.createGain(); o.type = 'triangle'; o.frequency.value = f;
-    g.gain.setValueAtTime(0.0001, 28); g.gain.exponentialRampToValueAtTime(0.05, 28.05); g.gain.exponentialRampToValueAtTime(0.0001, 29.9); o.connect(g); g.connect(master); g.connect(verb); o.start(28); o.stop(30); }
-  // tiny tick when the mark folds back into the line
-  pluck(29.42, 1760, 0.05); pluck(29.92, 880, 0.04);
+    g.gain.setValueAtTime(0.0001, END); g.gain.exponentialRampToValueAtTime(0.05, END + 0.05); g.gain.exponentialRampToValueAtTime(0.0001, DUR - 0.1); o.connect(g); g.connect(master); g.connect(verb); o.start(END); o.stop(DUR); }
+  pluck(FOLD, 1760, 0.05); pluck(FOLD + 0.5, 880, 0.04);
 
   const buf = await ac.startRendering();
   const L = buf.getChannelData(0), R = buf.getChannelData(1), n = L.length;

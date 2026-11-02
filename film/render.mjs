@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const url = 'file://' + path.join(here, 'index.html');
 const [mode, out, ...rest] = process.argv.slice(2);
-const FPS = 60, SUBF = 3, DUR = 30, SUBDT = 1 / 360; // subframes span half a frame (180° shutter)
+const FPS = 60, SUBF = 3, DUR = +(process.env.DUR || 38), SUBDT = 1 / 360; // subframes span half a frame (180° shutter)
 
 async function page(browser) {
   const p = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
@@ -28,7 +28,7 @@ const browser = await chromium.launch({ args: ['--disable-gpu-vsync', '--force-d
 if (mode === 'beats' || mode === 'frames') {
   fs.mkdirSync(out, { recursive: true });
   const p = await page(browser);
-  const times = mode === 'beats' ? Array.from({ length: 60 }, (_, k) => +(k * 0.5 + 0.3).toFixed(3)) : rest.map(Number);
+  const times = mode === 'beats' ? Array.from({ length: DUR * 2 }, (_, k) => +(k * 0.5 + 0.3).toFixed(3)) : rest.map(Number);
   for (const t of times) fs.writeFileSync(path.join(out, `t${t.toFixed(2).padStart(5, '0')}.jpg`), await shot(p, t));
   console.log('wrote', times.length);
 } else if (mode === 'full') {
