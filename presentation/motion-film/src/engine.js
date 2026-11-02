@@ -284,8 +284,9 @@ window.seek = function (t) {
   const i = sceneAt(t), sc = FILM.scenes[i], nx = FILM.scenes[i + 1], pv = FILM.scenes[i - 1];
   // transition window centred on each boundary
   let a = null, b = null, p = 0;
-  if (nx && t > sc.end - XF / 2) { a = i; b = i + 1; p = (t - (sc.end - XF / 2)) / XF; }
-  else if (pv && t < sc.start + XF / 2) { a = i - 1; b = i; p = (t - (sc.start - XF / 2)) / XF; }
+  const contOf = s2 => s2 && (BGS[s2.id] || BGS._)(0).cont;
+  if (nx && t > sc.end - XF / 2 && !(contOf(sc) && contOf(nx))) { a = i; b = i + 1; p = (t - (sc.end - XF / 2)) / XF; }
+  else if (pv && t < sc.start + XF / 2 && !(contOf(sc) && contOf(pv))) { a = i - 1; b = i; p = (t - (sc.start - XF / 2)) / XF; }
   const bgOf = j => (BGS[FILM.scenes[j].id] || BGS._)(t - FILM.scenes[j].start);
   const BB = a !== null ? lerpBG(bgOf(a), bgOf(b), eio(p)) : bgOf(i);
   drawBG(BB, t);

@@ -16,7 +16,7 @@
      "So we walked it. Door to door. Five hundred and twenty showrooms."
     ],
     "lead": 2.6,
-    "pad": 1.0
+    "dur": 15
    },
    {
     "id": "T3",
@@ -83,6 +83,14 @@
     ]
    },
    {
+    "id": "A4b",
+    "lead": 0.6,
+    "pad": 1.4,
+    "lines": [
+     "And behind every request stand Saudi Arabia's leading banks and finance companies, partnering with AutoLink."
+    ]
+   },
+   {
     "id": "A5",
     "lines": [
      "And we train your sales team. On the portal, and on the conversation with the buyer."
@@ -115,12 +123,28 @@
     ]
    },
    {
-    "id": "B2",
+    "id": "B2a",
+    "lead": 4.0,
+    "dur": 22,
     "lines": [
-     "So we walked it. Door to door, by day and after dark, across Al Qaadiseeya and Al Shiffa."
-    ],
-    "lead": 4.6,
-    "pad": 2.2
+     "So we walked it. Door to door, by day and after dark."
+    ]
+   },
+   {
+    "id": "B2b",
+    "lead": 0.6,
+    "dur": 8,
+    "lines": [
+     "First, Al Qaadiseeya. Nineteen kilometres east of KAFD, three hundred and nine showrooms."
+    ]
+   },
+   {
+    "id": "B2c",
+    "lead": 4.5,
+    "dur": 20,
+    "lines": [
+     "Then Al Shiffa, twenty four kilometres south. Two hundred and eleven more."
+    ]
    },
    {
     "id": "B3",
@@ -156,6 +180,15 @@
      "And it is already moving.",
      "In one month, twenty sub-dealers signed with AutoLink. Sixteen more agreements are out for signature, and sixty four are in the pipeline.",
      "We are at the table with nine banks and finance companies."
+    ]
+   },
+   {
+    "id": "B7b",
+    "lead": 0.6,
+    "pad": 1.4,
+    "lines": [
+     "And the lenders are coming with us.",
+     "Saudi Arabia's leading banks and finance companies, partnering with AutoLink."
     ]
    },
    {

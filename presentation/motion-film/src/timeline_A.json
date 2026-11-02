@@ -1,5 +1,5 @@
 {
- "total": 62.959,
+ "total": 72.306,
  "scenes": [
   {
    "id": "A1",
@@ -75,9 +75,21 @@
    ]
   },
   {
-   "id": "A5",
+   "id": "A4b",
    "start": 37.036,
-   "end": 43.01,
+   "end": 46.383,
+   "lines": [
+    {
+     "t": 0.6,
+     "dur": 6.797,
+     "text": "And behind every request stand Saudi Arabia's leading banks and finance companies, partnering with AutoLink."
+    }
+   ]
+  },
+  {
+   "id": "A5",
+   "start": 46.383,
+   "end": 52.357,
    "lines": [
     {
      "t": 0.45,
@@ -88,8 +100,8 @@
   },
   {
    "id": "A6",
-   "start": 43.01,
-   "end": 52.482,
+   "start": 52.357,
+   "end": 61.829,
    "lines": [
     {
      "t": 0.45,
@@ -105,8 +117,8 @@
   },
   {
    "id": "A7",
-   "start": 52.482,
-   "end": 62.959,
+   "start": 61.829,
+   "end": 72.306,
    "lines": [
     {
      "t": 0.45,

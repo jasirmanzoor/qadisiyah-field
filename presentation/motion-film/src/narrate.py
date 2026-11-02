@@ -16,6 +16,7 @@ for film in (sys.argv[1:] or sc['films'].keys()):
             d = len(a) / sr; lines.append((lt, a)); sl.append({'t': round(lt - s0, 3), 'dur': round(d, 3), 'text': text})
             lt += d + (GAP if j < len(s['lines']) - 1 else 0)
         t = lt + s.get('tail', .55) + s.get('pad', 0)
+        if 'dur' in s: t = max(t, s0 + s['dur'])
         scenes.append({'id': s['id'], 'start': round(s0, 3), 'end': round(t, 3), 'lines': sl})
     total = t
     track = np.zeros(int(total * SR) + SR, np.float32)

@@ -72,7 +72,7 @@ const DR = { ready: false };
     await Promise.all(w.chunks.map(async c => { const img = await loadImg(`${base}sat/${c.f}.jpg`); if (!img) return; CH.push({ c, t: tex(img) }); }));
     CH.sort((a, b) => a.c.L - b.c.L);
     // the skyline stands in 3D (KAFD, and true towers anywhere); the imagery carries the low-rise city and the districts
-    buildings(w.b.filter(b => { const f = b[2]; const near = Math.hypot(f[0], f[1]) < 2600; return (near && b[0] >= 24) || b[0] >= 80; }));
+    buildings(w.b.filter(b => { const f = b[2]; const near = Math.hypot(f[0], f[1]) < 2600; return near && b[0] >= 24; }));
     DR.ready = true;
   };
   /* ---------- camera ---------- */
@@ -113,26 +113,35 @@ const DR = { ready: false };
 
 /* ---------- the flight path ---------- */
 // keys: time (s, for the full 13 s flight), eye, look-at. Al Qadisiyah ~ (18429, -6910), Al Shifa ~ (4323, 23998)
+// The flight, 50 s. Keys: time (s), eye, look-at, in local metres (x east, z south). Al Qadisiyah ~ (18429, -6910), Al Shifa ~ (4323, 23998).
+// A Hermite spline in time (tangents from the neighbouring keys over their time span) keeps velocity continuous through every key:
+// no lurches between legs, and the camera eases in and out at the two ends.
+const F_END = 50;
 const FLY = [
-  [0.0, [-1900, 170, 1100], [200, 180, -150]],
-  [2.4, [800, 420, -650], [3400, 220, -1500]],
-  [4.0, [7200, 1500, -2700], [14200, 500, -5700]],
-  [5.6, [15600, 560, -5200], [18300, 0, -6900]],
-  [7.6, [20200, 420, -4600], [18200, 0, -7000]],
-  [9.2, [14500, 3600, 3500], [8000, 0, 15500]],
-  [10.9, [5600, 1700, 22300], [4400, 0, 24000]],
-  [13.0, [4323, 980, 24002], [4323, 0, 24004]],
+  [0, [-2700, 190, 1900], [0, 210, 0]],
+  [4, [-1500, 240, 900], [150, 230, -120]],
+  [8, [-350, 430, -950], [1500, 250, -700]],
+  [12, [2400, 1300, -2100], [8800, 300, -4300]],
+  [22, [13400, 1550, -5400], [18400, 0, -6900]],
+  [26, [16900, 700, -4400], [18420, 0, -6950]],
+  [30, [20000, 620, -6000], [18300, 0, -7000]],
+  [37, [15200, 3300, 3600], [8200, 0, 15600]],
+  [43, [6900, 2100, 19600], [4400, 0, 23400]],
+  [50, [4323, 1350, 23996], [4323, 0, 24004]],
 ];
-const CR = (p0, p1, p2, p3, u) => p1.map((_, i) => .5 * (2 * p1[i] + (-p0[i] + p2[i]) * u + (2 * p0[i] - 5 * p1[i] + 4 * p2[i] - p3[i]) * u * u + (-p0[i] + 3 * p1[i] - 3 * p2[i] + p3[i]) * u * u * u));
+function hermiteKeys(k, t) {
+  const n = FLY.length; t = clamp(t, 0, F_END); let i = 0; while (i < n - 2 && t > FLY[i + 1][0]) i++;
+  const vel = j => { const p = FLY[Math.max(0, j - 1)], q = FLY[Math.min(n - 1, j + 1)], dt = q[0] - p[0]; const v = q[k].map((x, d) => (x - p[k][d]) / dt); return (j === 0 || j === n - 1) ? v.map(x => x * .35) : v; };
+  const a = FLY[i], b = FLY[i + 1], h = b[0] - a[0], u = clamp((t - a[0]) / h), va = vel(i), vb = vel(i + 1);
+  const h00 = 2 * u ** 3 - 3 * u * u + 1, h10 = u ** 3 - 2 * u * u + u, h01 = -2 * u ** 3 + 3 * u * u, h11 = u ** 3 - u * u;
+  return a[k].map((x, d) => h00 * x + h10 * h * va[d] + h01 * b[k][d] + h11 * h * vb[d]);
+}
 function flyCam(t) {
-  t = clamp(t, 0, 13); let i = 0; while (i < FLY.length - 2 && t > FLY[i + 1][0]) i++;
-  const a = FLY[Math.max(0, i - 1)], b = FLY[i], c = FLY[i + 1], d = FLY[Math.min(FLY.length - 1, i + 2)];
-  const u = sm(0, 1, (t - b[0]) / (c[0] - b[0])) * .3 + ((t - b[0]) / (c[0] - b[0])) * .7;
-  const eye = CR(a[1], b[1], c[1], d[1], u), at = CR(a[2], b[2], c[2], d[2], u);
-  // the last stretch looks straight down: switch the up vector to north as the view turns vertical
-  const down = sm(11.2, 12.6, t);
-  const up = [0, 1 - down, -down];
-  return { eye, at, up, fov: lerp(.95, .8, down) };
+  const eye = hermiteKeys(1, t), at = hermiteKeys(2, t);
+  // the last stretch looks straight down; the up vector turns to north as the view goes vertical, and the frame turns slowly
+  const down = sm(44.5, 48.5, t), rot = (t - 44) * .02 * down;
+  const up = [Math.sin(rot) * down, 1 - down, -Math.cos(rot) * down];
+  return { eye, at, up, fov: lerp(.9, .78, down) };
 }
 const KM = [18.4, -6.9], DIST = (a, b) => Math.hypot(a[0] - b[0], a[2] - b[2]);
 
@@ -146,7 +155,7 @@ function droneShot(tf, o = {}) {
   // a cool grade and vignette so the white type and blue light read
   const vg = X.createRadialGradient(W / 2, H / 2, H * .3, W / 2, H / 2, H); vg.addColorStop(0, 'rgba(3,10,30,0)'); vg.addColorStop(1, 'rgba(3,10,30,.55)'); X.fillStyle = vg; X.fillRect(0, 0, W, H);
   // showrooms: light columns that rise as the drone arrives over each district
-  const riseQ = sm(4.6, 6.2, tf), riseS = sm(10.2, 11.6, tf);
+  const riseQ = sm(21, 25, tf), riseS = sm(43, 47, tf);
   X.save(); X.globalCompositeOperation = 'lighter'; X.lineCap = 'round';
   for (const [x, z, dist, inv] of DPINS) {
     const r = dist ? riseS : riseQ; if (r <= .01) continue;
@@ -160,14 +169,14 @@ function droneShot(tf, o = {}) {
   X.restore();
   // place labels pinned to the ground
   const tag = (txt, p, a) => { const s = DR.project(M, p); if (!s || a < .01) return; X.save(); X.globalAlpha = a; X.strokeStyle = 'rgba(255,255,255,.8)'; X.lineWidth = 1.5; X.beginPath(); X.moveTo(s[0], s[1]); X.lineTo(s[0], s[1] - 70); X.stroke(); X.fillStyle = '#fff'; X.beginPath(); X.arc(s[0], s[1], 5, 0, 7); X.fill(); X.font = `700 22px ${FAM.m}`; X.letterSpacing = '3px'; X.fillStyle = 'rgba(3,10,30,.7)'; const w = X.measureText(txt).width; X.fillRect(s[0] - 12, s[1] - 112, w + 24, 36); X.fillStyle = '#fff'; X.fillText(txt, s[0], s[1] - 86); X.letterSpacing = '0px'; X.restore(); };
-  tag('KAFD', [0, 260, 0], 1 - sm(1.6, 2.6, tf));
-  tag('AL QADISIYAH · 309 SHOWROOMS', [18430, 0, -6910], sm(5.2, 5.8, tf) * (1 - sm(8.6, 9.2, tf)));
-  tag('AL SHIFA · 211 SHOWROOMS', [4323, 0, 23998], sm(11.4, 12.0, tf));
+  tag('KAFD', [0, 300, 0], sm(.5, 1.5, tf) * (1 - sm(7, 8.5, tf)));
+  tag('AL QADISIYAH · 309 SHOWROOMS', [18430, 0, -6910], sm(22.5, 23.5, tf) * (1 - sm(30.5, 31.5, tf)));
+  tag('AL SHIFA · 211 SHOWROOMS', [4323, 0, 23998], sm(45, 46, tf));
   // flight HUD
   const ep = flyCam(Math.max(0, tf - .05)).eye, sp = Math.hypot(cam.eye[0] - ep[0], cam.eye[2] - ep[2]) / .05 * 3.6;
   const hd = (Math.atan2(cam.at[0] - cam.eye[0], -(cam.at[2] - cam.eye[2])) * 180 / Math.PI + 360) % 360;
   hud(lt, o.label || 'DRONE · KAFD → AL QADISIYAH → AL SHIFA');
   mono(`ALT ${String(Math.round(cam.eye[1])).padStart(4, '0')} M   HDG ${String(Math.round(hd)).padStart(3, '0')}°`, 76, H - 70, 18, [220, 230, 255], .9);
-  const leg = tf < 5.6 ? ['KAFD → AL QADISIYAH', 19.7 * sm(0, 5.6, tf)] : ['AL QADISIYAH → AL SHIFA', 34.1 * sm(8, 12, tf)];
+  const leg = tf < 30 ? ['KAFD → AL QADISIYAH', 19.7 * sm(8, 24, tf)] : ['AL QADISIYAH → AL SHIFA', 34.1 * sm(30, 46, tf)];
   mono(`${leg[0]}  ${leg[1].toFixed(1)} KM`, 76, H - 100, 18, C2.teal, .95);
 }

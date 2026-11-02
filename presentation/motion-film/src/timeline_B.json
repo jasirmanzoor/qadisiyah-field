@@ -1,5 +1,5 @@
 {
- "total": 95.48,
+ "total": 141.682,
  "scenes": [
   {
    "id": "B1",
@@ -19,21 +19,45 @@
    ]
   },
   {
-   "id": "B2",
+   "id": "B2a",
    "start": 8.061,
-   "end": 21.1,
+   "end": 30.061,
    "lines": [
     {
-     "t": 4.6,
-     "dur": 5.689,
-     "text": "So we walked it. Door to door, by day and after dark, across Al Qaadiseeya and Al Shiffa."
+     "t": 4.0,
+     "dur": 3.261,
+     "text": "So we walked it. Door to door, by day and after dark."
+    }
+   ]
+  },
+  {
+   "id": "B2b",
+   "start": 30.061,
+   "end": 38.061,
+   "lines": [
+    {
+     "t": 0.6,
+     "dur": 5.56,
+     "text": "First, Al Qaadiseeya. Nineteen kilometres east of KAFD, three hundred and nine showrooms."
+    }
+   ]
+  },
+  {
+   "id": "B2c",
+   "start": 38.061,
+   "end": 58.061,
+   "lines": [
+    {
+     "t": 4.5,
+     "dur": 4.639,
+     "text": "Then Al Shiffa, twenty four kilometres south. Two hundred and eleven more."
     }
    ]
   },
   {
    "id": "B3",
-   "start": 21.1,
-   "end": 34.326,
+   "start": 58.061,
+   "end": 71.287,
    "lines": [
     {
      "t": 0.45,
@@ -49,8 +73,8 @@
   },
   {
    "id": "B4",
-   "start": 34.326,
-   "end": 46.643,
+   "start": 71.287,
+   "end": 83.604,
    "lines": [
     {
      "t": 0.45,
@@ -66,8 +90,8 @@
   },
   {
    "id": "B5",
-   "start": 46.643,
-   "end": 65.096,
+   "start": 83.604,
+   "end": 102.056,
    "lines": [
     {
      "t": 0.45,
@@ -88,8 +112,8 @@
   },
   {
    "id": "B6",
-   "start": 65.096,
-   "end": 71.282,
+   "start": 102.056,
+   "end": 108.243,
    "lines": [
     {
      "t": 0.45,
@@ -100,8 +124,8 @@
   },
   {
    "id": "B7",
-   "start": 71.282,
-   "end": 86.383,
+   "start": 108.243,
+   "end": 123.344,
    "lines": [
     {
      "t": 0.45,
@@ -121,9 +145,26 @@
    ]
   },
   {
+   "id": "B7b",
+   "start": 123.344,
+   "end": 132.585,
+   "lines": [
+    {
+     "t": 0.6,
+     "dur": 1.638,
+     "text": "And the lenders are coming with us."
+    },
+    {
+     "t": 2.738,
+     "dur": 4.553,
+     "text": "Saudi Arabia's leading banks and finance companies, partnering with AutoLink."
+    }
+   ]
+  },
+  {
    "id": "B8",
-   "start": 86.383,
-   "end": 95.48,
+   "start": 132.585,
+   "end": 141.682,
    "lines": [
     {
      "t": 0.45,

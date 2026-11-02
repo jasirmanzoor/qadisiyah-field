@@ -3,7 +3,7 @@
 // Score in code (Web Audio, OfflineAudioContext), shaped by the film's timeline: each scene has a mood, every scene
 // change gets a soft hit at the centre of its transition, a riser leads into the close and a big hit lands on the logo.
 const MOOD = {
-  T1: 'tension', B1: 'tension', T2: 'walk', B2: 'walk', T3: 'build', B3: 'build', B4: 'build', B6: 'build',
+  T1: 'tension', B1: 'tension', T2: 'walk', B2: 'walk', B2a: 'walk', B2b: 'build', B2c: 'walk', A4b: 'lift', B7b: 'triumph', T3: 'build', B3: 'build', B4: 'build', B6: 'build',
   T4: 'question', A1: 'question', A2: 'tension', B5: 'tension',
   T5: 'lift', A3: 'lift', A4: 'lift', A6: 'lift', A5: 'warm',
   T6: 'triumph', A7: 'triumph', B7: 'triumph', T7: 'resolve', B8: 'resolve',
@@ -51,7 +51,7 @@ window.renderScore = async function (tl) {
       if (e >= .85) noise(t + BEAT / 2, .04, 'highpass', 8500, .6, .05);
       if (m === 'question' && k % 2 === 0) tone(t, c[3] * 2, 1.6, 'sine', .06, 3000, .005, .2);
     }
-    if (i > 0) { whoosh(s.start, .7, .16); hit(s.start, false); }
+    if (i > 0 && !['B2b', 'B2c'].includes(s.id)) { whoosh(s.start, .7, .16); hit(s.start, false); }
   });
   const last = scenes[scenes.length - 1];
   riser(Math.max(0, last.start - 2.2), last.start, .22); hit(last.start + .02, true);
