@@ -1,0 +1,146 @@
+[
+ {
+  "id": "albilad",
+  "name": "Bank Albilad",
+  "kind": "bank",
+  "fill": 0,
+  "w": 777,
+  "h": 248
+ },
+ {
+  "id": "ajb",
+  "name": "Bank Aljazira",
+  "kind": "bank",
+  "fill": 1,
+  "w": 778,
+  "h": 307
+ },
+ {
+  "id": "alinma",
+  "name": "Alinma Bank",
+  "kind": "bank",
+  "fill": 0,
+  "w": 610,
+  "h": 234
+ },
+ {
+  "id": "anb",
+  "name": "Arab National Bank",
+  "kind": "bank",
+  "fill": 0,
+  "w": 545,
+  "h": 288
+ },
+ {
+  "id": "alrajhi",
+  "name": "Al Rajhi Bank",
+  "kind": "bank",
+  "fill": 0,
+  "w": 779,
+  "h": 276
+ },
+ {
+  "id": "snb",
+  "name": "Saudi National Bank",
+  "kind": "bank",
+  "fill": 0,
+  "w": 434,
+  "h": 212
+ },
+ {
+  "id": "riyad",
+  "name": "Riyad Bank",
+  "kind": "bank",
+  "fill": 0,
+  "w": 780,
+  "h": 204
+ },
+ {
+  "id": "enbd",
+  "name": "Emirates NBD",
+  "kind": "bank",
+  "fill": 1,
+  "w": 590,
+  "h": 191
+ },
+ {
+  "id": "raya",
+  "name": "Raya Financing",
+  "kind": "fin",
+  "fill": 0,
+  "w": 564,
+  "h": 205
+ },
+ {
+  "id": "nama",
+  "name": "Nama United Financing",
+  "kind": "fin",
+  "fill": 0,
+  "w": 432,
+  "h": 303
+ },
+ {
+  "id": "tarabut",
+  "name": "Tarabut",
+  "kind": "fin",
+  "fill": 0,
+  "w": 717,
+  "h": 187
+ },
+ {
+  "id": "taajeer",
+  "name": "Taajeer Finance",
+  "kind": "fin",
+  "fill": 0,
+  "w": 780,
+  "h": 237
+ },
+ {
+  "id": "nfh",
+  "name": "National Finance House",
+  "kind": "fin",
+  "fill": 0,
+  "w": 780,
+  "h": 288
+ },
+ {
+  "id": "tamam",
+  "name": "Tamam",
+  "kind": "fin",
+  "fill": 0,
+  "w": 364,
+  "h": 65
+ },
+ {
+  "id": "aloula",
+  "name": "Tamweel Aloula",
+  "kind": "fin",
+  "fill": 0,
+  "w": 436,
+  "h": 109
+ },
+ {
+  "id": "alj",
+  "name": "Abdul Latif Jameel Finance",
+  "kind": "fin",
+  "fill": 0,
+  "w": 446,
+  "h": 74
+ },
+ {
+  "id": "yanal",
+  "name": "Yanal Finance",
+  "kind": "fin",
+  "fill": 0,
+  "w": 486,
+  "h": 165
+ },
+ {
+  "id": "yusr",
+  "name": "Al Yusr Leasing & Financing",
+  "kind": "fin",
+  "fill": 1,
+  "w": 486,
+  "h": 174
+ }
+]

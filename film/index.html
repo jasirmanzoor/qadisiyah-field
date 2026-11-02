@@ -452,9 +452,9 @@ function sData(t){
   // card frame grows from sparkline
   const g=eio(P(t,19.05,0.45));
   const flip=P(t,20.0,0.42); const fs=Math.abs(Math.cos(Math.PI*eio(flip)));const back=eio(flip)>0.5;
-  const net=eio(P(t,21.0,0.4)); // card shrinks left
-  const conv=eio(P(t,21.5,0.42));
-  const sc=lerp(1,0.5,net)*(1-conv), ox=lerp(0,-640,net)*(1-conv);
+  const net=eio(P(t,20.5,0.4)); // card shrinks left
+  const conv=eio(P(t,21.62,0.36)); // everything converges into the AI node
+  const sc=lerp(1,0.42,net)*(1-conv), ox=lerp(lerp(0,-700,net),AI[0]-960,conv);
   if(t<19.05){
     // axis + caption
     const ap=eo(P(t,17.7,0.5));ctx.fillStyle=C.ink;ctx.fillRect(120,902,1680*ap,3);
@@ -488,29 +488,52 @@ function sData(t){
   });
   ctx.restore();
   ctx.restore();
-  // network: card → AUTOLINK AI → 21 lenders
-  if(t>=21.0){
-    const cardR=[960-640+ (CARD.x+CARD.w-960)*0.5, 545];
-    const ai=[960,540];
-    const nodes=[];for(let i=0;i<21;i++){const c=i%3,r=Math.floor(i/3);nodes.push([1460+c*120,190+r*112,i<8])}
-    const cvp=conv;
-    const lp=eo(P(t,21.08,0.3));
-    ctx.save();ctx.strokeStyle=C.ink;ctx.lineWidth=3;
-    const A=[lerp(cardR[0],ai[0],cvp),lerp(cardR[1],ai[1],cvp)];
-    ctx.beginPath();ctx.moveTo(A[0],A[1]);ctx.lineTo(lerp(A[0],ai[0],lp),ai[1]);ctx.stroke();
-    ctx.lineWidth=1.6;
-    nodes.forEach((n,i)=>{const q=eo(P(t,21.1+i*0.01,0.25));const nx=lerp(n[0],ai[0],cvp),ny=lerp(n[1],ai[1],cvp);
-      ctx.beginPath();ctx.moveTo(ai[0],ai[1]);ctx.lineTo(lerp(ai[0],nx,q),lerp(ai[1],ny,q));ctx.stroke()});
-    nodes.forEach((n,i)=>{const q=eo(P(t,21.18+i*0.01,0.22))*(1-cvp);if(q<=0)return;const nx=lerp(n[0],ai[0],cvp),ny=lerp(n[1],ai[1],cvp);
-      ctx.fillStyle=n[2]?C.blue:C.sky;ctx.beginPath();if(n[2])ctx.rect(nx-22*q,ny-22*q,44*q,44*q);else ctx.arc(nx,ny,23*q,0,7);ctx.fill()});
-    ctx.restore();
-    // AI node
-    const ap=eo(P(t,21.0,0.3));const ar=lerp(70,0,eio(P(t,21.75,0.25)))*ap;
-    if(ar>0){ctx.save();ctx.translate(ai[0],ai[1]);ctx.rotate(Math.PI/4);rect(-ar,-ar,ar*2,ar*2,C.orange);ctx.restore();}
-    word('AUTOLINK AI',{t,x:960,y:690,size:44,wt:900,ls:0,align:'center',tin:21.1,tout:21.55});
-    word('21 LENDERS',{t,x:1580,y:1000,size:44,wt:900,ls:0,align:'center',tin:21.3,tout:21.55});
-    word('FINANCE, FACILITATED.',{t,x:960,y:150,size:96,align:'center',tin:21.5,tout:21.85,color:C.ink});
-  }
+  // network: card → AUTOLINK AI → the banks & finance companies (logo wall)
+  if(t>=20.5) network2(t,conv);
+}
+const AI=[640,540];
+const LG={w:250,h:100,g:12,x:804,y:258};
+function logoSlot(i){ // banks: rows 0-1, finance: rows 2-4 (last row centred)
+  const row=Math.floor(i/4),col=i%4; let x=LG.x+col*(LG.w+LG.g), y=LG.y+row*(LG.h+LG.g)+(row>=2?16:0);
+  if(row===4){x+=(LG.w+LG.g)/2}
+  return {x,y,w:LG.w,h:LG.h}}
+function logoTile(lg,r,s){
+  if(s<=0)return; const cx=r.x+r.w/2,cy=r.y+r.h/2,w=r.w*s,h=r.h*s,x=cx-w/2,y=cy-h/2;
+  ctx.save();rrect(x,y,w,h,12*s);ctx.fillStyle=C.white;ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#DCE1EA';ctx.stroke();
+  rrect(x,y,w,h,12*s);ctx.clip();
+  if(lg.img){
+    if(lg.fill){ // full-bleed brand plates
+      const a=lg.img.width/lg.img.height; let dw=w,dh=w/a; if(dh>h){dh=h;dw=h*a}
+      ctx.fillStyle=lg.bg;ctx.fillRect(x,y,w,h);ctx.drawImage(lg.img,cx-dw/2,cy-dh/2,dw,dh);
+    }else{const pad=14*s,a=lg.img.width/lg.img.height;let dw=w-2*pad,dh=dw/a;if(dh>h-2*pad){dh=h-2*pad;dw=dh*a}
+      ctx.drawImage(lg.img,cx-dw/2,cy-dh/2,dw,dh)}
+  }else{font(30*s,800);ctx.fillStyle=C.ink;ctx.textAlign='center';ctx.fillText(lg.name,cx,cy+10*s);ctx.textAlign='left'}
+  ctx.restore();
+}
+function network2(t,conv){
+  const cardR=[260+760*0.42/2,545];
+  const LGS=window.LOGOS||[];
+  const lp=eo(P(t,20.78,0.22));
+  ctx.save();ctx.strokeStyle=C.ink;ctx.lineWidth=3;
+  const A0=[lerp(cardR[0],AI[0],conv),cardR[1]];
+  ctx.beginPath();ctx.moveTo(A0[0],A0[1]);ctx.lineTo(lerp(A0[0],AI[0],lp),lerp(A0[1],AI[1],lp));ctx.stroke();
+  // fan of lines (drawn under the tiles)
+  ctx.lineWidth=1.6;
+  const T=i=>i<8?20.84+i*0.022:21.02+(i-8)*0.024;
+  LGS.forEach((lg,i)=>{const r=logoSlot(i);const q=eo(P(t,T(i)-0.06,0.22));if(q<=0)return;
+    const tx=lerp(r.x,AI[0],conv),ty=lerp(r.y+r.h/2,AI[1],conv);
+    ctx.beginPath();ctx.moveTo(AI[0],AI[1]);ctx.lineTo(lerp(AI[0],tx,q),lerp(AI[1],ty,q));ctx.stroke()});
+  ctx.restore();
+  // tiles pop in (no overshoot) and later collapse into the AI node
+  LGS.forEach((lg,i)=>{const r0=logoSlot(i);const q=eo(P(t,T(i),0.26));
+    const r={x:lerp(r0.x,AI[0]-r0.w/2,conv),y:lerp(r0.y,AI[1]-r0.h/2,conv),w:r0.w,h:r0.h};
+    logoTile(lg,r,lerp(0.55,1,q)*(q>0?1:0)*(1-conv))});
+  // AI node
+  const ap=eo(P(t,20.72,0.26));const ar=lerp(56,0,eio(P(t,21.8,0.2)))*ap;
+  if(ar>0){ctx.save();ctx.translate(AI[0],AI[1]);ctx.rotate(Math.PI/4);rect(-ar,-ar,ar*2,ar*2,C.orange);ctx.restore();}
+  word('AUTOLINK AI',{t,x:AI[0],y:AI[1]+128,size:40,wt:900,ls:0,align:'center',tin:20.8,tout:21.55});
+  word('FINANCE, FACILITATED.',{t,x:960,y:190,size:100,align:'center',tin:21.0,tout:21.6,color:C.ink});
+  word('BANKS & FINANCE COMPANIES',{t,x:LG.x,y:905,size:30,wt:800,ls:0.05,tin:21.1,tout:21.45});
 }
 
 /* Bar 12 — TYPE STACK: NO ONE HAD / MAPPED / THIS MARKET / BEFORE. */
@@ -672,5 +695,9 @@ window.ready=(async()=>{
   for(const [u,w] of faces){const f=new FontFace('Inter Display',`url(${u})`,{weight:w});await f.load();document.fonts.add(f)}
   const ims=await Promise.all(Array.from({length:63},(_,i)=>loadImg(`img/p${String(i).padStart(2,'0')}.jpg`)));
   ims.forEach((m,i)=>IM[i]=m);
+  const order=['albilad','ajb','alinma','anb','alrajhi','snb','riyad','enbd','raya','nama','tarabut','aljabr','taajeer','nfh','tamam','aloula','alj','yanal','yusr'];
+  const names={aljabr:'Al Jabr Finance'};const bgs={ajb:'#6B6B6B',enbd:'#0B2147',yusr:'#0E3460'};
+  const fill={ajb:1,enbd:1,yusr:1};
+  window.LOGOS=await Promise.all(order.map(async id=>({id,name:names[id]||id,fill:!!fill[id],bg:bgs[id]||'#fff',img:names[id]?null:await loadImg('logos/'+id+'.png')})));
   ctx=AX;prep();window.seek(0);return true})();
 </script></body></html>
