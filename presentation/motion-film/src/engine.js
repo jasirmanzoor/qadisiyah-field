@@ -289,7 +289,9 @@ window.seek = function (t) {
   else if (pv && t < sc.start + XF / 2 && !(contOf(sc) && contOf(pv))) { a = i - 1; b = i; p = (t - (sc.start - XF / 2)) / XF; }
   const bgOf = j => (BGS[FILM.scenes[j].id] || BGS._)(t - FILM.scenes[j].start);
   const BB = a !== null ? lerpBG(bgOf(a), bgOf(b), eio(p)) : bgOf(i);
-  drawBG(BB, t);
+  // an inserted section shifts later scenes in time; the background clock eases back by the same amount so reused frames join seamlessly
+  const bs = FILM.bgshift, tb = bs ? t - bs.off * eio(clamp((t - bs.t0) / (bs.t1 - bs.t0))) : t;
+  drawBG(BB, tb);
   g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H); g.filter = 'none'; g.globalAlpha = 1;
   if (a === null) drawScene(i, t, g);
   else {
