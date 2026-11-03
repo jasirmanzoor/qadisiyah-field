@@ -29,7 +29,7 @@ window.ready = (async () => {
   const film = new URLSearchParams(location.search).get('film') || 'teaser';
   await Promise.all([400, 500, 700, 900].map(w => document.fonts.load(`${w} 64px ID`)).concat([document.fonts.load('500 20px JB'), document.fonts.load('700 20px JB')]));
   FILM = await (await fetch(`timeline_${film}.json`)).json(); FILM.id = film;
-  const names = ['n-rc-night', 'q-riyadhcars-night', 'n-redcarpet', 'q-luxhall', 's-hall', 'n-porsche-row', 'q-barimi-rolls', 'n-rc-hall', 's-sunset-row', 'n-gclass-front', 'q-safh-dark', 's-glass', 'q-porsche', 'n-hexhall', 's-jeeps'];
+  const names = ['q-street-fullspeed', 'n-rc-night', 'q-riyadhcars-night', 'n-redcarpet', 'q-luxhall', 's-hall', 'n-porsche-row', 'q-barimi-rolls', 'n-rc-hall', 's-sunset-row', 'n-gclass-front', 'q-safh-dark', 's-glass', 'q-porsche', 'n-hexhall', 's-jeeps'];
   await Promise.all(names.map(async n => { IMG[n] = await loadImg(`img/${n}.jpg`); }));
   for (const n of ['loopmark', 'wordmark']) IMG[n] = await loadImg(`img/brand/${n}.png`);
   IMG.keyvisual = await loadImg('img/brand/keyvisual.jpg');

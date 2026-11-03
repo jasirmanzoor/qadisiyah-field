@@ -6,12 +6,12 @@
 /* ---------- B2d: the viewfinder reel ---------- */
 // photo, focus point (fraction of the frame), district stamp
 const EVID = [
-  ['q-riyadhcars-night', .50, .66, 'AL QADISIYAH'],
+  ['q-riyadhcars-night', .62, .40, 'AL QADISIYAH'],
   ['q-luxhall', .46, .62, 'AL QADISIYAH'],
-  ['s-hall', .55, .60, 'AL SHIFA'],
+  ['s-hall', .42, .64, 'AL SHIFA'],
   ['q-street-fullspeed', .42, .58, 'AL QADISIYAH'],
-  ['n-porsche-row', .58, .64, 'RIYADH'],
-  ['s-sunset-row', .50, .62, 'AL SHIFA'],
+  ['n-porsche-row', .62, .50, 'RIYADH'],
+  ['s-sunset-row', .76, .80, 'AL SHIFA'],
 ];
 function bracketSet(cx, cy, w, h, len, col, a, lw) {
   X.save(); X.globalAlpha = a; X.strokeStyle = col; X.lineWidth = lw; X.lineCap = 'square';
@@ -71,7 +71,7 @@ SC2.B2d = (lt, D, L) => {
   const fr = Math.floor(lt * 24), tc = `00:00:${String(Math.floor(fr / 24)).padStart(2, '0')}:${String(fr % 24).padStart(2, '0')}`;
   mono(tc, 220, 103, 22, [255, 255, 255], .8);
   mono(dist, W - 92, 103, 22, [255, 255, 255], .95, 'right');
-  mono('SEEN IN PERSON', W - 92, 140, 17, C2.teal, .9, 'right');
+  mono('SEEN IN PERSON', W - 92, 140, 17, [255, 255, 255], .75, 'right');
   // the "logged" tag beside the focus box
   if (u > cap + .05) {
     const p = S(u - cap - .05, 160);
@@ -88,10 +88,10 @@ SC2.B2d = (lt, D, L) => {
   evidChip(MX, 480, 'PRICES ON THE GLASS', S(lt - (a0 + d0 * .60), 150));
   evidChip(MX, 568, 'HOW IT IS PRESENTED', S(lt - t1, 150));
   // the captured frames collect along the bottom
-  const tw = 176, th = 104, gx = 16, x1 = W - 92;
+  const tw = 150, th = 88, gx = 12, x1 = W - 92;
   for (let i = 0; i < n; i++) {
     const tc2 = t0 + i * sd + cap + .1, p = S(lt - tc2, 130); if (p < .004) continue;
-    const x = x1 - (n - i) * (tw + gx) + gx, y = H - 160 + (1 - p) * 40;
+    const x = x1 - (n - i) * (tw + gx) + gx, y = 184 - (1 - p) * 30;
     X.save(); X.globalAlpha = Math.min(1, p * 1.6); X.shadowColor = 'rgba(0,0,0,.5)'; X.shadowBlur = 22;
     photo(IMG[EVID[i][0]], x, y, tw, th, { r: 12, zoom: 1.1 }); X.shadowColor = 'transparent';
     X.strokeStyle = i === idx && lt < D - .9 ? rgba(C2.teal) : 'rgba(255,255,255,.55)'; X.lineWidth = 2.5; rr(x, y, tw, th, 12); X.stroke(); X.restore();
@@ -117,7 +117,7 @@ const WALK = (() => {
 const SHIFA_CHUNKS = [['00', 2587.93, 22411.37], ['10', 3698.46, 22411.37], ['20', 4808.99, 22411.37], ['01', 2587.93, 23521.91], ['11', 3698.46, 23521.91], ['21', 4808.99, 23521.91], ['02', 2587.93, 24632.44], ['12', 3698.46, 24632.44], ['22', 4808.99, 24632.44]];
 const APPG = '#1d6b50', APPBG = '#f6f4ee';
 function appMap(w, h, prog) {
-  const cx = 4560, cz = 23950, s = w / 1900;
+  const cx = 4330, cz = 23930, s = w / 1450;
   X.save(); rr(0, 0, w, h, 22); X.clip(); X.fillStyle = '#ddd'; X.fillRect(0, 0, w, h);
   SHIFA_CHUNKS.forEach(([k, x0, z0]) => { const im = IMG['sh-' + k]; if (!im) return; X.drawImage(im, (x0 - cx) * s + w / 2, (z0 - cz) * s + h / 2, 1110.53 * s + 1, 1110.53 * s + 1); });
   X.fillStyle = 'rgba(255,255,255,.18)'; X.fillRect(0, 0, w, h);
@@ -152,7 +152,7 @@ function appUI(w, h, prog, lt) {
   // progress card
   const n = Math.round(prog * WALK.length);
   X.fillStyle = '#fff'; X.shadowColor = 'rgba(0,0,0,.12)'; X.shadowBlur = 22; X.shadowOffsetY = 8; rr(22, 636, w - 44, 118, 22); X.fill(); X.shadowColor = 'transparent';
-  X.textAlign = 'left'; X.fillStyle = '#1b2a2a'; X.font = `700 21px ${FAM.s}`; X.fillText('Used-car market', 42, 676);
+  X.textAlign = 'left'; X.fillStyle = '#1b2a2a'; X.font = `700 21px ${FAM.s}`; X.fillText('Al Shifa', 42, 676);
   X.textAlign = 'right'; X.fillStyle = '#6d7a76'; X.font = `600 18px ${FAM.s}`; X.fillText(`${n} / ${WALK.length} pinned`, w - 42, 676);
   X.fillStyle = '#e4e1d6'; rr(42, 696, w - 84, 8, 4); X.fill(); X.fillStyle = APPG; rr(42, 696, Math.max(8, (w - 84) * prog), 8, 4); X.fill();
   X.fillStyle = APPG; rr(42, 716, w - 84, 22, 11); X.globalAlpha = 0; X.fill(); X.globalAlpha = 1;
@@ -166,12 +166,12 @@ function sheetUI(w, h, lt, t0) {
   X.fillStyle = '#115c3d'; X.font = `700 18px ${FAM.m}`; head.forEach((t, i) => X.fillText(t, cols[i], 117));
   SHEET.forEach((r, i) => {
     const p = S(lt - (t0 + .15 + i * .26), 150); if (p < .004) return;
-    const y = 140 + i * 66 + (1 - p) * 26;
-    X.globalAlpha = Math.min(1, p * 1.6); X.fillStyle = i % 2 ? '#f1f7f4' : '#fff'; X.fillRect(0, y, w, 66);
-    X.fillStyle = '#16211d'; X.font = `500 21px ${FAM.m}`; X.fillText(r[0], cols[0], y + 41);
-    X.font = `600 22px ${FAM.s}`; X.fillText(r[1], cols[1], y + 41);
-    X.fillStyle = '#4b5a54'; X.font = `500 21px ${FAM.s}`; X.fillText('Al Shifa', cols[2], y + 41);
-    X.font = `500 21px ${FAM.m}`; X.fillText(r[2], cols[3], y + 41); X.globalAlpha = 1;
+    const y = 140 + i * 62 + (1 - p) * 26;
+    X.globalAlpha = Math.min(1, p * 1.6); X.fillStyle = i % 2 ? '#f1f7f4' : '#fff'; X.fillRect(0, y, w, 62);
+    X.fillStyle = '#16211d'; X.font = `500 21px ${FAM.m}`; X.fillText(r[0], cols[0], y + 39);
+    X.font = `600 22px ${FAM.s}`; X.fillText(r[1], cols[1], y + 39);
+    X.fillStyle = '#4b5a54'; X.font = `500 21px ${FAM.s}`; X.fillText('Al Shifa', cols[2], y + 39);
+    X.font = `500 21px ${FAM.m}`; X.fillText(r[2], cols[3], y + 39); X.globalAlpha = 1;
   });
 }
 SC2.B2e = (lt, D, L) => {
@@ -181,8 +181,8 @@ SC2.B2e = (lt, D, L) => {
   line('Every door, on one map.', { x: MX, y: 262, size: 92, wt: 900, ls: -3, col: C2.navy, tin: a0, stag: .012 });
   const prog = clamp((lt - (a0 + .5)) / (d0 * .75 + 1.5)), prE = prog * prog * (3 - 2 * prog);
   const pS = S(lt - .15, 70), pP = S(lt - .5, 70);
-  glass(930, 660, 930, 600, { ry: .13, a: Math.min(1, pS * 1.5), lift: pS }, (w, h) => sheetUI(w, h, lt, a0 + .3));
-  glass(1560, 640, 372, 770, { ry: -.2, a: Math.min(1, pP * 1.5), lift: pP, r: 54 }, (w, h) => appUI(w, h, prE, lt));
+  glass(900, 650, 930, 640, { ry: .13, a: Math.min(1, pS * 1.5), lift: pS }, (w, h) => sheetUI(w, h, lt, a0 + .3));
+  glass(1590, 640, 372, 770, { ry: -.2, a: Math.min(1, pP * 1.5), lift: pP, r: 54 }, (w, h) => appUI(w, h, prE, lt));
   mono(`${Math.round(prE * WALK.length)} PINS  ·  EVERY SHOWROOM AT ITS COORDINATES`, MX + 4, 1010, 20, C2.grey, S(lt - (a0 + 1), 200));
 };
 BG2.B2e = () => Object.assign({}, STUDIO, { wipe: WIPE_B });
