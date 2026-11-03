@@ -22,6 +22,7 @@ canvas{position:absolute;left:0;top:0;width:1920px;height:1080px}
 <script src="dronepins.js"></script>
 <script src="drone.js"></script>
 <script src="scenes3.js"></script>
+<script src="scenes4.js"></script>
 <script>
 Object.assign(SCENES, SC2); Object.assign(BGS, BG2);
 window.ready = (async () => {
@@ -33,6 +34,7 @@ window.ready = (async () => {
   for (const n of ['loopmark', 'wordmark']) IMG[n] = await loadImg(`img/brand/${n}.png`);
   IMG.keyvisual = await loadImg('img/brand/keyvisual.jpg');
   for (const k of ['albilad','alinma','anb','alrajhi','snb','riyad','enbd','raya','nama','tarabut','aljabr','taajeer','nfh','tamam','tamweel','alj','yanal','alyusr']) IMG['p-' + k] = await loadImg(`img/partners/${k}.png`);
+  for (const k of ['00','10','20','01','11','21','02','12','22']) IMG['sh-' + k] = await loadImg(`sat/shifa18-${k}.jpg`);
   await DR.load('');
   window.seek(0);
   return { film, total: FILM.total, scenes: FILM.scenes.map(s => s.id) };
