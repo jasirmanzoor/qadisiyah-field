@@ -380,23 +380,110 @@ SC2.A1 = (lt, D, L) => {
   }
 };
 BG2.A1 = () => SAND;
-// A2: the sale walks out (flame poster: ten sold, four walk away)
-SC2.A2 = (lt, D, L) => {
-  const t1 = ln2(L, 1), tl = t1 + ldur(L, 1) * .55;
-  marquee('THE SALE WALKS OUT OF THE DOOR', { y: 1075, size: 110, speed: 200, col: C2.ink, outline: true, a: .3 });
-  slam('NO FINANCE?', { x: MX, y: 250, size: 150, align: 'left', t0: ln2(L, 0), from: 1.3 });
-  slam('THE SALE WALKS.', { x: MX, y: 410, size: 150, align: 'left', t0: ln2(L, 0) + ldur(L, 0) * .55, from: 1.3, col: C2.white });
-  mono('WHAT OWNERS TOLD US', MX + 4, 500, 22, C2.ink, S(lt - t1, 200));
-  for (let i = 0; i < 10; i++) { const p = S(lt - (t1 + .2 + i * .05), 400); if (p < .004) continue; carIcon(MX + 80 + i * 150, 600 + (1 - p) * 40, 130, C2.ink, p); }
-  count(0, 10, { x: MX, y: 740, size: 110, t0: t1 + .2, dur: .6, wt: 900, col: C2.ink, post: 'SOLD', postSize: 44, tin: t1 + .1 });
-  for (let i = 0; i < 4; i++) {
-    const p = S(lt - (tl + i * .08), 400); if (p < .004) continue;
-    const go = ei(clamp((lt - (tl + 1.5 + i * .14)) / 1.1));
-    carIcon(MX + 80 + i * 150 + go * 1500, 850 + (1 - p) * 40, 130, C2.white, p, true);
+// A2: the sale walks out. A graded showroom at night, and fourteen cars on one floor line:
+// ten are sold and light up; four ready buyers fade out through the door
+function carPro(x, y, len, mode, a = 1) {   // a sleek side profile; mode 'sold' (lit body) or 'ghost' (outline)
+  if (a < .004) return;
+  const s = len / 100;
+  const body = () => {
+    X.beginPath(); X.moveTo(-48, 5); X.lineTo(-49.5, -1); X.quadraticCurveTo(-49, -6, -43, -7.5);
+    X.quadraticCurveTo(-31, -9, -24, -15); X.quadraticCurveTo(-17, -19.5, -4, -19.5); X.quadraticCurveTo(10, -19.5, 20, -11);
+    X.quadraticCurveTo(36, -9, 45, -6.5); X.quadraticCurveTo(50, -5, 50, 0); X.lineTo(49, 5); X.closePath();
+  };
+  X.save(); X.globalAlpha *= a; X.translate(x, y); X.scale(s, s);
+  if (mode === 'sold') {
+    X.shadowColor = 'rgba(86,132,255,.55)'; X.shadowBlur = 26 / s;
+    const g = X.createLinearGradient(0, -20, 0, 6); g.addColorStop(0, '#dfe8ff'); g.addColorStop(.45, '#7fa2ff'); g.addColorStop(1, '#2c5bf6');
+    body(); X.fillStyle = g; X.fill(); X.shadowColor = 'transparent';
+    // glasshouse
+    X.beginPath(); X.moveTo(-21, -13.5); X.quadraticCurveTo(-15, -17.6, -4, -17.6); X.quadraticCurveTo(8, -17.6, 16, -11.2); X.lineTo(-21, -11.2); X.closePath();
+    X.fillStyle = 'rgba(4,14,44,.82)'; X.fill();
+    // shoulder highlight
+    X.beginPath(); X.moveTo(-42, -6.4); X.quadraticCurveTo(0, -9.4, 44, -5.6); X.strokeStyle = 'rgba(255,255,255,.75)'; X.lineWidth = .7; X.stroke();
+  } else {
+    body(); X.strokeStyle = 'rgba(214,226,255,.7)'; X.lineWidth = 1.3 / s; X.setLineDash([3 / s, 2.4 / s]); X.stroke(); X.setLineDash([]);
   }
-  count(0, 4, { x: MX, y: 985, size: 110, t0: tl, dur: .5, wt: 900, col: C2.white, post: 'MORE WALK AWAY', postSize: 40, tin: tl - .05 });
+  for (const wx of [-29, 31]) {
+    X.beginPath(); X.arc(wx, 5, 7.2, 0, 7);
+    if (mode === 'sold') { X.fillStyle = '#050b1e'; X.fill(); X.beginPath(); X.arc(wx, 5, 4, 0, 7); X.strokeStyle = 'rgba(200,214,255,.8)'; X.lineWidth = 1.1; X.stroke(); }
+    else { X.fillStyle = 'rgba(3,8,24,.9)'; X.fill(); X.strokeStyle = 'rgba(214,226,255,.7)'; X.lineWidth = 1.3 / s; X.stroke(); }
+  }
+  X.restore();
+}
+SC2.A2 = (lt, D, L) => {
+  const t0 = ln2(L, 0), t1 = ln2(L, 1), d1 = ldur(L, 1);
+  // the graded floor: a real showroom at night, pushed slowly, in deep navy
+  photo(IMG['q-luxhall'], 0, 0, W, H, { r: 0, zoom: 1.08 + .06 * clamp(lt / D), px: .45 + .1 * clamp(lt / D), py: .4 });
+  X.fillStyle = 'rgba(2,10,34,.74)'; X.fillRect(0, 0, W, H);
+  let g = X.createLinearGradient(0, 0, W, 0); g.addColorStop(0, 'rgba(1,6,22,.85)'); g.addColorStop(.6, 'rgba(1,6,22,.25)'); g.addColorStop(1, 'rgba(1,6,22,.55)'); X.fillStyle = g; X.fillRect(0, 0, W, H);
+  g = X.createRadialGradient(W * .78, H * .2, 0, W * .78, H * .2, 900); g.addColorStop(0, 'rgba(86,132,255,.16)'); g.addColorStop(1, 'rgba(86,132,255,0)'); X.fillStyle = g; X.fillRect(0, 0, W, H);
+  // eyebrow and headline
+  const eb = S(lt - .15, 160);
+  X.save(); X.globalAlpha = eb; X.fillStyle = rgba(C2.teal); X.fillRect(MX, 133, 44 * eb, 2); X.restore();
+  mono('THE COST OF NO FINANCE', MX + 62, 142, 20, C2.teal, eb);
+  line('No finance on the floor,', { x: MX, y: 258, size: 84, wt: 700, ls: -2.5, col: C2.white, tin: t0, stag: .014 });
+  line('and the sale walks out.', { x: MX, y: 352, size: 84, wt: 700, ls: -2.5, col: C2.teal, tin: t0 + d1 * 0 + ldur(L, 0) * .5, stag: .014 });
+  // the panel
+  const pp = S(lt - (t0 + 1.2), 90), px0 = 84, py0 = 500, pw = W - 168, ph = 430;
+  if (pp > .004) {
+    X.save(); X.globalAlpha = pp; X.translate(0, (1 - pp) * 30);
+    X.fillStyle = 'rgba(8,18,52,.52)'; rr(px0, py0, pw, ph, 28); X.fill();
+    const bg = X.createLinearGradient(0, py0, 0, py0 + ph); bg.addColorStop(0, 'rgba(160,190,255,.32)'); bg.addColorStop(1, 'rgba(160,190,255,.06)');
+    X.strokeStyle = bg; X.lineWidth = 1.5; rr(px0, py0, pw, ph, 28); X.stroke();
+    const sw = lerp(-.2, 1.2, clamp((lt - (t0 + 1.4)) / 2.2));   // one light sweep along the top edge
+    const hl = X.createLinearGradient(px0, 0, px0 + pw, 0); hl.addColorStop(clamp(sw - .12), 'rgba(255,255,255,0)'); hl.addColorStop(clamp(sw), 'rgba(255,255,255,.7)'); hl.addColorStop(clamp(sw + .12), 'rgba(255,255,255,0)');
+    X.strokeStyle = hl; X.lineWidth = 2; X.beginPath(); X.moveTo(px0 + 28, py0); X.lineTo(px0 + pw - 28, py0); X.stroke();
+    mono('WHAT OWNERS TOLD US', px0 + 56, py0 + 62, 18, [170, 190, 235], 1);
+    mono('FOR EVERY 10 CARS SOLD', px0 + pw - 56, py0 + 62, 18, [170, 190, 235], .8, 'right');
+    X.restore();
+  }
+  // the floor line, the door, fourteen cars
+  const fy = 708, cl = 108, gap = 10, n = 14, rowW = n * cl + (n - 1) * gap, x0 = 140, doorX = x0 + rowW + 22;
+  const fl = S(lt - (t0 + 1.5), 60);
+  if (fl > .004) {
+    const lg = X.createLinearGradient(x0 - 40, 0, doorX, 0); lg.addColorStop(0, 'rgba(160,190,255,0)'); lg.addColorStop(.15, 'rgba(160,190,255,.4)'); lg.addColorStop(1, 'rgba(160,190,255,.4)');
+    X.save(); X.globalAlpha = fl; X.fillStyle = lg; X.fillRect(x0 - 40, fy + 13, (doorX - x0 + 40) * fl, 1.5); X.restore();
+  }
+  const tg = t1 + d1 * .52, tgo = tg + 1.3;
+  const door = sm(tg + .3, tg + .9, lt) * pp;
+  if (door > 0) {
+    const dg = X.createLinearGradient(0, fy - 130, 0, fy + 16); dg.addColorStop(0, 'rgba(120,160,255,0)'); dg.addColorStop(.5, 'rgba(160,190,255,.9)'); dg.addColorStop(1, 'rgba(160,190,255,.2)');
+    X.save(); X.globalAlpha = door; X.fillStyle = dg; X.fillRect(doorX - 1, fy - 130, 2, 146);
+    const hz = X.createRadialGradient(doorX, fy - 50, 0, doorX, fy - 50, 140); hz.addColorStop(0, 'rgba(86,132,255,.28)'); hz.addColorStop(1, 'rgba(86,132,255,0)'); X.fillStyle = hz; X.fillRect(doorX - 140, fy - 190, 280, 280);
+    X.restore();
+    mono('THE DOOR', doorX, fy + 52, 15, [170, 190, 235], door * .8, 'center');
+  }
+  X.save(); X.beginPath(); X.rect(0, 0, doorX, H); X.clip();
+  for (let i = 0; i < n; i++) {
+    const cx = x0 + i * (cl + gap) + cl / 2;
+    if (i < 10) {
+      const p = S(lt - (t1 + .25 + i * .085), 140); if (p < .004) continue;
+      carPro(cx, fy + (1 - p) * 18, cl, 'sold', p);
+      X.save(); X.translate(0, 2 * (fy + 13)); X.scale(1, -1); carPro(cx, fy + (1 - p) * 18, cl, 'sold', p * .14); X.restore();
+    } else {
+      const j = i - 10, p = S(lt - (tg + j * .1), 140); if (p < .004) continue;
+      const go = ei(clamp((lt - (tgo + j * .16)) / 1.6)), gx = cx + go * (doorX - cx + 160);
+      carPro(gx, fy, cl, 'ghost', p * (1 - sm(doorX - 120, doorX, gx)));
+    }
+  }
+  X.restore();
+  // the numbers
+  const c1 = t1 + .25;
+  count(0, 10, { x: x0, y: 842, size: 104, t0: c1, dur: .9, wt: 700, col: C2.white, tin: c1 - .1 });
+  mono('SOLD ON THE FLOOR', x0 + 4, 880, 17, [170, 190, 235], S(lt - c1, 160));
+  const gxL = x0 + 10 * (cl + gap);
+  count(0, 4, { x: gxL, y: 842, size: 104, t0: tg, dur: .6, wt: 700, col: C2.teal, tin: tg - .1 });
+  mono('READY BUYERS LEAVE', gxL + 4, 880, 17, [170, 190, 235], S(lt - tg, 160));
+  mono('WITHOUT A CAR', gxL + 4, 904, 17, [170, 190, 235], S(lt - tg, 160));
+  const tz = tgo + .5, zp = S(lt - tz, 120);
+  if (zp > .004) {
+    X.save(); X.globalAlpha = zp; X.fillStyle = 'rgba(160,190,255,.25)'; X.fillRect(1380, 196, 1.5, 200); X.restore();
+    count(0, 40, { x: 1424, y: 330, size: 190, t0: tz, dur: .9, wt: 400, col: C2.white, tin: tz - .05, post: '%' });
+    mono('MORE SALES,', 1430, 378, 19, [170, 190, 235], zp);
+    mono('LOST AT THE DOOR', 1430, 404, 19, [170, 190, 235], zp);
+  }
 };
-BG2.A2 = () => Object.assign(POSTER(C2.flame), { wipe: WIPE_A });
+BG2.A2 = () => Object.assign({}, NOIR, { wipe: WIPE_A });
 // A3: financing on your floor — Stepper over the glass portal, the cursor submits a request
 SC2.A3 = (lt, D, L) => {
   studioFloor();
