@@ -139,7 +139,7 @@ SC2.RCLOSE = (lt, D) => {
     const lw = 560 * eio(clamp((u - .9) / .6)); const lg = X.createLinearGradient(W / 2 - lw / 2, 0, W / 2 + lw / 2, 0); lg.addColorStop(0, 'rgba(160,190,255,0)'); lg.addColorStop(.5, 'rgba(160,190,255,.85)'); lg.addColorStop(1, 'rgba(160,190,255,0)');
     X.fillStyle = lg; X.fillRect(W / 2 - lw / 2, H / 2 + 112, lw, 1.5);
     line('From the showroom floor to KAFD.', { x: W / 2, y: H / 2 + 190, size: 46, wt: 700, ls: -1, col: C2.white, align: 'center', tin: tc + 1.1, stag: .012 });
-    mono('520 SHOWROOMS MAPPED  ·  18 LENDERS AT THE TABLE  ·  20 SUB-DEALERS SIGNED', W / 2, H / 2 + 250, 18, [170, 190, 235], S(u - 1.7, 140), 'center');
+    mono('520 SHOWROOMS MAPPED  ·  19 LENDERS AT THE TABLE  ·  20 SUB-DEALERS SIGNED', W / 2, H / 2 + 250, 18, [170, 190, 235], S(u - 1.7, 140), 'center');
   }
   const out = sm(D - .7, D, lt); if (out > 0) { X.fillStyle = `rgba(0,0,0,${out})`; X.fillRect(0, 0, W, H); }
 };

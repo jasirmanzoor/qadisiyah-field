@@ -21,7 +21,7 @@ SC2.T2 = (lt, D, L) => { droneShot(4 + lt * 22 / D); flightText(lt, L, 'SO WE WA
 BG2.T2 = () => NOIR;
 
 /* ---------- partners: the banks and finance companies partnering with AutoLink ---------- */
-const BANKS = ['albilad', 'alinma', 'anb', 'alrajhi', 'snb', 'riyad', 'enbd'];
+const BANKS0 = ['albilad', 'alinma', 'anb', 'alrajhi', 'snb', 'riyad', 'enbd'], BANKS_R = ['albilad', 'aljazira', 'alinma', 'anb', 'alrajhi', 'snb', 'riyad', 'enbd'];
 const FINCOS = ['raya', 'nama', 'tarabut', 'aljabr', 'taajeer', 'nfh', 'tamam', 'tamweel', 'alj', 'yanal', 'alyusr'];
 function logoTile(k, x, y, w, h, p, spot) {
   if (p < .004) return;
@@ -47,13 +47,14 @@ function partners(lt, D, L, head, sub) {
   mono('PARTNERING WITH AUTOLINK', MX + 4, 150, 22, C2.blue, S(lt - .1, 200));
   line(head, { x: MX, y: 240, size: 80, wt: 900, ls: -3, col: C2.navy, tin: t0, stag: .012 });
   if (sub) line(sub, { x: MX, y: 300, size: 30, wt: 500, col: C2.grey, tin: t0 + .4, stag: .005 });
-  const tw = 214, th = 120, gap = 18;
+  const BANKS = FILM.id === 'R' ? BANKS_R : BANKS0;   // the reel carries Bank Aljazira too: 19 lenders
+  const tw = 214, th = 120, gap = 18, bw = BANKS.length > 7 ? 198 : tw, bg = BANKS.length > 7 ? 14 : gap;
   // banks: one row of seven
   mono('BANKS', MX + 4, 384, 20, C2.grey, S(lt - (t0 + .2), 200));
-  const bx0 = (W - (BANKS.length * tw + (BANKS.length - 1) * gap)) / 2;
+  const bx0 = (W - (BANKS.length * bw + (BANKS.length - 1) * bg)) / 2;
   const sweep = lerp(-300, W + 300, clamp((lt - (D - 3.2)) / 2.6));
   const spot = (x) => Math.exp(-Math.pow((x - sweep) / 260, 2));
-  BANKS.forEach((k, i) => { const x = bx0 + i * (tw + gap); logoTile(k, x, 404, tw, th, S(lt - (t0 + .25 + Math.abs(i - 3) * .08), 120), spot(x + tw / 2)); });
+  BANKS.forEach((k, i) => { const x = bx0 + i * (bw + bg); logoTile(k, x, 404, bw, th, S(lt - (t0 + .25 + Math.abs(i - (BANKS.length - 1) / 2) * .08), 120), spot(x + bw / 2)); });
   // finance companies: six and five
   mono('FINANCE COMPANIES', MX + 4, 594, 20, C2.grey, S(lt - (tf - .1), 200));
   FINCOS.forEach((k, i) => {
