@@ -13,6 +13,8 @@ const EVID = [
   ['n-porsche-row', .62, .50, 'RIYADH'],
   ['s-sunset-row', .76, .80, 'AL SHIFA'],
 ];
+// the reel keeps to the brand blues: the sunset frame gives way to a showroom floor
+const EVID_R = EVID.slice(0, 5).concat([['n-gclass-front', .7, .5, 'RIYADH']]);
 function bracketSet(cx, cy, w, h, len, col, a, lw) {
   X.save(); X.globalAlpha = a; X.strokeStyle = col; X.lineWidth = lw; X.lineCap = 'square';
   [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy]) => {
@@ -33,12 +35,13 @@ function evidChip(x, y, str, p) {
   X.restore();
 }
 SC2.B2d = (lt, D, L) => {
-  const n = EVID.length, t0 = .35, sd = (D - t0 - .9) / n;
+  const EV = FILM.id === 'R' ? EVID_R : EVID;
+  const n = EV.length, t0 = .35, sd = (D - t0 - .9) / n;
   const idx = clamp(Math.floor((lt - t0) / sd), 0, n - 1), u = lt - t0 - idx * sd;
   const cap = sd * .6;   // the moment of capture inside each shot
   X.fillStyle = '#02050f'; X.fillRect(0, 0, W, H);
   const drawShot = (i, uu) => {
-    const [k, , , ] = EVID[i], im = IMG[k]; if (!im) return;
+    const [k, , , ] = EV[i], im = IMG[k]; if (!im) return;
     const z = 1.05 + .07 * clamp(uu / sd), pan = .35 + .3 * clamp(uu / sd) * (i % 2 ? -1 : 1) + (i % 2 ? .3 : 0);
     photo(im, 0, 0, W, H, { r: 0, zoom: z, px: clamp(pan), py: .55 });
   };
@@ -57,7 +60,7 @@ SC2.B2d = (lt, D, L) => {
   // the viewfinder
   const sp = 1 + .05 * (1 - S(lt - .1, 90));
   bracketSet(W / 2, H / 2, (W - 140) * sp, (H - 140) * sp, 70, 'rgba(255,255,255,.9)', Math.min(1, lt * 3), 3);
-  const [, fx, fy, dist] = EVID[idx];
+  const [, fx, fy, dist] = EV[idx];
   const lock = S(u - .12, 110), fs = lerp(420, 150, lock), fcx = lerp(W / 2, fx * W, S(u, 60)), fcy = lerp(H / 2, fy * H, S(u, 60));
   const locked = u > cap - .12;
   bracketSet(fcx, fcy, fs, fs * .72, 26, locked ? rgba(C2.teal) : 'rgba(255,255,255,.95)', .95, 3);
@@ -81,7 +84,7 @@ SC2.B2d = (lt, D, L) => {
   }
   // the title and the three things we read
   const a0 = ln2(L, 0), d0 = ldur(L, 0);
-  line('EVIDENCE', { x: MX, y: 868, size: 118, wt: 900, ls: -4, col: C2.white, tin: a0, tout: 1e9, stag: .02 });
+  line('EVENCE', { x: MX, y: 868, size: 118, wt: 900, ls: -4, col: C2.white, tin: a0, tout: 1e9, stag: .02 });
   line('FROM THE FLOOR.', { x: MX, y: 976, size: 118, wt: 900, ls: -4, col: C2.white, tin: a0 + .12, tout: 1e9, stag: .016 });
   const t1 = L.length > 1 ? ln2(L, 1) : a0 + d0 * .55;
   evidChip(MX, 392, 'STOCK ON THE FLOOR', S(lt - (a0 + d0 * .30), 150));
@@ -93,7 +96,7 @@ SC2.B2d = (lt, D, L) => {
     const tc2 = t0 + i * sd + cap + .1, p = S(lt - tc2, 130); if (p < .004) continue;
     const x = x1 - (n - i) * (tw + gx) + gx, y = 184 - (1 - p) * 30;
     X.save(); X.globalAlpha = Math.min(1, p * 1.6); X.shadowColor = 'rgba(0,0,0,.5)'; X.shadowBlur = 22;
-    photo(IMG[EVID[i][0]], x, y, tw, th, { r: 12, zoom: 1.1 }); X.shadowColor = 'transparent';
+    photo(IMG[EV[i][0]], x, y, tw, th, { r: 12, zoom: 1.1 }); X.shadowColor = 'transparent';
     X.strokeStyle = i === idx && lt < D - .9 ? rgba(C2.teal) : 'rgba(255,255,255,.55)'; X.lineWidth = 2.5; rr(x, y, tw, th, 12); X.stroke(); X.restore();
   }
 };

@@ -94,3 +94,53 @@ SC2.RLEAK = (lt, D) => {
   }
 };
 BG2.RLEAK = () => NOIR;
+
+/* ---------- RCLOSE: the founder's line, then a new end card ---------- */
+// flowing light ribbons in the brand blues (an echo of the key visual's silk), drawn live so they move
+function ribbons(lt, a) {
+  X.save(); X.globalCompositeOperation = 'lighter';
+  const R = [[.62, 150, [44, 91, 246], .16, .9], [.5, 90, [86, 132, 255], .14, 1.3], [.72, 60, [160, 190, 255], .10, 1.7], [.42, 200, [20, 50, 160], .18, .6], [.58, 30, [210, 225, 255], .12, 2.1]];
+  R.forEach(([yb, w, c, al, sp], i) => {
+    const ph = lt * .35 * sp + i * 1.7, y0 = H * yb;
+    const gr = X.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, rgba(c, 0)); gr.addColorStop(.35, rgba(c, al * a)); gr.addColorStop(.7, rgba(c, al * a * .8)); gr.addColorStop(1, rgba(c, 0));
+    X.strokeStyle = gr; X.lineCap = 'round';
+    for (let k = 0; k < 3; k++) {
+      X.lineWidth = w * (1 - k * .3); X.globalAlpha = .55 + k * .2;
+      X.beginPath(); X.moveTo(-200, y0 + Math.sin(ph) * 120);
+      X.bezierCurveTo(W * .3, y0 - 260 + Math.sin(ph + 1.1) * 140, W * .62, y0 + 280 + Math.cos(ph * .8) * 150, W + 200, y0 - 80 + Math.sin(ph + 2.2) * 120);
+      X.stroke();
+    }
+  });
+  X.restore();
+}
+SC2.RCLOSE = (lt, D) => {
+  const tc = 3.4, u = lt - tc;
+  const bg = X.createRadialGradient(W / 2, H * .46, 0, W / 2, H * .5, W * .7); bg.addColorStop(0, '#0a1b52'); bg.addColorStop(1, '#010416');
+  X.fillStyle = bg; X.fillRect(0, 0, W, H);
+  if (lt < tc + .5) {   // the founder's line
+    const fo = 1 - sm(tc - .2, tc + .3, lt);
+    X.save(); X.globalAlpha = fo;
+    const eb = S(lt - .1, 160); X.fillStyle = rgba(C2.teal); X.fillRect(W / 2 - 22 * eb, 390, 44 * eb, 2);
+    mono('OUR FOUNDER', W / 2, 360, 20, C2.teal, eb, 'center');
+    line('We are not here to map a market.', { x: W / 2, y: 530, size: 92, wt: 700, ls: -3, col: C2.white, align: 'center', tin: .25, stag: .012 });
+    line('We are here to move it.', { x: W / 2, y: 650, size: 92, wt: 700, ls: -3, col: C2.teal, align: 'center', tin: 1.35, stag: .014 });
+    X.restore();
+  }
+  if (u > -.3) {   // the end card
+    const ra = S(u + .3, 40);
+    ribbons(lt, ra);
+    const vg = X.createRadialGradient(W / 2, H / 2, H * .25, W / 2, H / 2, H * .95); vg.addColorStop(0, 'rgba(1,4,22,0)'); vg.addColorStop(1, 'rgba(1,4,22,.8)'); X.fillStyle = vg; X.fillRect(0, 0, W, H);
+    const halo = X.createRadialGradient(W / 2 - 240, H / 2 - 30, 0, W / 2 - 240, H / 2 - 30, 420); halo.addColorStop(0, `rgba(86,132,255,${.35 * S(u - .1, 60)})`); halo.addColorStop(1, 'rgba(86,132,255,0)'); X.fillStyle = halo; X.fillRect(0, 0, W, H);
+    mark(W / 2, H / 2 - 50, .78, C2.white, 1, tc + .15);
+    // one light sweep across the mark
+    const sx = lerp(-500, W + 500, eio(clamp((u - .7) / 1.1)));
+    X.save(); X.globalCompositeOperation = 'lighter'; const sg = X.createLinearGradient(sx - 160, 0, sx + 160, 0); sg.addColorStop(0, 'rgba(255,255,255,0)'); sg.addColorStop(.5, 'rgba(200,215,255,.22)'); sg.addColorStop(1, 'rgba(255,255,255,0)');
+    X.fillStyle = sg; X.beginPath(); X.moveTo(sx - 260, H * .2); X.lineTo(sx + 60, H * .2); X.lineTo(sx + 260, H * .72); X.lineTo(sx - 60, H * .72); X.closePath(); X.fill(); X.restore();
+    const lw = 560 * eio(clamp((u - .9) / .6)); const lg = X.createLinearGradient(W / 2 - lw / 2, 0, W / 2 + lw / 2, 0); lg.addColorStop(0, 'rgba(160,190,255,0)'); lg.addColorStop(.5, 'rgba(160,190,255,.85)'); lg.addColorStop(1, 'rgba(160,190,255,0)');
+    X.fillStyle = lg; X.fillRect(W / 2 - lw / 2, H / 2 + 112, lw, 1.5);
+    line('From the showroom floor to KAFD.', { x: W / 2, y: H / 2 + 190, size: 46, wt: 700, ls: -1, col: C2.white, align: 'center', tin: tc + 1.1, stag: .012 });
+    mono('520 SHOWROOMS MAPPED  ·  18 LENDERS AT THE TABLE  ·  20 SUB-DEALERS SIGNED', W / 2, H / 2 + 250, 18, [170, 190, 235], S(u - 1.7, 140), 'center');
+  }
+  const out = sm(D - .7, D, lt); if (out > 0) { X.fillStyle = `rgba(0,0,0,${out})`; X.fillRect(0, 0, W, H); }
+};
+BG2.RCLOSE = () => NOIR;

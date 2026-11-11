@@ -1,5 +1,5 @@
 {
- "total": 99.8,
+ "total": 100.2,
  "xf": 0.5,
  "scenes": [
   {
@@ -234,19 +234,14 @@
    "tr": "slice"
   },
   {
-   "id": "B8",
+   "id": "RCLOSE",
    "start": 92.2,
-   "end": 99.8,
+   "end": 100.2,
    "lines": [
     {
-     "t": 0.376,
-     "dur": 2.516,
-     "text": "We are not here to map a market. We are here to move it."
-    },
-    {
-     "t": 3.309,
-     "dur": 2.119,
-     "text": "AutoLink. From the showroom floor, to KAFD."
+     "t": 0.2,
+     "dur": 7.4,
+     "text": ""
     }
    ],
    "tr": "glitch"
