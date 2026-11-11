@@ -1,5 +1,5 @@
 {
- "total": 103.5,
+ "total": 103.9,
  "xf": 0.5,
  "scenes": [
   {
@@ -219,27 +219,22 @@
    "tr": "slice"
   },
   {
-   "id": "B7b",
+   "id": "RNET",
    "start": 83.3,
-   "end": 89.3,
+   "end": 89.7,
    "lines": [
     {
-     "t": 0.39,
-     "dur": 1.064,
-     "text": "And the lenders are coming with us."
-    },
-    {
-     "t": 1.778,
-     "dur": 2.956,
-     "text": "Saudi Arabia's leading banks and finance companies, partnering with AutoLink."
+     "t": 0.2,
+     "dur": 5.800000000000001,
+     "text": ""
     }
    ],
    "tr": "punch"
   },
   {
    "id": "B7",
-   "start": 89.3,
-   "end": 95.5,
+   "start": 89.7,
+   "end": 95.9,
    "lines": [
     {
      "t": 0.182,
@@ -261,8 +256,8 @@
   },
   {
    "id": "RCLOSE",
-   "start": 95.5,
-   "end": 103.5,
+   "start": 95.9,
+   "end": 103.9,
    "lines": [
     {
      "t": 0.2,

@@ -144,3 +144,51 @@ SC2.RCLOSE = (lt, D) => {
   const out = sm(D - .7, D, lt); if (out > 0) { X.fillStyle = `rgba(0,0,0,${out})`; X.fillRect(0, 0, W, H); }
 };
 BG2.RCLOSE = () => NOIR;
+
+/* ---------- RNET: finance, facilitated: one AutoLink request reaching every lender ---------- */
+const NET = ['albilad', 'aljazira', 'alinma', 'anb', 'alrajhi', 'snb', 'riyad', 'enbd', 'raya', 'nama', 'tarabut', 'aljabr', 'taajeer', 'nfh', 'tamam', 'tamweel', 'alj', 'yanal', 'alyusr'];
+function netTile(i) {   // 4 columns; banks in rows 1-2, finance companies in rows 3-5
+  const tw = 236, th = 98, gx = 18, gy = 16, x0 = 820, row = Math.floor(i / 4), col = i % 4, n = row === 4 ? 3 : 4;
+  const y = [318, 432, 594, 708, 822][row], x = x0 + (4 - n) * (tw + gx) / 2 + col * (tw + gx);
+  return { x, y, w: tw, h: th };
+}
+const bez = (p0, p1, p2, p3, u) => { const v = 1 - u; return v * v * v * p0 + 3 * v * v * u * p1 + 3 * v * u * u * p2 + u * u * u * p3; };
+SC2.RNET = (lt, D) => {
+  studioFloor();
+  const hx = 380, hy = 600, hr = 128;
+  // headline
+  mono('ONE REQUEST · EVERY LENDER', MX + 4, 128, 20, C2.blue, S(lt - .1, 200));
+  line('Finance, facilitated.', { x: MX, y: 216, size: 92, wt: 700, ls: -3, col: C2.navy, tin: .15, stag: .014 });
+  // connections
+  NET.forEach((k, i) => {
+    const t = netTile(i), ex = t.x + 6, ey = t.y + t.h / 2, sx = hx + hr * .92, sy = hy + (ey - hy) * .18;
+    const c1x = sx + 220, c2x = ex - 240, pd = clamp((lt - (.55 + i * .045)) / .7); if (pd <= 0) return;
+    const dr = eio(pd), N = 40;
+    X.save(); X.lineWidth = 1.6; X.strokeStyle = `rgba(44,91,246,${.28})`; X.beginPath();
+    for (let s = 0; s <= N * dr; s++) { const u = s / N, x = bez(sx, c1x, c2x, ex, u), y = bez(sy, sy, ey, ey, u); s ? X.lineTo(x, y) : X.moveTo(x, y); }
+    X.stroke();
+    // a pulse travelling from the hub to the lender
+    if (pd >= 1) for (let q = 0; q < 2; q++) {
+      const u = ((lt * .55 + i * .137 + q * .5) % 1), x = bez(sx, c1x, c2x, ex, u), y = bez(sy, sy, ey, ey, u), a = Math.sin(Math.PI * u);
+      X.fillStyle = `rgba(44,91,246,${.18 * a})`; X.beginPath(); X.arc(x, y, 9, 0, 7); X.fill();
+      X.fillStyle = `rgba(44,91,246,${.9 * a})`; X.beginPath(); X.arc(x, y, 3, 0, 7); X.fill();
+    }
+    X.restore();
+  });
+  // group labels
+  mono('BANKS', 820, 300, 16, C2.grey, S(lt - .5, 200));
+  mono('FINANCE COMPANIES', 820, 576, 16, C2.grey, S(lt - .9, 200));
+  NET.forEach((k, i) => { const t = netTile(i); logoTile(k, t.x, t.y, t.w, t.h, S(lt - (.6 + i * .045 + .45), 130), 0); });
+  // the hub
+  const hp = S(lt - .3, 90);
+  X.save(); X.globalAlpha = hp;
+  for (let r = 0; r < 3; r++) { const ph = (lt * .6 + r / 3) % 1; X.strokeStyle = `rgba(44,91,246,${.22 * (1 - ph)})`; X.lineWidth = 2; X.beginPath(); X.arc(hx, hy, hr * (1 + ph * .9), 0, 7); X.stroke(); }
+  X.shadowColor = 'rgba(20,40,110,.2)'; X.shadowBlur = 60; X.shadowOffsetY = 24; X.fillStyle = '#fff'; X.beginPath(); X.arc(hx, hy, hr, 0, 7); X.fill(); X.shadowColor = 'transparent';
+  const rg = X.createLinearGradient(hx - hr, hy - hr, hx + hr, hy + hr); rg.addColorStop(0, 'rgba(86,132,255,.9)'); rg.addColorStop(1, 'rgba(44,91,246,.25)'); X.strokeStyle = rg; X.lineWidth = 2.5; X.beginPath(); X.arc(hx, hy, hr, 0, 7); X.stroke();
+  if (IMG.loopmark) { const lh = hr * 1.25, lw = lh * IMG.loopmark.width / IMG.loopmark.height; X.drawImage(IMG.loopmark, hx - lw / 2, hy - lh / 2, lw, lh); }
+  X.restore();
+  line('AutoLink AI', { x: hx, y: hy + hr + 62, size: 40, wt: 700, col: C2.navy, align: 'center', tin: .5, stag: .02 });
+  mono('THE DEALER PORTAL', hx, hy + hr + 96, 15, C2.grey, S(lt - .8, 200), 'center');
+  mono('19 BANKS AND FINANCE COMPANIES · PARTNERSHIPS IN PROGRESS', 820 + 503, 1000, 16, C2.grey, S(lt - 1.6, 200), 'center');
+};
+BG2.RNET = () => STUDIO;
