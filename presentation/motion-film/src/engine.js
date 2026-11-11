@@ -279,14 +279,52 @@ function drawScene(i, t, ctx) {
   const sc = FILM.scenes[i]; const fn = SCENES[sc.id]; X = ctx; lt = t - sc.start;
   ctx.save(); fn(lt, sc.end - sc.start, sc.lines, sc); ctx.restore(); X = g;
 }
+// reel transitions, used when a timeline scene carries "tr"
+function reelTransition(kind, a, b, p, t) {
+  const both = () => { for (const [k, j] of [[0, a], [1, b]]) { const c = buf[k].getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, W, H); drawScene(j, t, c); } };
+  const bump = Math.sin(Math.PI * clamp(p));
+  if (kind === 'punch') {   // zoom through the outgoing frame, the next one settles in from below scale
+    both(); const q = eio(clamp(p));
+    softDraw(g, buf[0], q * 26, 1 - q, 1 + .55 * q);
+    softDraw(g, buf[1], (1 - q) * 26, q, .8 + .2 * eo(clamp(p)));
+    g.fillStyle = `rgba(214,226,255,${.32 * bump * bump})`; g.fillRect(0, 0, W, H);
+  } else if (kind === 'flash') {   // a white bloom hides the cut
+    both(); const q = clamp((p - .35) / .3);
+    softDraw(g, buf[0], q * 10, 1 - q, 1 + .06 * p); softDraw(g, buf[1], (1 - q) * 10, q, 1.06 - .06 * p);
+    g.fillStyle = `rgba(255,255,255,${.9 * Math.pow(bump, 3)})`; g.fillRect(0, 0, W, H);
+  } else if (kind === 'slice') {   // eight bands slide the next frame in, alternating sides
+    both(); g.drawImage(buf[0], 0, 0); const nb = 8, bh = H / nb;
+    for (let k = 0; k < nb; k++) {
+      const pk = eio(clamp((p - k * .035) / .62)); if (pk <= 0) continue;
+      const dx = (k % 2 ? -1 : 1) * W * (1 - pk), y = Math.round(k * bh), hh = Math.round((k + 1) * bh) - y;
+      g.clearRect(0, y, W, hh); g.drawImage(buf[0], 0, y, W, hh, -dx * .25, y, W, hh);
+      g.drawImage(buf[1], 0, y, W, hh, dx, y, W, hh);
+      if (pk < 1) { g.fillStyle = 'rgba(160,190,255,.9)'; g.fillRect(dx + (k % 2 ? W : 0) - 1.5, y, 3, hh); }
+    }
+  } else {   // glitch: displaced strips, a colour ghost and scan lines around a hard cut
+    const j = p < .5 ? a : b, c = buf[0].getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, W, H); drawScene(j, t, c);
+    const f = Math.floor(t * 60), I = bump, rn = k => { const v = Math.sin(f * 12.9898 + k * 78.233) * 43758.5453; return v - Math.floor(v); };
+    g.drawImage(buf[0], 0, 0);
+    g.save(); g.globalCompositeOperation = 'screen'; g.globalAlpha = .45 * I; g.drawImage(buf[0], 14 * I, 0); g.globalAlpha = .3 * I; g.drawImage(buf[0], -10 * I, 3 * I); g.restore();
+    for (let k = 0; k < 16; k++) {
+      if (rn(k) > .2 + .7 * I) continue;
+      const y = Math.floor(rn(k + 40) * H), hh = 8 + Math.floor(rn(k + 80) * 70), dx = (rn(k + 120) - .5) * 300 * I;
+      g.drawImage(buf[0], 0, y, W, hh, dx, y, W, hh);
+      if (rn(k + 160) < .3) { g.fillStyle = `rgba(86,132,255,${.35 * I})`; g.fillRect(0, y, W, Math.max(2, hh * .2)); }
+    }
+    g.fillStyle = `rgba(0,0,0,${.18 * I})`; for (let y = 0; y < H; y += 4) g.fillRect(0, y, W, 1.5);
+    g.fillStyle = `rgba(255,255,255,${.22 * Math.pow(bump, 6)})`; g.fillRect(0, 0, W, H);
+  }
+}
 window.seek = function (t) {
   T = t;
   const i = sceneAt(t), sc = FILM.scenes[i], nx = FILM.scenes[i + 1], pv = FILM.scenes[i - 1];
   // transition window centred on each boundary
   let a = null, b = null, p = 0;
   const contOf = s2 => s2 && (BGS[s2.id] || BGS._)(0).cont;
-  if (nx && t > sc.end - XF / 2 && !(contOf(sc) && contOf(nx))) { a = i; b = i + 1; p = (t - (sc.end - XF / 2)) / XF; }
-  else if (pv && t < sc.start + XF / 2 && !(contOf(sc) && contOf(pv))) { a = i - 1; b = i; p = (t - (sc.start - XF / 2)) / XF; }
+  const xf = FILM.xf || XF;
+  if (nx && t > sc.end - xf / 2 && !(contOf(sc) && contOf(nx))) { a = i; b = i + 1; p = (t - (sc.end - xf / 2)) / xf; }
+  else if (pv && t < sc.start + xf / 2 && !(contOf(sc) && contOf(pv))) { a = i - 1; b = i; p = (t - (sc.start - xf / 2)) / xf; }
   const bgOf = j => (BGS[FILM.scenes[j].id] || BGS._)(t - FILM.scenes[j].start);
   const BB = a !== null ? lerpBG(bgOf(a), bgOf(b), eio(p)) : bgOf(i);
   // an inserted section shifts later scenes in time; the background clock eases back by the same amount so reused frames join seamlessly
@@ -295,8 +333,9 @@ window.seek = function (t) {
   g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H); g.filter = 'none'; g.globalAlpha = 1;
   if (a === null) drawScene(i, t, g);
   else {
-    const wipe = (BGS[FILM.scenes[b].id] || BGS._)(0).wipe;
-    if (wipe) {
+    const wipe = (BGS[FILM.scenes[b].id] || BGS._)(0).wipe, trn = FILM.scenes[b].tr;
+    if (trn) reelTransition(trn, a, b, p, t);
+    else if (wipe) {
       // kinetic-poster wipe: four bands of brand colour sweep across, the next scene is behind them
       const j = p < .5 ? a : b; drawScene(j, t, g);
       const nb = 4, bh = H / nb;

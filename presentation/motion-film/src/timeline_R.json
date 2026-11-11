@@ -1,0 +1,255 @@
+{
+ "total": 99.8,
+ "xf": 0.5,
+ "scenes": [
+  {
+   "id": "R0",
+   "start": 0.0,
+   "end": 4.0,
+   "lines": [
+    {
+     "t": 0.2,
+     "dur": 3.4,
+     "text": ""
+    }
+   ]
+  },
+  {
+   "id": "T1",
+   "start": 4.0,
+   "end": 9.2,
+   "lines": [
+    {
+     "t": 0.615,
+     "dur": 2.733,
+     "text": "Riyadh's independent car market trades billions of riyals a year."
+    },
+    {
+     "t": 3.69,
+     "dur": 1.134,
+     "text": "And no one had ever counted it."
+    }
+   ],
+   "tr": "glitch"
+  },
+  {
+   "id": "T2",
+   "start": 9.2,
+   "end": 23.2,
+   "lines": [
+    {
+     "t": 2.427,
+     "dur": 3.618,
+     "text": "So we walked it. Door to door. Five hundred and twenty showrooms."
+    }
+   ],
+   "tr": "punch"
+  },
+  {
+   "id": "B2d",
+   "start": 23.2,
+   "end": 30.6,
+   "lines": [
+    {
+     "t": 0.317,
+     "dur": 2.463,
+     "text": "We did not guess. We photographed the floors, and read the prices on the windscreens."
+    },
+    {
+     "t": 3.044,
+     "dur": 1.84,
+     "text": "Stock, prices and presentation. All seen in person."
+    }
+   ],
+   "tr": "flash"
+  },
+  {
+   "id": "B2e",
+   "start": 30.6,
+   "end": 36.8,
+   "lines": [
+    {
+     "t": 0.31,
+     "dur": 2.189,
+     "text": "Every showroom pinned at its coordinates, and logged on one master sheet."
+    }
+   ],
+   "tr": "slice"
+  },
+  {
+   "id": "B3",
+   "start": 36.8,
+   "end": 43.0,
+   "lines": [
+    {
+     "t": 0.211,
+     "dur": 2.259,
+     "text": "Five hundred and twenty showrooms. Five hundred and fourteen, pinned on the map."
+    },
+    {
+     "t": 2.704,
+     "dur": 3.238,
+     "text": "Thirty one thousand, eight hundred and sixty nine cars on the floor. Three point six billion riyals of stock."
+    }
+   ],
+   "tr": "punch"
+  },
+  {
+   "id": "B4",
+   "start": 43.0,
+   "end": 48.4,
+   "lines": [
+    {
+     "t": 0.197,
+     "dur": 0.907,
+     "text": "Twenty five owners opened their books."
+    },
+    {
+     "t": 1.323,
+     "dur": 3.835,
+     "text": "Al Qaadiseeya alone sells an estimated fifteen point seven billion riyals of cars a year. And that is the conservative figure."
+    }
+   ],
+   "tr": "glitch"
+  },
+  {
+   "id": "A2",
+   "start": 48.4,
+   "end": 55.6,
+   "lines": [
+    {
+     "t": 0.309,
+     "dur": 2.244,
+     "text": "When the finance is not there, the sale walks out of the door."
+    },
+    {
+     "t": 2.897,
+     "dur": 3.925,
+     "text": "Owners told us: for every ten cars they sell, about four more ready buyers leave without one."
+    }
+   ],
+   "tr": "slice"
+  },
+  {
+   "id": "RLEAK",
+   "start": 55.6,
+   "end": 62.4,
+   "lines": [
+    {
+     "t": 0.2,
+     "dur": 6.2,
+     "text": ""
+    }
+   ],
+   "tr": "punch"
+  },
+  {
+   "id": "B6",
+   "start": 62.4,
+   "end": 66.2,
+   "lines": [
+    {
+     "t": 0.276,
+     "dur": 3.186,
+     "text": "No one else holds this. The largest sub-dealer mapping of its kind, on one standard."
+    }
+   ],
+   "tr": "glitch"
+  },
+  {
+   "id": "A3",
+   "start": 66.2,
+   "end": 74.4,
+   "lines": [
+    {
+     "t": 0.372,
+     "dur": 1.964,
+     "text": "AutoLink brings financing to your floor."
+    },
+    {
+     "t": 2.75,
+     "dur": 4.996,
+     "text": "Your team submits the buyer's request in the AutoLink dealer portal, and follows it, step by step."
+    }
+   ],
+   "tr": "flash"
+  },
+  {
+   "id": "A4",
+   "start": 74.4,
+   "end": 79.6,
+   "lines": [
+    {
+     "t": 0.338,
+     "dur": 2.312,
+     "text": "Requests, reports and your account, in one dashboard."
+    },
+    {
+     "t": 3.026,
+     "dur": 1.761,
+     "text": "In Arabic, in English, or in Chinese."
+    }
+   ],
+   "tr": "slice"
+  },
+  {
+   "id": "B7b",
+   "start": 79.6,
+   "end": 85.8,
+   "lines": [
+    {
+     "t": 0.403,
+     "dur": 1.099,
+     "text": "And the lenders are coming with us."
+    },
+    {
+     "t": 1.837,
+     "dur": 3.055,
+     "text": "Saudi Arabia's leading banks and finance companies, partnering with AutoLink."
+    }
+   ],
+   "tr": "punch"
+  },
+  {
+   "id": "B7",
+   "start": 85.8,
+   "end": 92.2,
+   "lines": [
+    {
+     "t": 0.188,
+     "dur": 0.574,
+     "text": "And it is already moving."
+    },
+    {
+     "t": 0.972,
+     "dur": 3.533,
+     "text": "In one month, twenty sub-dealers signed with AutoLink. Sixteen more agreements are out for signature, and sixty four are in the pipeline."
+    },
+    {
+     "t": 4.714,
+     "dur": 1.456,
+     "text": "We are at the table with eighteen banks and finance companies."
+    }
+   ],
+   "tr": "slice"
+  },
+  {
+   "id": "B8",
+   "start": 92.2,
+   "end": 99.8,
+   "lines": [
+    {
+     "t": 0.376,
+     "dur": 2.516,
+     "text": "We are not here to map a market. We are here to move it."
+    },
+    {
+     "t": 3.309,
+     "dur": 2.119,
+     "text": "AutoLink. From the showroom floor, to KAFD."
+    }
+   ],
+   "tr": "glitch"
+  }
+ ]
+}
