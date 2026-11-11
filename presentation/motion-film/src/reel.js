@@ -6,8 +6,10 @@ const R0_CARDS = [
   ['RIYADH', 'q-riyadhcars-night'], ['520 SHOWROOMS', 'q-luxhall'], ['31,869 CARS', 's-hall'],
   ['SAR 3.6B ON THE FLOOR', 'n-porsche-row'], ['WALKED DOOR TO DOOR', 'q-street-fullspeed'],
 ];
+// the reel uses widescreen versions of the portrait field photos where it has them (Higgsfield outpaint), so a full frame is not a 2x crop
+const widePic = k => IMG['w-' + k] || IMG[k];
 function gradedPhoto(k, zoom, px, dark) {
-  photo(IMG[k], 0, 0, W, H, { r: 0, zoom, px, py: .5 });
+  photo(widePic(k), 0, 0, W, H, { r: 0, zoom, px, py: .5 });
   X.fillStyle = `rgba(2,10,34,${dark})`; X.fillRect(0, 0, W, H);
 }
 SC2.R0 = (lt, D) => {

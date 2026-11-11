@@ -413,7 +413,7 @@ function carPro(x, y, len, mode, a = 1) {   // a sleek side profile; mode 'sold'
 SC2.A2 = (lt, D, L) => {
   const t0 = ln2(L, 0), t1 = ln2(L, 1), d1 = ldur(L, 1);
   // the graded floor: a real showroom at night, pushed slowly, in deep navy
-  photo(IMG['q-luxhall'], 0, 0, W, H, { r: 0, zoom: 1.08 + .06 * clamp(lt / D), px: .45 + .1 * clamp(lt / D), py: .4 });
+  photo((FILM.id === 'R' && IMG['w-q-luxhall']) || IMG['q-luxhall'], 0, 0, W, H, { r: 0, zoom: 1.08 + .06 * clamp(lt / D), px: .45 + .1 * clamp(lt / D), py: .4 });
   X.fillStyle = 'rgba(2,10,34,.74)'; X.fillRect(0, 0, W, H);
   let g = X.createLinearGradient(0, 0, W, 0); g.addColorStop(0, 'rgba(1,6,22,.85)'); g.addColorStop(.6, 'rgba(1,6,22,.25)'); g.addColorStop(1, 'rgba(1,6,22,.55)'); X.fillStyle = g; X.fillRect(0, 0, W, H);
   g = X.createRadialGradient(W * .78, H * .2, 0, W * .78, H * .2, 900); g.addColorStop(0, 'rgba(86,132,255,.16)'); g.addColorStop(1, 'rgba(86,132,255,0)'); X.fillStyle = g; X.fillRect(0, 0, W, H);
