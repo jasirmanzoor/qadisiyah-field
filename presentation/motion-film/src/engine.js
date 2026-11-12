@@ -283,6 +283,14 @@ function drawScene(i, t, ctx) {
 function reelTransition(kind, a, b, p, t) {
   const both = () => { for (const [k, j] of [[0, a], [1, b]]) { const c = buf[k].getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, W, H); drawScene(j, t, c); } };
   const bump = Math.sin(Math.PI * clamp(p));
+  if (kind === 'warp') {   // hyperspace: the frame stretches into light, the next one arrives out of it
+    both(); const q = clamp(p), bq = Math.sin(Math.PI * q);
+    if (q < .5) softDraw(g, buf[0], q * 40, 1 - q * 1.6, 1 + 1.4 * eio(q * 2) * .5);
+    else softDraw(g, buf[1], (1 - q) * 40, (q - .35) * 1.6, 1 + (1 - eo((q - .5) * 2)) * .6);
+    warpStreaks(g, bq, T);
+    const cg = g.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, 700); cg.addColorStop(0, `rgba(230,238,255,${.85 * Math.pow(bq, 4)})`); cg.addColorStop(1, 'rgba(86,132,255,0)'); g.fillStyle = cg; g.fillRect(0, 0, W, H);
+    return;
+  }
   if (kind === 'punch') {   // zoom through the outgoing frame, the next one settles in from below scale
     both(); const q = eio(clamp(p));
     softDraw(g, buf[0], q * 26, 1 - q, 1 + .55 * q);
@@ -315,6 +323,47 @@ function reelTransition(kind, a, b, p, t) {
     g.fillStyle = `rgba(0,0,0,${.18 * I})`; for (let y = 0; y < H; y += 4) g.fillRect(0, y, W, 1.5);
     g.fillStyle = `rgba(255,255,255,${.22 * Math.pow(bump, 6)})`; g.fillRect(0, 0, W, H);
   }
+}
+// the reel's beat: the picture punches on the kick, flashes on the bar, shakes and bursts on the drops (timeline: bpm, drums, drops)
+const acc = document.createElement('canvas'); acc.width = W; acc.height = H; const accx = acc.getContext('2d');
+function beatAccents(t) {
+  const bt = 60 / FILM.bpm; let kick = 0, bar = 0;
+  for (const [a, b, mode] of FILM.drums || []) {
+    if (t < a || t >= b) continue;
+    const n = Math.floor((t - a) / bt + 1e-6), ph = t - a - n * bt, step = mode === 'half' ? 2 : 1;
+    const kn = Math.floor(n / step) * step, kph = t - a - kn * bt;
+    kick = Math.exp(-kph / .075); if (n % 4 === 0) bar = Math.exp(-ph / .11);
+  }
+  let drop = 0; for (const d of FILM.drops || []) if (t >= d && t < d + 1.0) drop = Math.max(drop, Math.exp(-(t - d) / .22));
+  const z = 1 + .013 * kick + .01 * bar + .035 * drop;
+  if (z > 1.0005 || drop > .01) {
+    accx.setTransform(1, 0, 0, 1, 0, 0); accx.clearRect(0, 0, W, H); accx.drawImage(g.canvas, 0, 0);
+    const sx = drop * 22 * Math.sin(t * 93), sy = drop * 14 * Math.cos(t * 71);
+    g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H);
+    g.translate(W / 2 + sx, H / 2 + sy); g.scale(z, z); g.translate(-W / 2, -H / 2); g.drawImage(acc, 0, 0); g.restore();
+  }
+  if (bar > .01) { g.fillStyle = `rgba(200,215,255,${.05 * bar})`; g.fillRect(0, 0, W, H); }
+  if (drop > .01) {   // prismatic burst
+    g.save(); g.globalCompositeOperation = 'lighter'; g.translate(W / 2, H / 2); g.rotate(t * .6);
+    for (let i = 0; i < 20; i++) { const an = i / 20 * Math.PI * 2 + (i % 3) * .07, w = .006 + .012 * ((i * 7) % 5) / 5;
+      const gr = g.createLinearGradient(0, 0, Math.cos(an) * 1300, Math.sin(an) * 1300); gr.addColorStop(0, `rgba(190,210,255,${.2 * drop})`); gr.addColorStop(1, 'rgba(86,132,255,0)');
+      g.fillStyle = gr; g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, 1400, an - w, an + w); g.closePath(); g.fill(); }
+    g.restore(); g.fillStyle = `rgba(235,242,255,${.42 * Math.pow(drop, 4)})`; g.fillRect(0, 0, W, H);
+  }
+}
+// Hyperspeed-style light streaks rushing past the camera
+function warpStreaks(ctx, amt, t, col = [160, 195, 255]) {
+  if (amt < .01) return;
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+  for (let i = 0; i < 260; i++) {
+    const r1 = rnd(i * 5), r2 = rnd(i * 5 + 1), r3 = rnd(i * 5 + 2), an = r1 * Math.PI * 2;
+    const d = (((t * (1.2 + r2 * 2.4) * (0.6 + amt) + r3) % 1) + 1) % 1, rr0 = 40 + Math.pow(d, 2.2) * 1500, len = (30 + 520 * amt) * Math.pow(d, 1.6);
+    const x0 = W / 2 + Math.cos(an) * rr0, y0 = H / 2 + Math.sin(an) * rr0 * .62, x1 = W / 2 + Math.cos(an) * (rr0 + len), y1 = H / 2 + Math.sin(an) * (rr0 + len) * .62;
+    const gr = ctx.createLinearGradient(x0, y0, x1, y1); const a = amt * Math.min(1, d * 2.5) * (.35 + .65 * r2);
+    gr.addColorStop(0, `rgba(${col[0]},${col[1]},${col[2]},0)`); gr.addColorStop(1, `rgba(${col[0]},${col[1]},${col[2]},${a})`);
+    ctx.strokeStyle = gr; ctx.lineWidth = .8 + 2.6 * r3 * amt; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  }
+  ctx.restore();
 }
 window.seek = function (t) {
   T = t;
@@ -351,6 +400,7 @@ window.seek = function (t) {
       softDraw(g, buf[1], (1 - q) * 22, q, .94 + .06 * q);
     }
   }
+  if (FILM.bpm) beatAccents(t);
   finish(t, BB.vig ?? .55);
 };
 

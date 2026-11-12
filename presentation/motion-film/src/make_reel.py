@@ -2,14 +2,16 @@
 import json, os
 S = os.path.dirname(os.path.abspath(__file__))
 src = {f: {s['id']: s for s in json.load(open(os.path.join(S, f'timeline_{f}.json')))['scenes']} for f in ('teaser', 'A', 'B')}
-CUT = [  # id, source film (None = reel's own), seconds, transition into it
-  ('RBRAND', None, 2.8, None), ('RGLOBE', None, 7.2, 'punch'), ('R0', None, 3.0, 'glitch'), ('T1', 'teaser', 5.0, 'slice'), ('T2', 'teaser', 12.5, 'punch'),
-  ('B2d', 'B', 6.8, 'flash'), ('B2e', 'B', 5.8, 'slice'), ('B3', 'B', 5.6, 'punch'), ('B4', 'B', 5.2, 'glitch'),
-  ('A2', 'A', 7.0, 'slice'), ('RLEAK', None, 6.6, 'punch'), ('B6', 'B', 3.4, 'glitch'),
-  ('A3', 'A', 7.4, 'flash'), ('A4', 'A', 5.0, 'slice'), ('RNET', None, 6.4, 'punch'), ('B7', 'B', 6.2, 'slice'), ('RCLOSE', None, 8.0, 'glitch'),
+BPM = 124; BT = 60 / BPM
+CUT = [  # id, source film (None = reel's own), length in beats, transition into it; every cut lands on the beat
+  ('RBRAND', None, 6, None), ('RGLOBE', None, 16, 'punch'), ('R0', None, 8, 'warp'), ('T1', 'teaser', 10, 'glitch'), ('T2', 'teaser', 20, 'punch'),
+  ('B2d', 'B', 14, 'flash'), ('B2e', 'B', 12, 'slice'), ('B3', 'B', 12, 'glitch'), ('B4', 'B', 10, 'punch'),
+  ('A2', 'A', 14, 'slice'), ('RLEAK', None, 14, 'glitch'), ('B6', 'B', 8, 'punch'),
+  ('A3', 'A', 14, 'warp'), ('A4', 'A', 10, 'slice'), ('RNET', None, 14, 'warp'), ('B7', 'B', 12, 'glitch'), ('RCLOSE', None, 14, 'flash'),
 ]
 out, t = [], 0.0
-for sid, f, d, tr in CUT:
+for sid, f, nb, tr in CUT:
+    d = nb * BT
     lines = []
     if f:
         o = src[f][sid]; k = d / (o['end'] - o['start'])
@@ -17,5 +19,8 @@ for sid, f, d, tr in CUT:
     sc = {'id': sid, 'start': round(t, 3), 'end': round(t + d, 3), 'lines': lines or [{'t': .2, 'dur': d - .6, 'text': ''}]}
     if tr: sc['tr'] = tr
     out.append(sc); t += d
-json.dump({'total': round(t, 3), 'xf': .5, 'scenes': out}, open(os.path.join(S, 'timeline_R.json'), 'w'), indent=1)
+st = {sc['id']: sc['start'] for sc in out}; en = {sc['id']: sc['end'] for sc in out}
+drums = [[st['R0'], en['B4'], 'full'], [st['A2'], en['RLEAK'], 'half'], [st['A3'], en['B7'], 'full']]
+drops = [st['R0'], st['A3'], st['RNET'], round(st['RCLOSE'] + 7 * BT, 3)]
+json.dump({'total': round(t, 3), 'xf': .5, 'bpm': BPM, 'drums': drums, 'drops': drops, 'scenes': out}, open(os.path.join(S, 'timeline_R.json'), 'w'), indent=1)
 print('reel', round(t, 2), 's,', len(out), 'scenes')

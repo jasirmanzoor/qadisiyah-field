@@ -1,0 +1,152 @@
+<!doctype html><meta charset="utf-8"><title>reel beat</title>
+<script>
+// The reel's track, written in code (Web Audio, OfflineAudioContext) to the reel's own beat grid (timeline: bpm, drums, drops, scenes):
+// 124 BPM in A minor (Am F C G). Filtered intro and riser over the globe zoom, a drop on the cold open, a darker half-time groove
+// under the problem, a snare-roll build, a second drop on the portal, a third hit on the lender network, and a final impact on the logo.
+window.renderScore = async function (tl) {
+  const SR = 48000, BPM = tl.bpm, B = 60 / BPM, S16 = B / 4, DUR = tl.total, TAIL = 3.5;
+  const ctx = new OfflineAudioContext(2, Math.ceil(SR * (DUR + TAIL)), SR);
+  const st = {}, en = {}; tl.scenes.forEach(s => { st[s.id] = s.start; en[s.id] = s.end; });
+  // ---- master chain
+  const master = ctx.createGain(); master.gain.value = .9;
+  const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.knee.value = 6; comp.ratio.value = 4; comp.attack.value = .003; comp.release.value = .12;
+  const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -2; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = .001; lim.release.value = .05;
+  master.connect(comp); comp.connect(lim); lim.connect(ctx.destination);
+  // reverb send
+  const ir = ctx.createBuffer(2, SR * 2.4, SR);
+  for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); let s = 7 + c * 31; for (let i = 0; i < d.length; i++) { s = (s * 16807) % 2147483647; d[i] = (s / 1073741823.5 - 1) * Math.pow(1 - i / d.length, 3.2); } }
+  const verb = ctx.createConvolver(); verb.buffer = ir; const vret = ctx.createGain(); vret.gain.value = .32; verb.connect(vret); vret.connect(master);
+  // tempo delay (dotted eighth) for the plucks and lead
+  const dly = ctx.createDelay(1); dly.delayTime.value = B * .75; const fb = ctx.createGain(); fb.gain.value = .32; const dlp = ctx.createBiquadFilter(); dlp.type = 'lowpass'; dlp.frequency.value = 3500;
+  dly.connect(dlp); dlp.connect(fb); fb.connect(dly); const dret = ctx.createGain(); dret.gain.value = .3; dlp.connect(dret); dret.connect(master);
+  // sidechain bus: everything melodic pumps against the kick
+  const pump = ctx.createGain(); pump.connect(master); pump.connect(verb);
+  const noiseBuf = (() => { const b = ctx.createBuffer(1, SR * 2, SR), d = b.getChannelData(0); let s = 3; for (let i = 0; i < d.length; i++) { s = (s * 16807) % 2147483647; d[i] = s / 1073741823.5 - 1; } return b; })();
+  const kickTimes = [];
+  const inRange = (t, a, b) => t >= a && t < b;
+  const drumMode = t => { for (const [a, b, m] of tl.drums) if (inRange(t, a, b)) return m; return null; };
+
+  // ---- instruments
+  const kick = (t, g = 1) => {
+    const o = ctx.createOscillator(), a = ctx.createGain(); o.type = 'sine';
+    o.frequency.setValueAtTime(165, t); o.frequency.exponentialRampToValueAtTime(52, t + .07); o.frequency.exponentialRampToValueAtTime(42, t + .3);
+    a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(1.15 * g, t + .003); a.gain.exponentialRampToValueAtTime(.001, t + .42);
+    o.connect(a); a.connect(master); o.start(t); o.stop(t + .45);
+    const n = ctx.createBufferSource(); n.buffer = noiseBuf; const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 2500; const na = ctx.createGain();
+    na.gain.setValueAtTime(.35 * g, t); na.gain.exponentialRampToValueAtTime(.001, t + .02); n.connect(hp); hp.connect(na); na.connect(master); n.start(t); n.stop(t + .03);
+    // sidechain duck
+    kickTimes.push(t);
+  };
+  const clap = (t, g = 1) => {
+    for (let k = 0; k < 3; k++) {
+      const n = ctx.createBufferSource(); n.buffer = noiseBuf; const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1500; bp.Q.value = .9; const a = ctx.createGain(), tk = t + k * .011;
+      a.gain.setValueAtTime(0, tk); a.gain.linearRampToValueAtTime(.55 * g, tk + .002); a.gain.exponentialRampToValueAtTime(.001, tk + (k === 2 ? .2 : .03));
+      n.connect(bp); bp.connect(a); a.connect(master); a.connect(verb); n.start(tk, Math.random() * .5); n.stop(tk + .25);
+    }
+  };
+  const snare = (t, g = 1) => {
+    const n = ctx.createBufferSource(); n.buffer = noiseBuf; const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2200; bp.Q.value = .7; const a = ctx.createGain();
+    a.gain.setValueAtTime(.5 * g, t); a.gain.exponentialRampToValueAtTime(.001, t + .14); n.connect(bp); bp.connect(a); a.connect(master); a.connect(verb); n.start(t); n.stop(t + .16);
+    const o = ctx.createOscillator(), oa = ctx.createGain(); o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(160, t + .08);
+    oa.gain.setValueAtTime(.3 * g, t); oa.gain.exponentialRampToValueAtTime(.001, t + .09); o.connect(oa); oa.connect(master); o.start(t); o.stop(t + .1);
+  };
+  const hat = (t, g, open = false) => {
+    const n = ctx.createBufferSource(); n.buffer = noiseBuf; const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 7500; const a = ctx.createGain(), d = open ? .16 : .035;
+    const p = ctx.createStereoPanner(); p.pan.value = open ? .25 : -.15;
+    a.gain.setValueAtTime(g, t); a.gain.exponentialRampToValueAtTime(.001, t + d); n.connect(hp); hp.connect(a); a.connect(p); p.connect(master); n.start(t, Math.random()); n.stop(t + d + .02);
+  };
+  const saws = (t, f, dur, g, cut0, cut1, dest, voices = 5, att = .005, rel = .08, q = 1) => {
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = q; lp.frequency.setValueAtTime(cut0, t); lp.frequency.exponentialRampToValueAtTime(cut1, t + Math.max(.02, dur * .6));
+    const a = ctx.createGain(); a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(g, t + att); a.gain.setValueAtTime(g, t + Math.max(att, dur - rel)); a.gain.linearRampToValueAtTime(0, t + dur);
+    lp.connect(a); a.connect(dest);
+    for (let v = 0; v < voices; v++) { const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = voices > 1 ? (v / (voices - 1) - .5) * 28 : 0;
+      const p = ctx.createStereoPanner(); p.pan.value = voices > 1 ? (v / (voices - 1) - .5) * 1.4 : 0; o.connect(p); p.connect(lp); o.start(t); o.stop(t + dur + .02); }
+  };
+  const pluck = (t, f, g) => {
+    const o = ctx.createOscillator(); o.type = 'square'; o.frequency.value = f; const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(5200, t); lp.frequency.exponentialRampToValueAtTime(500, t + .14);
+    const a = ctx.createGain(); a.gain.setValueAtTime(g, t); a.gain.exponentialRampToValueAtTime(.001, t + .18); o.connect(lp); lp.connect(a); a.connect(pump); a.connect(dly); o.start(t); o.stop(t + .2);
+  };
+  const bass = (t, f, dur, g) => {
+    const o = ctx.createOscillator(), s = ctx.createOscillator(); o.type = 'sawtooth'; s.type = 'sine'; o.frequency.value = f; s.frequency.value = f / 2;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 3; lp.frequency.setValueAtTime(900, t); lp.frequency.exponentialRampToValueAtTime(220, t + dur * .8);
+    const a = ctx.createGain(); a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(g, t + .006); a.gain.exponentialRampToValueAtTime(.001, t + dur);
+    const sa = ctx.createGain(); sa.gain.setValueAtTime(0, t); sa.gain.linearRampToValueAtTime(g * 1.1, t + .006); sa.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(lp); lp.connect(a); a.connect(pump); s.connect(sa); sa.connect(pump); o.start(t); s.start(t); o.stop(t + dur + .02); s.stop(t + dur + .02);
+  };
+  const riser = (t0, t1, g) => {
+    const n = ctx.createBufferSource(); n.buffer = noiseBuf; n.loop = true; const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 1.4;
+    bp.frequency.setValueAtTime(300, t0); bp.frequency.exponentialRampToValueAtTime(9000, t1); const a = ctx.createGain(); a.gain.setValueAtTime(.0001, t0); a.gain.exponentialRampToValueAtTime(g, t1 - .02); a.gain.linearRampToValueAtTime(0, t1);
+    n.connect(bp); bp.connect(a); a.connect(master); a.connect(verb); n.start(t0); n.stop(t1 + .05);
+    const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(110, t0); o.frequency.exponentialRampToValueAtTime(880, t1);
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(400, t0); lp.frequency.exponentialRampToValueAtTime(5000, t1);
+    const oa = ctx.createGain(); oa.gain.setValueAtTime(.0001, t0); oa.gain.exponentialRampToValueAtTime(g * .35, t1 - .02); oa.gain.linearRampToValueAtTime(0, t1);
+    o.connect(lp); lp.connect(oa); oa.connect(master); o.start(t0); o.stop(t1 + .05);
+  };
+  const impact = (t, g = 1) => {
+    const o = ctx.createOscillator(), a = ctx.createGain(); o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(30, t + 1.4);
+    a.gain.setValueAtTime(1.2 * g, t); a.gain.exponentialRampToValueAtTime(.001, t + 1.8); o.connect(a); a.connect(master); o.start(t); o.stop(t + 1.9);
+    const n = ctx.createBufferSource(); n.buffer = noiseBuf; n.loop = true; const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 3000; const na = ctx.createGain();
+    na.gain.setValueAtTime(.45 * g, t); na.gain.exponentialRampToValueAtTime(.001, t + 2.2); n.connect(hp); hp.connect(na); na.connect(master); na.connect(verb); n.start(t); n.stop(t + 2.3);
+  };
+  const whoosh = (tc, g) => {
+    const t0 = tc - .32, t1 = tc + .12, n = ctx.createBufferSource(); n.buffer = noiseBuf; n.loop = true; const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 2;
+    bp.frequency.setValueAtTime(500, t0); bp.frequency.exponentialRampToValueAtTime(4500, tc); bp.frequency.exponentialRampToValueAtTime(1500, t1);
+    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, t0); a.gain.exponentialRampToValueAtTime(g, tc); a.gain.exponentialRampToValueAtTime(.0001, t1);
+    n.connect(bp); bp.connect(a); a.connect(master); n.start(t0, Math.random()); n.stop(t1 + .02);
+  };
+
+  // ---- harmony: Am F C G, one chord a bar (C major lifts the answer and the close)
+  const PROG = [[110, [220, 261.63, 329.63]], [87.31, [174.61, 220, 261.63]], [130.81, [196, 261.63, 329.63]], [98, [196, 246.94, 293.66]]];
+  const chordAt = t => PROG[Math.floor(t / (4 * B)) % 4];
+  const nBeats = Math.ceil(DUR / B);
+  const tA3 = st.A3, tNet = st.RNET, tLogo = tl.drops[tl.drops.length - 1], tR0 = st.R0, tB6 = st.B6;
+  for (let i = 0; i < nBeats; i++) {
+    const t = i * B, bi = i % 4, mode = drumMode(t + 1e-4), [root, tri] = chordAt(t);
+    // drums
+    if (mode === 'full') {
+      kick(t); if (bi === 1 || bi === 3) clap(t);
+      for (let s = 0; s < 4; s++) hat(t + s * S16, s === 2 ? .0 : (s % 2 ? .09 : .05));
+      hat(t + 2 * S16, .11, true);
+    } else if (mode === 'half') {
+      if (bi === 0 || bi === 2) kick(t, .95); if (bi === 2) clap(t, 1.1);
+      hat(t + 2 * S16, .07); if (bi % 2) hat(t + S16 * 3, .05);
+    }
+    // bass: off-beat eighths in the grooves, long notes in the half-time
+    if (mode === 'full') bass(t + 2 * S16, root, B * .45, .5);
+    else if (mode === 'half' && bi === 0) bass(t, root * .75 > 70 ? root : root, B * 3.6, .45);
+    // chords: a pumping supersaw bed under the grooves, an open pad elsewhere
+    if (bi === 0) {
+      const bright = t >= tA3 && t < st.RCLOSE ? 1 : 0;
+      if (mode === 'full') tri.forEach(f => saws(t, f * 2, 4 * B, .045, 1400 + 1600 * bright, 2400 + 2600 * bright, pump, 5, .01, .05));
+      else if (mode === 'half') tri.forEach(f => saws(t, f, 4 * B, .05, 500, 900, pump, 5, .2, .3));
+      else if (t < tR0) { const u = t / tR0; tri.forEach(f => saws(t, f * 2, 4 * B, .03 + .02 * u, 300 + 2600 * u * u, 400 + 3600 * u * u, pump, 5, .3, .3)); }
+      else if (t >= tB6 && t < tA3) tri.forEach(f => saws(t, f * 2, 4 * B, .04, 800, 6000, pump, 5, .05, .1));
+      else if (t >= st.RCLOSE) tri.forEach(f => saws(t, f, 4 * B, .045, 700, 1100, master, 5, .4, .6));
+    }
+    // arpeggio: sixteenths over the chord in the grooves (and coming in during the zoom)
+    const arpOn = mode === 'full' || (t >= st.RGLOBE && t < tR0);
+    if (arpOn) for (let s = 0; s < 4; s++) { const k = (i * 4 + s) % 6, notes = [tri[0], tri[1], tri[2], tri[1] * 2, tri[2] * 2, tri[0] * 2]; pluck(t + s * S16, notes[k] * 2, t < tR0 ? .04 + .05 * ((t - st.RGLOBE) / (tR0 - st.RGLOBE)) : .07); }
+  }
+  // lead hook over the second drop
+  const HOOK = [[0, 659.25, 1.5], [1.5, 587.33, .5], [2, 523.25, 1], [3, 440, 1], [4, 523.25, 1.5], [5.5, 587.33, .5], [6, 523.25, 1], [7, 440, 1]];
+  for (let bar2 = Math.ceil(tA3 / (8 * B)) * 8 * B; bar2 < en.B7 - .1; bar2 += 8 * B) HOOK.forEach(([b, f, d]) => { const t = bar2 + b * B; if (t < en.B7) { saws(t, f, d * B * .95, .05, 3000, 1800, pump, 3, .01, .06, 2); saws(t, f, d * B * .95, .02, 2400, 1600, dly, 1, .01, .06); } });
+  // builds, drops and the logo
+  riser(tR0 - 8 * B, tR0, .35); for (let k = 0; k < 16; k++) snare(tR0 - 4 * B + k * S16, .25 + .5 * k / 16);
+  riser(tB6, tA3, .4); { let t = tB6; for (let k = 0; k < 8; k++) { snare(t, .3); t += B / 2; } for (let k = 0; k < 16; k++) { snare(t, .45 + .4 * k / 16); t += S16; } }
+  riser(tNet - 4 * B, tNet, .25);
+  [tR0, tA3, tNet].forEach(t => { impact(t, 1); kick(t, 1.1); });
+  riser(tLogo - 6 * B, tLogo, .3); impact(tLogo, 1.2); [220, 261.63, 329.63, 440].forEach(f => saws(tLogo, f, 3.2, .05, 2600, 700, master, 5, .005, 2.4));
+  // a whoosh on every cut
+  tl.scenes.forEach((s, i) => { if (i) whoosh(s.start, .14); });
+
+  // sidechain: the melodic bus ducks on every kick (scheduled in time order)
+  [...new Set(kickTimes.map(t => Math.round(t * 1000) / 1000))].sort((x, y) => x - y).forEach(t => { pump.gain.setValueAtTime(.22, t + .005); pump.gain.setTargetAtTime(1, t + .04, B * .18); });
+  const buf = await ctx.startRendering();
+  const L = buf.getChannelData(0), R = buf.getChannelData(1), n = L.length, pcm = new Int16Array(n * 2);
+  let pk = 0; for (let i = 0; i < n; i++) pk = Math.max(pk, Math.abs(L[i]), Math.abs(R[i]));
+  const gN = pk > 0 ? .95 / pk : 1;
+  for (let i = 0; i < n; i++) { pcm[2 * i] = Math.max(-1, Math.min(1, L[i] * gN)) * 32767; pcm[2 * i + 1] = Math.max(-1, Math.min(1, R[i] * gN)) * 32767; }
+  const u8 = new Uint8Array(pcm.buffer); let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+  return { sr: SR, b64: btoa(s) };
+};
+</script>

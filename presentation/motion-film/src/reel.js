@@ -3,8 +3,8 @@
 
 /* ---------- R0: cold open, five statements on the beat, then the mark ---------- */
 const R0_CARDS = [
-  ['RIYADH', 'q-riyadhcars-night'], ['520 SHOWROOMS', 'q-luxhall'], ['31,869 CARS', 's-hall'],
-  ['SAR 3.6B ON THE FLOOR', 'n-porsche-row'], ['WALKED DOOR TO DOOR', 'q-street-fullspeed'],
+  ['RIYADH', 'q-riyadhcars-night'], ['AL QADISIYAH', 'q-luxhall'], ['AL SHIFA', 's-hall'], ['520 SHOWROOMS', 'n-porsche-row'],
+  ['31,869 CARS', 's-glass'], ['SAR 3.6B ON THE FLOOR', 'q-safh-dark'], ['BY DAY', 'q-street-fullspeed'], ['AND AFTER DARK', 'n-rc-night'],
 ];
 // the reel uses widescreen versions of the portrait field photos where it has them (Higgsfield outpaint), so a full frame is not a 2x crop
 const widePic = k => IMG['w-' + k] || IMG[k];
@@ -13,16 +13,17 @@ function gradedPhoto(k, zoom, px, dark) {
   X.fillStyle = `rgba(2,10,34,${dark})`; X.fillRect(0, 0, W, H);
 }
 SC2.R0 = (lt, D) => {
-  const beat = .6, n = R0_CARDS.length, tm = n * beat;
+  const beat = FILM.bpm ? 60 / FILM.bpm : .6, n = R0_CARDS.length, tm = n * beat;
   X.fillStyle = '#02050f'; X.fillRect(0, 0, W, H);
   if (lt < tm) {
-    const i = Math.floor(lt / beat), u = lt - i * beat, [word, pic] = R0_CARDS[i];
+    const i = clamp(Math.floor(lt / beat), 0, n - 1), u = Math.max(0, lt - i * beat), [word, pic] = R0_CARDS[i];
     gradedPhoto(pic, 1.18 - .08 * (u / beat), .5 + (i % 2 ? -.08 : .08) * (u / beat), .72);
     // a thin frame and a light streak that crosses on each beat
     X.strokeStyle = 'rgba(160,190,255,.22)'; X.lineWidth = 1.5; X.strokeRect(70, 70, W - 140, H - 140);
     const sx = lerp(-400, W + 400, eio(clamp(u / beat)));
     const sg = X.createLinearGradient(sx - 300, 0, sx + 300, 0); sg.addColorStop(0, 'rgba(160,190,255,0)'); sg.addColorStop(.5, 'rgba(160,190,255,.14)'); sg.addColorStop(1, 'rgba(160,190,255,0)');
     X.fillStyle = sg; X.fillRect(0, 0, W, H);
+    warpStreaks(X, .55 + .45 * Math.exp(-u / .12), lt);
     mono(`0${i + 1} / 0${n}`, 100, 120, 18, C2.teal, .9);
     mono('AUTOLINK · FIELD CENSUS', W - 100, 120, 18, C2.teal, .9, 'right');
     const sc = 1.14 - .14 * eo(clamp(u / .22)), al = Math.min(1, u / .06);
@@ -116,7 +117,7 @@ function ribbons(lt, a) {
   X.restore();
 }
 SC2.RCLOSE = (lt, D) => {
-  const tc = 3.4, u = lt - tc;
+  const tc = FILM.bpm ? 7 * 60 / FILM.bpm : 3.4, u = lt - tc;
   const bg = X.createRadialGradient(W / 2, H * .46, 0, W / 2, H * .5, W * .7); bg.addColorStop(0, '#0a1b52'); bg.addColorStop(1, '#010416');
   X.fillStyle = bg; X.fillRect(0, 0, W, H);
   if (lt < tc + .5) {   // the founder's line

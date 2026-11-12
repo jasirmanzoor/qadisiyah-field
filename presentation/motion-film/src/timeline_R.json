@@ -1,27 +1,51 @@
 {
- "total": 103.9,
+ "total": 100.645,
  "xf": 0.5,
+ "bpm": 124,
+ "drums": [
+  [
+   10.645,
+   52.258,
+   "full"
+  ],
+  [
+   52.258,
+   65.806,
+   "half"
+  ],
+  [
+   69.677,
+   93.871,
+   "full"
+  ]
+ ],
+ "drops": [
+  10.645,
+  69.677,
+  81.29,
+  97.258
+ ],
  "scenes": [
   {
    "id": "RBRAND",
    "start": 0.0,
-   "end": 2.8,
+   "end": 2.903,
    "lines": [
     {
      "t": 0.2,
-     "dur": 2.1999999999999997,
+     "dur": 2.303225806451613,
      "text": ""
     }
    ]
   },
   {
    "id": "RGLOBE",
-   "start": 2.8,
-   "end": 10.0,
+   "start": 2.903,
+   "end": 10.645,
    "lines": [
     {
      "t": 0.2,
-     "dur": 6.6000000000000005,
+     "dur": 7.141935483870968,
      "text": ""
     }
    ],
@@ -29,43 +53,43 @@
   },
   {
    "id": "R0",
-   "start": 10.0,
-   "end": 13.0,
+   "start": 10.645,
+   "end": 14.516,
    "lines": [
     {
      "t": 0.2,
-     "dur": 2.4,
+     "dur": 3.270967741935484,
      "text": ""
+    }
+   ],
+   "tr": "warp"
+  },
+  {
+   "id": "T1",
+   "start": 14.516,
+   "end": 19.355,
+   "lines": [
+    {
+     "t": 0.572,
+     "dur": 2.543,
+     "text": "Riyadh's independent car market trades billions of riyals a year."
+    },
+    {
+     "t": 3.434,
+     "dur": 1.055,
+     "text": "And no one had ever counted it."
     }
    ],
    "tr": "glitch"
   },
   {
-   "id": "T1",
-   "start": 13.0,
-   "end": 18.0,
-   "lines": [
-    {
-     "t": 0.591,
-     "dur": 2.628,
-     "text": "Riyadh's independent car market trades billions of riyals a year."
-    },
-    {
-     "t": 3.548,
-     "dur": 1.091,
-     "text": "And no one had ever counted it."
-    }
-   ],
-   "tr": "slice"
-  },
-  {
    "id": "T2",
-   "start": 18.0,
-   "end": 30.5,
+   "start": 19.355,
+   "end": 29.032,
    "lines": [
     {
-     "t": 2.167,
-     "dur": 3.23,
+     "t": 1.677,
+     "dur": 2.501,
      "text": "So we walked it. Door to door. Five hundred and twenty showrooms."
     }
    ],
@@ -73,17 +97,17 @@
   },
   {
    "id": "B2d",
-   "start": 30.5,
-   "end": 37.3,
+   "start": 29.032,
+   "end": 35.806,
    "lines": [
     {
-     "t": 0.291,
-     "dur": 2.263,
+     "t": 0.29,
+     "dur": 2.254,
      "text": "We did not guess. We photographed the floors, and read the prices on the windscreens."
     },
     {
-     "t": 2.797,
-     "dur": 1.691,
+     "t": 2.787,
+     "dur": 1.685,
      "text": "Stock, prices and presentation. All seen in person."
     }
    ],
@@ -91,12 +115,12 @@
   },
   {
    "id": "B2e",
-   "start": 37.3,
-   "end": 43.1,
+   "start": 35.806,
+   "end": 41.613,
    "lines": [
     {
      "t": 0.29,
-     "dur": 2.047,
+     "dur": 2.05,
      "text": "Every showroom pinned at its coordinates, and logged on one master sheet."
     }
    ],
@@ -104,53 +128,53 @@
   },
   {
    "id": "B3",
-   "start": 43.1,
-   "end": 48.7,
+   "start": 41.613,
+   "end": 47.419,
    "lines": [
     {
-     "t": 0.191,
-     "dur": 2.04,
+     "t": 0.198,
+     "dur": 2.115,
      "text": "Five hundred and twenty showrooms. Five hundred and fourteen, pinned on the map."
     },
     {
-     "t": 2.442,
-     "dur": 2.925,
+     "t": 2.532,
+     "dur": 3.033,
      "text": "Thirty one thousand, eight hundred and sixty nine cars on the floor. Three point six billion riyals of stock."
-    }
-   ],
-   "tr": "punch"
-  },
-  {
-   "id": "B4",
-   "start": 48.7,
-   "end": 53.9,
-   "lines": [
-    {
-     "t": 0.19,
-     "dur": 0.873,
-     "text": "Twenty five owners opened their books."
-    },
-    {
-     "t": 1.274,
-     "dur": 3.693,
-     "text": "Al Qaadiseeya alone sells an estimated fifteen point seven billion riyals of cars a year. And that is the conservative figure."
     }
    ],
    "tr": "glitch"
   },
   {
-   "id": "A2",
-   "start": 53.9,
-   "end": 60.9,
+   "id": "B4",
+   "start": 47.419,
+   "end": 52.258,
    "lines": [
     {
-     "t": 0.301,
-     "dur": 2.182,
+     "t": 0.177,
+     "dur": 0.812,
+     "text": "Twenty five owners opened their books."
+    },
+    {
+     "t": 1.186,
+     "dur": 3.437,
+     "text": "Al Qaadiseeya alone sells an estimated fifteen point seven billion riyals of cars a year. And that is the conservative figure."
+    }
+   ],
+   "tr": "punch"
+  },
+  {
+   "id": "A2",
+   "start": 52.258,
+   "end": 59.032,
+   "lines": [
+    {
+     "t": 0.291,
+     "dur": 2.111,
      "text": "When the finance is not there, the sale walks out of the door."
     },
     {
-     "t": 2.817,
-     "dur": 3.816,
+     "t": 2.726,
+     "dur": 3.692,
      "text": "Owners told us: for every ten cars they sell, about four more ready buyers leave without one."
     }
    ],
@@ -158,61 +182,61 @@
   },
   {
    "id": "RLEAK",
-   "start": 60.9,
-   "end": 67.5,
+   "start": 59.032,
+   "end": 65.806,
    "lines": [
     {
      "t": 0.2,
-     "dur": 6.0,
+     "dur": 6.174193548387097,
      "text": ""
-    }
-   ],
-   "tr": "punch"
-  },
-  {
-   "id": "B6",
-   "start": 67.5,
-   "end": 70.9,
-   "lines": [
-    {
-     "t": 0.247,
-     "dur": 2.85,
-     "text": "No one else holds this. The largest sub-dealer mapping of its kind, on one standard."
     }
    ],
    "tr": "glitch"
   },
   {
-   "id": "A3",
-   "start": 70.9,
-   "end": 78.3,
+   "id": "B6",
+   "start": 65.806,
+   "end": 69.677,
    "lines": [
     {
-     "t": 0.336,
-     "dur": 1.773,
+     "t": 0.282,
+     "dur": 3.245,
+     "text": "No one else holds this. The largest sub-dealer mapping of its kind, on one standard."
+    }
+   ],
+   "tr": "punch"
+  },
+  {
+   "id": "A3",
+   "start": 69.677,
+   "end": 76.452,
+   "lines": [
+    {
+     "t": 0.307,
+     "dur": 1.623,
      "text": "AutoLink brings financing to your floor."
     },
     {
-     "t": 2.482,
-     "dur": 4.509,
+     "t": 2.272,
+     "dur": 4.127,
      "text": "Your team submits the buyer's request in the AutoLink dealer portal, and follows it, step by step."
     }
    ],
-   "tr": "flash"
+   "tr": "warp"
   },
   {
    "id": "A4",
-   "start": 78.3,
-   "end": 83.3,
+   "start": 76.452,
+   "end": 81.29,
    "lines": [
     {
-     "t": 0.325,
-     "dur": 2.223,
+     "t": 0.315,
+     "dur": 2.151,
      "text": "Requests, reports and your account, in one dashboard."
     },
     {
-     "t": 2.909,
-     "dur": 1.694,
+     "t": 2.815,
+     "dur": 1.639,
      "text": "In Arabic, in English, or in Chinese."
     }
    ],
@@ -220,52 +244,52 @@
   },
   {
    "id": "RNET",
-   "start": 83.3,
-   "end": 89.7,
+   "start": 81.29,
+   "end": 88.065,
    "lines": [
     {
      "t": 0.2,
-     "dur": 5.800000000000001,
+     "dur": 6.174193548387097,
      "text": ""
     }
    ],
-   "tr": "punch"
+   "tr": "warp"
   },
   {
    "id": "B7",
-   "start": 89.7,
-   "end": 95.9,
+   "start": 88.065,
+   "end": 93.871,
    "lines": [
     {
-     "t": 0.182,
-     "dur": 0.556,
+     "t": 0.171,
+     "dur": 0.521,
      "text": "And it is already moving."
     },
     {
-     "t": 0.941,
-     "dur": 3.423,
+     "t": 0.881,
+     "dur": 3.205,
      "text": "In one month, twenty sub-dealers signed with AutoLink. Sixteen more agreements are out for signature, and sixty four are in the pipeline."
     },
     {
-     "t": 4.566,
-     "dur": 1.411,
+     "t": 4.276,
+     "dur": 1.321,
      "text": "We are at the table with eighteen banks and finance companies."
     }
    ],
-   "tr": "slice"
+   "tr": "glitch"
   },
   {
    "id": "RCLOSE",
-   "start": 95.9,
-   "end": 103.9,
+   "start": 93.871,
+   "end": 100.645,
    "lines": [
     {
      "t": 0.2,
-     "dur": 7.4,
+     "dur": 6.174193548387097,
      "text": ""
     }
    ],
-   "tr": "glitch"
+   "tr": "flash"
   }
  ]
 }
