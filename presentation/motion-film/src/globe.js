@@ -14,9 +14,10 @@ SC2.RBRAND = (lt, D) => {
 BG2.RBRAND = () => STUDIO;
 
 /* ---------- RGLOBE: orbit to Al Qadisiyah ---------- */
-const ZKEYS = [[0, 2.9], [1.3, 3.5], [2.4, 5.6], [3.2, 6.3], [4.6, 9.4], [5.3, 10.2], [6.9, 14.0], [7.8, 14.2], [9.0, 12.8], [10.65, 11.6]];
+const ZKEYS = [[0, 2.9], [1.3, 3.5], [2.4, 5.6], [3.2, 6.3], [4.6, 9.4], [5.3, 10.2], [6.9, 14.2], [8.0, 15.0], [9.6, 15.1], [10.9, 13.0], [12.3, 14.9], [14.5, 15.0]];
 // after landing on Al Qadisiyah the camera pulls back south-west to frame Al Shifa as well (mosaics: zoom_tiles_p.py)
-const GMID = [24.687, 46.7535], PB0 = 8.0, PB1 = 9.8;
+// close in on Al Qadisiyah until the district fills the frame, hold, cross to Al Shifa and close in on it too (mosaics: zoom_tiles_ts.py)
+const GS = [24.5480, 46.6850], PAN0 = 9.8, PAN1 = 12.0;
 const ZSLOPE = (() => {   // Fritsch–Carlson slopes: a smooth zoom that never overshoots its keys
   const k = ZKEYS, n = k.length, d = [], m = [];
   for (let i = 0; i < n - 1; i++) d.push((k[i + 1][1] - k[i][1]) / (k[i + 1][0] - k[i][0]));
@@ -80,11 +81,11 @@ function drawGlobe(z, c) {
   ag.addColorStop(0, 'rgba(110,160,255,.55)'); ag.addColorStop(.35, 'rgba(70,120,255,.22)'); ag.addColorStop(1, 'rgba(40,90,255,0)');
   X.fillStyle = ag; X.beginPath(); X.arc(W / 2, H / 2, Rf * 1.16, 0, 7); X.fill();
 }
-let ZSPEC = null, ZSPECP = null;
+let ZSPEC = null, ZSPECTS = null;
 function drawMap(z, c, a, set = '') {
   if (!ZSPEC) return; X.save(); X.globalAlpha = a;
   const draw = (L, al) => {
-    const pset = set === 'P' && ZSPECP && L >= 12 && L <= 14, sp = pset ? ZSPECP[L - 12] : ZSPEC[L - 5], im = IMG[(pset ? 'zoomP' : 'zoom') + L]; if (!sp || !im || al <= 0) return;
+    const alt = set && ZSPECTS && ZSPECTS[set] && ZSPECTS[set].find(s => s.L === L), sp = alt || ZSPEC[L - 5], im = IMG[(alt ? 'zoom' + set : 'zoom') + L]; if (!sp || !im || al <= 0) return;
     const s = Math.pow(2, z - L), cw = mercW(c[0], c[1], L);
     X.globalAlpha = a * al; X.drawImage(im, W / 2 + (sp.x0 * 256 - cw[0]) * s, H / 2 + (sp.y0 * 256 - cw[1]) * s, sp.nx * 256 * s, sp.ny * 256 * s);
   };
@@ -112,9 +113,10 @@ const SPINS = (() => { const P = (window.DPINS || []).filter(p => p[2] === 1), l
 const QPINS = (() => { const P = (window.DPINS || []).filter(p => p[2] === 0), lat0 = 24.7636, lng0 = 46.6402;
   return P.map(p => [lat0 - p[1] / 111320, lng0 + p[0] / (111320 * Math.cos(lat0 * D2R))]).map(q => [q, Math.hypot(q[0] - GQ[0], (q[1] - GQ[1]) * .91)]).sort((a, b) => a[1] - b[1]).map(a => a[0]); })();
 SC2.RGLOBE = (lt, D) => {
-  const z = zoomAt(lt), pb = sm(PB0, PB1, lt), c = pb > 0 ? [lerp(GQ[0], GMID[0], pb), lerp(GQ[1], GMID[1], pb)] : camCentre(z);
+  const z = zoomAt(lt), pb = sm(PAN0, PAN1, lt), c = pb > 0 ? [lerp(GQ[0], GS[0], pb), lerp(GQ[1], GS[1], pb)] : camCentre(z);
+  const mset = lt < 10.2 ? '' : lt < 11.9 ? 'T' : 'S';
   if (z < 5.0) drawGlobe(Math.min(z, 4.8), camCentre(Math.min(z, 4.8)));
-  const ma = sm(4.55, 5.0, z); if (ma > 0) drawMap(Math.max(z, 4.55), z < 4.8 ? camCentre(4.8) : c, ma, lt >= PB0 - .05 ? 'P' : '');
+  const ma = sm(4.55, 5.0, z); if (ma > 0) drawMap(Math.max(z, 4.55), z < 4.8 ? camCentre(4.8) : c, ma, mset);
   // grade the imagery towards the brand blues
   if (ma > 0) { X.fillStyle = `rgba(4,14,44,${.26 * ma})`; X.fillRect(0, 0, W, H); }
   const vg = X.createRadialGradient(W / 2, H / 2, H * .3, W / 2, H / 2, H * 1.05); vg.addColorStop(0, 'rgba(1,4,18,0)'); vg.addColorStop(1, 'rgba(1,4,18,.75)'); X.fillStyle = vg; X.fillRect(0, 0, W, H);
@@ -130,7 +132,19 @@ SC2.RGLOBE = (lt, D) => {
     });
     X.restore();
   }
-  const ps = sm(8.5, 9.7, lt);   // Al Shifa's showrooms light up as it comes into frame
+  // the showroom buildings themselves light up, district by district
+  const fq = sm(7.0, 8.6, lt), fs = sm(12.1, 13.6, lt);
+  for (const [list, f] of [[(window.SHOWFOOT || {}).q || [], fq], [(window.SHOWFOOT || {}).s || [], fs]]) {
+    if (f <= 0) continue;
+    list.forEach((poly, i) => {
+      const al = sm(i / list.length * .7, i / list.length * .7 + .3, f); if (al <= 0) return;
+      X.beginPath(); let ok = true;
+      poly.forEach(([la, lo], k) => { const p = placeAt(la, lo, z, c); if (!p) { ok = false; return; } k ? X.lineTo(p[0], p[1]) : X.moveTo(p[0], p[1]); });
+      if (!ok) return; X.closePath();
+      X.fillStyle = `rgba(86,132,255,${.42 * al})`; X.fill(); X.strokeStyle = `rgba(200,215,255,${.9 * al})`; X.lineWidth = 1.6; X.stroke();
+    });
+  }
+  const ps = sm(11.6, 12.8, lt);   // Al Shifa's showrooms light up as the camera arrives
   if (ps > 0) {
     SPINS.forEach((q, i) => {
       const al = sm(i / SPINS.length * .8, i / SPINS.length * .8 + .2, ps); if (al <= 0) return;
@@ -141,10 +155,10 @@ SC2.RGLOBE = (lt, D) => {
   }
   // labels
   const zc = z < 4.8 ? camCentre(z) : c, pl = (g) => placeAt(g[0], g[1], z < 4.8 ? z : z, zc) || [0, 0];
-  const aS = sm(4.4, 4.9, z) * (1 - sm(6.8, 7.4, z)) * (lt < 6 ? 1 : 0), aR = sm(8.3, 8.9, z) * (1 - sm(10.6, 11.2, z)) * (lt < 6 ? 1 : 0), aQ = lt > 6.9 ? 1 : sm(13.3, 13.9, z), aSh = sm(8.9, 9.6, lt);
+  const aS = sm(4.4, 4.9, z) * (1 - sm(6.8, 7.4, z)) * (lt < 6 ? 1 : 0), aR = sm(8.3, 8.9, z) * (1 - sm(10.6, 11.2, z)) * (lt < 6 ? 1 : 0), aQ = (lt > 6.9 ? 1 : sm(13.3, 13.9, z)) * (1 - sm(9.7, 10.2, lt)), aSh = sm(12.4, 13.0, lt);
   if (aS > 0) { const p = pl(GKSA); placeChip(p[0], p[1], 'KINGDOM OF SAUDI ARABIA', 'Saudi Arabia', aS); }
   if (aR > 0) { const p = pl([24.7136, 46.6753]); placeChip(p[0], p[1], 'CAPITAL OF THE KINGDOM', 'Riyadh', aR); }
-  if (aQ > 0) { const p = pl([24.8365, 46.7905]); placeChip(p[0], p[1], 'EAST RIYADH · USED-CAR DISTRICT', 'Al Qadisiyah', aQ, '309 SHOWROOMS PINNED', lt > 8.6); }
+  if (aQ > 0) { const p = pl([24.8365, 46.7905]); placeChip(p[0], p[1], 'EAST RIYADH · USED-CAR DISTRICT', 'Al Qadisiyah', aQ, '309 SHOWROOMS PINNED'); }
   if (aSh > 0) { const p = pl([24.5555, 46.6765]); placeChip(p[0], p[1], 'SOUTH RIYADH · USED-CAR DISTRICT', 'Al Shifa', aSh, '208 SHOWROOMS PINNED'); }
   // HUD
   const ha = S(lt - .2, 100);

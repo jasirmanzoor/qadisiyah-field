@@ -24,6 +24,7 @@ canvas{position:absolute;left:0;top:0;width:1920px;height:1080px}
 <script src="scenes3.js"></script>
 <script src="scenes4.js"></script>
 <script src="reel.js"></script>
+<script src="showfoot.js"></script>
 <script src="globe.js"></script>
 <script src="showcase.js"></script>
 <script src="droner.js"></script>
@@ -39,7 +40,7 @@ window.ready = (async () => {
   IMG.keyvisual = await loadImg('img/brand/keyvisual.jpg');
   for (const k of ['aljazira', 'albilad','alinma','anb','alrajhi','snb','riyad','enbd','raya','nama','tarabut','aljabr','taajeer','nfh','tamam','tamweel','alj','yanal','alyusr']) IMG['p-' + k] = await loadImg(`img/partners/${k}.png`);
   for (const k of ['00','10','20','01','11','21','02','12','22']) IMG['sh-' + k] = await loadImg(`sat/shifa18-${k}.jpg`);
-  if (film === 'R') { IMG.earth = await loadImg('img/zoom/earth.jpg'); ZSPEC = await (await fetch('img/zoom/spec.json')).json(); ZSPECP = await (await fetch('img/zoom/specP.json')).json(); for (const L of [12, 13, 14]) IMG['zoomP' + L] = await loadImg(`img/zoom/P${L}.jpg`); for (let L = 5; L <= 15; L++) IMG['zoom' + L] = await loadImg(`img/zoom/L${L}.jpg`); for (const k of ['q-riyadhcars-night', 'q-luxhall', 'q-safh-dark', 'n-porsche-row']) IMG['w-' + k] = await loadImg(`img/zoom/wide/${k}.jpg`);  for (const k of ['s-close', 's-open', 's-work']) IMG['site-' + k] = await loadImg(`img/site/${k}.jpg`); for (const k of ['en-01', 'en-02', 'en-03', 'en-06', 'en-09', 'en-10', 'arh-1', 'arh-2', 'arh-3']) IMG['sop-' + k] = await loadImg(`img/sop/${k}.jpg`); }
+  if (film === 'R') { IMG.earth = await loadImg('img/zoom/earth.jpg'); ZSPEC = await (await fetch('img/zoom/spec.json')).json(); ZSPECTS = await (await fetch('img/zoom/specTS.json')).json(); for (const L of [12, 13, 14]) IMG['zoomT' + L] = await loadImg(`img/zoom/T${L}.jpg`); for (const L of [14, 15]) IMG['zoomS' + L] = await loadImg(`img/zoom/S${L}.jpg`); for (let L = 5; L <= 15; L++) IMG['zoom' + L] = await loadImg(`img/zoom/L${L}.jpg`); for (const k of ['q-riyadhcars-night', 'q-luxhall', 'q-safh-dark', 'n-porsche-row']) IMG['w-' + k] = await loadImg(`img/zoom/wide/${k}.jpg`);  for (const k of ['s-close', 's-open', 's-work']) IMG['site-' + k] = await loadImg(`img/site/${k}.jpg`); for (const k of ['en-01', 'en-02', 'en-03', 'en-06', 'en-09', 'en-10', 'arh-1', 'arh-2', 'arh-3']) IMG['sop-' + k] = await loadImg(`img/sop/${k}.jpg`); }
   await DR.load('');
   window.seek(0);
   return { film, total: FILM.total, scenes: FILM.scenes.map(s => s.id) };

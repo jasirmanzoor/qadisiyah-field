@@ -51,8 +51,8 @@ const DR = { ready: false };
         glass += vec3(.10, .14, .22) * smoothstep(vH - 8., vH, vW.y);
         base = glass * (.88 + .12 * l);
       } else if (vK > .5) {   // district showrooms and warehouses: metal cladding over a glazed front at street level
-        float tone = .80 + .12 * hash(floor(vW.xz / 23.));
-        vec3 clad = vec3(tone, tone * .985, tone * .96) * l;
+        float tone = .93 + .06 * hash(floor(vW.xz / 23.));
+        vec3 clad = vec3(tone, tone * .99, tone * .97) * (.78 + .22 * l);
         float rib = .94 + .06 * step(.5, fract((vW.x + vW.z) / 1.2));
         vec3 front = mix(vec3(.12, .15, .2), vec3(.95, .9, .78), .35 * step(.55, hash(floor(vec2((vW.x + vW.z) / 6., 0.)))));
         base = mix(clad * rib, front, step(vW.y, 3.8) * .85);
@@ -88,6 +88,11 @@ const DR = { ready: false };
   DR.load = async function (base) {
     const w = await (await fetch(base + 'sat/world.json')).json();
     await Promise.all(w.chunks.map(async c => { const img = await loadImg(`${base}sat/${c.f}.jpg`); if (!img) return; CH.push({ c, t: tex(img) }); }));
+    // the reel adds zoom-19 imagery (~0.26 m/px) under KAFD and the two low passes (hisat_tiles.py)
+    if (typeof FILM !== 'undefined' && FILM && FILM.id === 'R') {
+      const hs = await (await fetch(base + 'img/zoom/hisat/hisat.json')).json().catch(() => []);
+      await Promise.all(hs.map(async c => { const img = await loadImg(`${base}img/zoom/hisat/${c.f}.jpg`); if (img) CH.push({ c, t: tex(img) }); }));
+    }
     CH.sort((a, b) => a.c.L - b.c.L);
     // the skyline stands in 3D (KAFD, and true towers anywhere); the imagery carries the low-rise city and the districts
     // the reel's flight also stands KAFD's lower blocks and the two districts' showrooms in 3D
@@ -122,6 +127,7 @@ const DR = { ready: false };
     for (const { c, t } of CH) {
       // skip fine tiles that are far away (they would only shimmer)
       if (c.L === 2) { const cx = (c.x0 + c.x1) / 2, cz = (c.z0 + c.z1) / 2; if (Math.hypot(cx - cam.eye[0], cz - cam.eye[2]) > 9000 + cam.eye[1] * 3) continue; }
+      if (c.L === 3) { const cx = (c.x0 + c.x1) / 2, cz = (c.z0 + c.z1) / 2; if (Math.hypot(cx - cam.eye[0], cz - cam.eye[2]) > 5000 + cam.eye[1] * 3) continue; }
       const e = c.e || ''; gl.uniform4f(G.u.uEdge, e.includes('l') ? 1 : 0, e.includes('t') ? 1 : 0, e.includes('r') ? 1 : 0, e.includes('b') ? 1 : 0);
       gl.uniform4f(G.u.uRect, c.x0, c.z0, c.x1, c.z1); gl.bindTexture(gl.TEXTURE_2D, t); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
