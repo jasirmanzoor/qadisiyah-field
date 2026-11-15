@@ -1,29 +1,37 @@
 {
- "total": 100.645,
+ "total": 103.548,
  "xf": 0.5,
  "bpm": 124,
+ "closeBeats": 6,
+ "intro": 2.903,
+ "close": 97.742,
  "drums": [
   [
    10.645,
-   52.258,
+   47.419,
    "full"
   ],
   [
-   52.258,
-   65.806,
+   47.419,
+   59.032,
    "half"
   ],
   [
-   69.677,
-   93.871,
+   62.903,
+   91.935,
    "full"
+  ],
+  [
+   91.935,
+   97.742,
+   "half"
   ]
  ],
  "drops": [
   10.645,
-  69.677,
-  81.29,
-  97.258
+  62.903,
+  74.516,
+  100.645
  ],
  "scenes": [
   {
@@ -67,16 +75,16 @@
   {
    "id": "T1",
    "start": 14.516,
-   "end": 19.355,
+   "end": 18.387,
    "lines": [
     {
-     "t": 0.572,
-     "dur": 2.543,
+     "t": 0.458,
+     "dur": 2.034,
      "text": "Riyadh's independent car market trades billions of riyals a year."
     },
     {
-     "t": 3.434,
-     "dur": 1.055,
+     "t": 2.747,
+     "dur": 0.844,
      "text": "And no one had ever counted it."
     }
    ],
@@ -84,12 +92,12 @@
   },
   {
    "id": "T2",
-   "start": 19.355,
-   "end": 29.032,
+   "start": 18.387,
+   "end": 26.129,
    "lines": [
     {
-     "t": 1.677,
-     "dur": 2.501,
+     "t": 1.342,
+     "dur": 2.001,
      "text": "So we walked it. Door to door. Five hundred and twenty showrooms."
     }
    ],
@@ -97,17 +105,17 @@
   },
   {
    "id": "B2d",
-   "start": 29.032,
-   "end": 35.806,
+   "start": 26.129,
+   "end": 31.935,
    "lines": [
     {
-     "t": 0.29,
-     "dur": 2.254,
+     "t": 0.249,
+     "dur": 1.932,
      "text": "We did not guess. We photographed the floors, and read the prices on the windscreens."
     },
     {
-     "t": 2.787,
-     "dur": 1.685,
+     "t": 2.389,
+     "dur": 1.444,
      "text": "Stock, prices and presentation. All seen in person."
     }
    ],
@@ -115,8 +123,8 @@
   },
   {
    "id": "B2e",
-   "start": 35.806,
-   "end": 41.613,
+   "start": 31.935,
+   "end": 37.742,
    "lines": [
     {
      "t": 0.29,
@@ -128,8 +136,8 @@
   },
   {
    "id": "B3",
-   "start": 41.613,
-   "end": 47.419,
+   "start": 37.742,
+   "end": 43.548,
    "lines": [
     {
      "t": 0.198,
@@ -146,17 +154,17 @@
   },
   {
    "id": "B4",
-   "start": 47.419,
-   "end": 52.258,
+   "start": 43.548,
+   "end": 47.419,
    "lines": [
     {
-     "t": 0.177,
-     "dur": 0.812,
+     "t": 0.141,
+     "dur": 0.65,
      "text": "Twenty five owners opened their books."
     },
     {
-     "t": 1.186,
-     "dur": 3.437,
+     "t": 0.948,
+     "dur": 2.749,
      "text": "Al Qaadiseeya alone sells an estimated fifteen point seven billion riyals of cars a year. And that is the conservative figure."
     }
    ],
@@ -164,17 +172,17 @@
   },
   {
    "id": "A2",
-   "start": 52.258,
-   "end": 59.032,
+   "start": 47.419,
+   "end": 53.226,
    "lines": [
     {
-     "t": 0.291,
-     "dur": 2.111,
+     "t": 0.25,
+     "dur": 1.81,
      "text": "When the finance is not there, the sale walks out of the door."
     },
     {
-     "t": 2.726,
-     "dur": 3.692,
+     "t": 2.337,
+     "dur": 3.165,
      "text": "Owners told us: for every ten cars they sell, about four more ready buyers leave without one."
     }
    ],
@@ -182,12 +190,12 @@
   },
   {
    "id": "RLEAK",
-   "start": 59.032,
-   "end": 65.806,
+   "start": 53.226,
+   "end": 59.032,
    "lines": [
     {
      "t": 0.2,
-     "dur": 6.174193548387097,
+     "dur": 5.206451612903226,
      "text": ""
     }
    ],
@@ -195,8 +203,8 @@
   },
   {
    "id": "B6",
-   "start": 65.806,
-   "end": 69.677,
+   "start": 59.032,
+   "end": 62.903,
    "lines": [
     {
      "t": 0.282,
@@ -207,49 +215,39 @@
    "tr": "punch"
   },
   {
-   "id": "A3",
-   "start": 69.677,
-   "end": 76.452,
+   "id": "RSITE",
+   "start": 62.903,
+   "end": 68.71,
    "lines": [
     {
-     "t": 0.307,
-     "dur": 1.623,
-     "text": "AutoLink brings financing to your floor."
-    },
-    {
-     "t": 2.272,
-     "dur": 4.127,
-     "text": "Your team submits the buyer's request in the AutoLink dealer portal, and follows it, step by step."
+     "t": 0.2,
+     "dur": 5.206451612903226,
+     "text": ""
     }
    ],
    "tr": "warp"
   },
   {
-   "id": "A4",
-   "start": 76.452,
-   "end": 81.29,
+   "id": "RSOP",
+   "start": 68.71,
+   "end": 74.516,
    "lines": [
     {
-     "t": 0.315,
-     "dur": 2.151,
-     "text": "Requests, reports and your account, in one dashboard."
-    },
-    {
-     "t": 2.815,
-     "dur": 1.639,
-     "text": "In Arabic, in English, or in Chinese."
+     "t": 0.2,
+     "dur": 5.206451612903226,
+     "text": ""
     }
    ],
    "tr": "slice"
   },
   {
    "id": "RNET",
-   "start": 81.29,
-   "end": 88.065,
+   "start": 74.516,
+   "end": 80.323,
    "lines": [
     {
      "t": 0.2,
-     "dur": 6.174193548387097,
+     "dur": 5.206451612903226,
      "text": ""
     }
    ],
@@ -257,8 +255,8 @@
   },
   {
    "id": "B7",
-   "start": 88.065,
-   "end": 93.871,
+   "start": 80.323,
+   "end": 86.129,
    "lines": [
     {
      "t": 0.171,
@@ -279,13 +277,39 @@
    "tr": "glitch"
   },
   {
-   "id": "RCLOSE",
-   "start": 93.871,
-   "end": 100.645,
+   "id": "RFLASH",
+   "start": 86.129,
+   "end": 91.935,
    "lines": [
     {
      "t": 0.2,
-     "dur": 6.174193548387097,
+     "dur": 5.206451612903226,
+     "text": ""
+    }
+   ],
+   "tr": "flash"
+  },
+  {
+   "id": "RNEXT",
+   "start": 91.935,
+   "end": 97.742,
+   "lines": [
+    {
+     "t": 0.2,
+     "dur": 5.206451612903226,
+     "text": ""
+    }
+   ],
+   "tr": "warp"
+  },
+  {
+   "id": "RCLOSE",
+   "start": 97.742,
+   "end": 103.548,
+   "lines": [
+    {
+     "t": 0.2,
+     "dur": 5.206451612903226,
      "text": ""
     }
    ],

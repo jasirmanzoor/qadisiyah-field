@@ -99,7 +99,7 @@ window.renderScore = async function (tl) {
   const PROG = [[110, [220, 261.63, 329.63]], [87.31, [174.61, 220, 261.63]], [130.81, [196, 261.63, 329.63]], [98, [196, 246.94, 293.66]]];
   const chordAt = t => PROG[Math.floor(t / (4 * B)) % 4];
   const nBeats = Math.ceil(DUR / B);
-  const tA3 = st.A3, tNet = st.RNET, tLogo = tl.drops[tl.drops.length - 1], tR0 = st.R0, tB6 = st.B6;
+  const tR0 = tl.drops[0], tA3 = tl.drops[1], tNet = tl.drops[2], tLogo = tl.drops[tl.drops.length - 1], tB6 = tA3 - 8 * B, tIntro = tl.intro, tClose = tl.close, tEnd2 = tl.drums[2][1];
   for (let i = 0; i < nBeats; i++) {
     const t = i * B, bi = i % 4, mode = drumMode(t + 1e-4), [root, tri] = chordAt(t);
     // drums
@@ -116,20 +116,20 @@ window.renderScore = async function (tl) {
     else if (mode === 'half' && bi === 0) bass(t, root * .75 > 70 ? root : root, B * 3.6, .45);
     // chords: a pumping supersaw bed under the grooves, an open pad elsewhere
     if (bi === 0) {
-      const bright = t >= tA3 && t < st.RCLOSE ? 1 : 0;
+      const bright = t >= tA3 && t < tClose ? 1 : 0;
       if (mode === 'full') tri.forEach(f => saws(t, f * 2, 4 * B, .045, 1400 + 1600 * bright, 2400 + 2600 * bright, pump, 5, .01, .05));
       else if (mode === 'half') tri.forEach(f => saws(t, f, 4 * B, .05, 500, 900, pump, 5, .2, .3));
       else if (t < tR0) { const u = t / tR0; tri.forEach(f => saws(t, f * 2, 4 * B, .03 + .02 * u, 300 + 2600 * u * u, 400 + 3600 * u * u, pump, 5, .3, .3)); }
       else if (t >= tB6 && t < tA3) tri.forEach(f => saws(t, f * 2, 4 * B, .04, 800, 6000, pump, 5, .05, .1));
-      else if (t >= st.RCLOSE) tri.forEach(f => saws(t, f, 4 * B, .045, 700, 1100, master, 5, .4, .6));
+      else if (t >= tClose) tri.forEach(f => saws(t, f, 4 * B, .045, 700, 1100, master, 5, .4, .6));
     }
     // arpeggio: sixteenths over the chord in the grooves (and coming in during the zoom)
-    const arpOn = mode === 'full' || (t >= st.RGLOBE && t < tR0);
-    if (arpOn) for (let s = 0; s < 4; s++) { const k = (i * 4 + s) % 6, notes = [tri[0], tri[1], tri[2], tri[1] * 2, tri[2] * 2, tri[0] * 2]; pluck(t + s * S16, notes[k] * 2, t < tR0 ? .04 + .05 * ((t - st.RGLOBE) / (tR0 - st.RGLOBE)) : .07); }
+    const arpOn = mode === 'full' || (t >= tIntro && t < tR0);
+    if (arpOn) for (let s = 0; s < 4; s++) { const k = (i * 4 + s) % 6, notes = [tri[0], tri[1], tri[2], tri[1] * 2, tri[2] * 2, tri[0] * 2]; pluck(t + s * S16, notes[k] * 2, t < tR0 ? .04 + .05 * ((t - tIntro) / (tR0 - tIntro)) : .07); }
   }
   // lead hook over the second drop
   const HOOK = [[0, 659.25, 1.5], [1.5, 587.33, .5], [2, 523.25, 1], [3, 440, 1], [4, 523.25, 1.5], [5.5, 587.33, .5], [6, 523.25, 1], [7, 440, 1]];
-  for (let bar2 = Math.ceil(tA3 / (8 * B)) * 8 * B; bar2 < en.B7 - .1; bar2 += 8 * B) HOOK.forEach(([b, f, d]) => { const t = bar2 + b * B; if (t < en.B7) { saws(t, f, d * B * .95, .05, 3000, 1800, pump, 3, .01, .06, 2); saws(t, f, d * B * .95, .02, 2400, 1600, dly, 1, .01, .06); } });
+  for (let bar2 = Math.ceil(tA3 / (8 * B)) * 8 * B; bar2 < tEnd2 - .1; bar2 += 8 * B) HOOK.forEach(([b, f, d]) => { const t = bar2 + b * B; if (t < tEnd2) { saws(t, f, d * B * .95, .05, 3000, 1800, pump, 3, .01, .06, 2); saws(t, f, d * B * .95, .02, 2400, 1600, dly, 1, .01, .06); } });
   // builds, drops and the logo
   riser(tR0 - 8 * B, tR0, .35); for (let k = 0; k < 16; k++) snare(tR0 - 4 * B + k * S16, .25 + .5 * k / 16);
   riser(tB6, tA3, .4); { let t = tB6; for (let k = 0; k < 8; k++) { snare(t, .3); t += B / 2; } for (let k = 0; k < 16; k++) { snare(t, .45 + .4 * k / 16); t += S16; } }

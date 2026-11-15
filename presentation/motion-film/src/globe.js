@@ -8,7 +8,7 @@ SC2.RBRAND = (lt, D) => {
   mark(W / 2, H / 2 - 40, .92, C2.navy, 1, .12);
   const p = S(lt - .75, 90), ls = lerp(22, 7, eo(clamp((lt - .75) / .9)));
   X.save(); X.globalAlpha = p; X.font = `700 30px ${FAM.s}`; X.letterSpacing = ls + 'px'; X.textAlign = 'center'; X.fillStyle = rgba(C2.blue);
-  X.fillText('AI-DRIVEN FINANCE FOR 520 SHOWROOMS', W / 2, H / 2 + 190); X.restore(); X.letterSpacing = '0px'; X.textAlign = 'left';
+  X.fillText('THE FIELD TEAM · WHAT WE DELIVERED', W / 2, H / 2 + 190); X.restore(); X.letterSpacing = '0px'; X.textAlign = 'left';
   const lw = 420 * eio(clamp((lt - .9) / .6)); X.fillStyle = rgba(C2.blue, .35); X.fillRect(W / 2 - lw / 2, H / 2 + 128, lw, 1.5);
 };
 BG2.RBRAND = () => STUDIO;

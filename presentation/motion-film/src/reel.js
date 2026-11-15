@@ -117,16 +117,16 @@ function ribbons(lt, a) {
   X.restore();
 }
 SC2.RCLOSE = (lt, D) => {
-  const tc = FILM.bpm ? 7 * 60 / FILM.bpm : 3.4, u = lt - tc;
+  const tc = FILM.bpm ? (FILM.closeBeats || 7) * 60 / FILM.bpm : 3.4, u = lt - tc;
   const bg = X.createRadialGradient(W / 2, H * .46, 0, W / 2, H * .5, W * .7); bg.addColorStop(0, '#0a1b52'); bg.addColorStop(1, '#010416');
   X.fillStyle = bg; X.fillRect(0, 0, W, H);
   if (lt < tc + .5) {   // the founder's line
     const fo = 1 - sm(tc - .2, tc + .3, lt);
     X.save(); X.globalAlpha = fo;
     const eb = S(lt - .1, 160); X.fillStyle = rgba(C2.teal); X.fillRect(W / 2 - 22 * eb, 390, 44 * eb, 2);
-    mono('OUR FOUNDER', W / 2, 360, 20, C2.teal, eb, 'center');
-    line('We are not here to map a market.', { x: W / 2, y: 530, size: 92, wt: 700, ls: -3, col: C2.white, align: 'center', tin: .25, stag: .012 });
-    line('We are here to move it.', { x: W / 2, y: 650, size: 92, wt: 700, ls: -3, col: C2.teal, align: 'center', tin: 1.35, stag: .014 });
+    mono('PHASE 1 · COMPLETE', W / 2, 360, 20, C2.teal, eb, 'center');
+    line('Phase 1, delivered.', { x: W / 2, y: 530, size: 100, wt: 700, ls: -3, col: C2.white, align: 'center', tin: .2, stag: .014 });
+    line('Phase 2, under way.', { x: W / 2, y: 660, size: 100, wt: 700, ls: -3, col: C2.teal, align: 'center', tin: .2 + 2 * BTR(), stag: .014 });
     X.restore();
   }
   if (u > -.3) {   // the end card
@@ -141,8 +141,8 @@ SC2.RCLOSE = (lt, D) => {
     X.fillStyle = sg; X.beginPath(); X.moveTo(sx - 260, H * .2); X.lineTo(sx + 60, H * .2); X.lineTo(sx + 260, H * .72); X.lineTo(sx - 60, H * .72); X.closePath(); X.fill(); X.restore();
     const lw = 560 * eio(clamp((u - .9) / .6)); const lg = X.createLinearGradient(W / 2 - lw / 2, 0, W / 2 + lw / 2, 0); lg.addColorStop(0, 'rgba(160,190,255,0)'); lg.addColorStop(.5, 'rgba(160,190,255,.85)'); lg.addColorStop(1, 'rgba(160,190,255,0)');
     X.fillStyle = lg; X.fillRect(W / 2 - lw / 2, H / 2 + 112, lw, 1.5);
-    line('From the showroom floor to KAFD.', { x: W / 2, y: H / 2 + 190, size: 46, wt: 700, ls: -1, col: C2.white, align: 'center', tin: tc + 1.1, stag: .012 });
-    mono('520 SHOWROOMS MAPPED  ·  19 LENDERS AT THE TABLE  ·  20 SUB-DEALERS SIGNED', W / 2, H / 2 + 250, 18, [170, 190, 235], S(u - 1.7, 140), 'center');
+    line('Market mapping & field execution', { x: W / 2, y: H / 2 + 190, size: 46, wt: 700, ls: -1, col: C2.white, align: 'center', tin: tc + 1.1, stag: .012 });
+    mono('520 SHOWROOMS MAPPED  ·  25 OWNERS INTERVIEWED  ·  20 SUB-DEALERS SIGNED  ·  19 LENDERS IN OUTREACH', W / 2, H / 2 + 250, 18, [170, 190, 235], S(u - 1.7, 140), 'center');
   }
   const out = sm(D - .7, D, lt); if (out > 0) { X.fillStyle = `rgba(0,0,0,${out})`; X.fillRect(0, 0, W, H); }
 };
@@ -160,7 +160,7 @@ SC2.RNET = (lt, D) => {
   studioFloor();
   const hx = 380, hy = 600, hr = 128;
   // headline
-  mono('ONE REQUEST · EVERY LENDER', MX + 4, 128, 20, C2.blue, S(lt - .1, 200));
+  mono('LENDER OUTREACH · BANKS & FINANCE COMPANIES', MX + 4, 128, 20, C2.blue, S(lt - .1, 200));
   line('Finance, facilitated.', { x: MX, y: 216, size: 92, wt: 700, ls: -3, col: C2.navy, tin: .15, stag: .014 });
   // connections
   NET.forEach((k, i) => {
@@ -192,6 +192,6 @@ SC2.RNET = (lt, D) => {
   X.restore();
   line('AutoLink AI', { x: hx, y: hy + hr + 62, size: 40, wt: 700, col: C2.navy, align: 'center', tin: .5, stag: .02 });
   mono('THE DEALER PORTAL', hx, hy + hr + 96, 15, C2.grey, S(lt - .8, 200), 'center');
-  mono('19 BANKS AND FINANCE COMPANIES · PARTNERSHIPS IN PROGRESS', 820 + 503, 1000, 16, C2.grey, S(lt - 1.6, 200), 'center');
+  mono('19 BANKS AND FINANCE COMPANIES · IN THE PIPELINE', 820 + 503, 1000, 16, C2.grey, S(lt - 1.6, 200), 'center');
 };
 BG2.RNET = () => STUDIO;
