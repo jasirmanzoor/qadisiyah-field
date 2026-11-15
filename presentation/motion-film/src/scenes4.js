@@ -84,7 +84,7 @@ SC2.B2d = (lt, D, L) => {
   }
   // the title and the three things we read
   const a0 = ln2(L, 0), d0 = ldur(L, 0);
-  line('EVENCE', { x: MX, y: 868, size: 118, wt: 900, ls: -4, col: C2.white, tin: a0, tout: 1e9, stag: .02 });
+  line('EVIDENCE', { x: MX, y: 868, size: 118, wt: 900, ls: -4, col: C2.white, tin: a0, tout: 1e9, stag: .02 });
   line('FROM THE FLOOR.', { x: MX, y: 976, size: 118, wt: 900, ls: -4, col: C2.white, tin: a0 + .12, tout: 1e9, stag: .016 });
   const t1 = L.length > 1 ? ln2(L, 1) : a0 + d0 * .55;
   evidChip(MX, 392, 'STOCK ON THE FLOOR', S(lt - (a0 + d0 * .30), 150));

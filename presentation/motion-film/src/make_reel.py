@@ -4,8 +4,8 @@ S = os.path.dirname(os.path.abspath(__file__))
 src = {f: {s['id']: s for s in json.load(open(os.path.join(S, f'timeline_{f}.json')))['scenes']} for f in ('teaser', 'A', 'B')}
 BPM = 124; BT = 60 / BPM
 CUT = [  # id, source film (None = reel's own), length in beats, transition into it; every cut lands on the beat
-  ('RBRAND', None, 6, None), ('RGLOBE', None, 16, 'punch'), ('R0', None, 8, 'warp'), ('T1', 'teaser', 8, 'glitch'), ('T2', 'teaser', 16, 'punch'),
-  ('B2d', 'B', 12, 'flash'), ('B2e', 'B', 12, 'slice'), ('B3', 'B', 12, 'glitch'), ('B4', 'B', 8, 'punch'),
+  ('RBRAND', None, 6, None), ('RGLOBE', None, 22, 'punch'), ('R0', None, 16, 'warp'), ('T1', 'teaser', 8, 'glitch'), ('RDRONE', None, 72, 'punch'),
+  ('B2d', 'B', 16, 'flash'), ('B2e', 'B', 12, 'slice'), ('B3', 'B', 12, 'glitch'), ('B4', 'B', 8, 'punch'),
   ('A2', 'A', 12, 'slice'), ('RLEAK', None, 12, 'glitch'), ('B6', 'B', 8, 'punch'),
   ('RSITE', None, 12, 'warp'), ('RSOP', None, 12, 'slice'), ('RNET', None, 12, 'warp'), ('B7', 'B', 12, 'glitch'),
   ('RFLASH', None, 12, 'flash'), ('RNEXT', None, 12, 'warp'), ('RCLOSE', None, 12, 'flash'),

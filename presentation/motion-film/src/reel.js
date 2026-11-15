@@ -13,7 +13,7 @@ function gradedPhoto(k, zoom, px, dark) {
   X.fillStyle = `rgba(2,10,34,${dark})`; X.fillRect(0, 0, W, H);
 }
 SC2.R0 = (lt, D) => {
-  const beat = FILM.bpm ? 60 / FILM.bpm : .6, n = R0_CARDS.length, tm = n * beat;
+  const n = R0_CARDS.length, beat = FILM.bpm ? D / n : .6, tm = n * beat;   // in the reel each card holds for D / n
   X.fillStyle = '#02050f'; X.fillRect(0, 0, W, H);
   if (lt < tm) {
     const i = clamp(Math.floor(lt / beat), 0, n - 1), u = Math.max(0, lt - i * beat), [word, pic] = R0_CARDS[i];

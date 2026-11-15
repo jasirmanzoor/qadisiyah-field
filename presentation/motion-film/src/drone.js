@@ -27,52 +27,76 @@ const DR = { ready: false };
       o = vec4(fog(c, distance(vW, uEye)), a); }`);
   // buildings: walls shaded by facing, glass bands on towers, pale roofs
   const B = prog(`#version 300 es
-    uniform mat4 uVP; in vec3 aP; in vec3 aN; in float aH; out vec3 vW; out vec3 vN; out float vH;
-    void main(){ vW = aP; vN = aN; vH = aH; gl_Position = uVP * vec4(aP, 1.); }`,
+    uniform mat4 uVP; in vec3 aP; in vec3 aN; in float aH; in float aK; out vec3 vW; out vec3 vN; out float vH; out float vK;
+    void main(){ vW = aP; vN = aN; vH = aH; vK = aK; gl_Position = uVP * vec4(aP, 1.); }`,
   `#version 300 es
     precision highp float; uniform vec3 uEye; uniform vec3 uSun; ${FOG}
-    in vec3 vW; in vec3 vN; in float vH; out vec4 o;
+    in vec3 vW; in vec3 vN; in float vH; in float vK; out vec4 o;
+    float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     void main(){
-      float l = .55 + .45 * max(0., dot(normalize(vN), uSun));
-      vec3 base = vN.y > .5 ? vec3(.80, .79, .76) : vec3(.74, .72, .69) * l;
-      if (vH > 40. && vN.y < .5) { // glass towers: sky reflected at grazing angles, dark glass head-on, floors and mullions
-        vec3 vd = normalize(uEye - vW); float fr = pow(1. - max(0., dot(normalize(vN), vd)), 2.5);
-        vec3 glass = mix(vec3(.09, .14, .22), vec3(.66, .76, .90), clamp(fr * 1.3 + vW.y / vH * .25, 0., 1.));
-        float floorL = smoothstep(.9, .96, fract(vW.y / 4.2)), mull = smoothstep(.92, .97, fract((vW.x + vW.z) / 3.2));
-        glass = mix(glass, vec3(.05, .07, .1), max(floorL, mull) * .55);
-        glass += vec3(1., .93, .8) * pow(max(0., dot(reflect(-vd, normalize(vN)), uSun)), 40.) * .6;
-        base = glass * (.85 + .15 * l);
-      } else if (vN.y < .5) { base = vec3(.83, .77, .68) * l; }
-      base *= mix(.82, 1., clamp(vW.y / max(vH, 1.), 0., 1.));
+      vec3 n = normalize(vN), vd = normalize(uEye - vW);
+      float l = .55 + .45 * max(0., dot(n, uSun));
+      vec3 base;
+      if (n.y > .5) { base = vec3(.70, .70, .71) * (.92 + .08 * hash(floor(vW.xz / 9.))); }
+      else if (vH > 40.) {   // glass towers: the sky reflected, floors, mullions, a few lit offices, sun glints
+        vec3 r = reflect(-vd, n);
+        vec3 sky = mix(vec3(.58, .66, .80), vec3(.16, .30, .62), clamp(r.y * 1.6, 0., 1.));
+        float fr = .1 + .9 * pow(1. - max(0., dot(n, vd)), 3.);
+        vec2 g = vec2((vW.x + vW.z) / 2.6, vW.y / 4.2);
+        vec3 inside = vec3(.04, .07, .12) + vec3(1., .86, .62) * step(.84, hash(floor(g))) * .4;
+        vec3 glass = mix(inside, sky * vec3(.78, .86, .95), fr * .85) * mix(.7, 1., clamp(vW.y / vH, 0., 1.));
+        float fl = smoothstep(.88, .95, fract(g.y)), mu = smoothstep(.9, .96, fract(g.x));
+        glass = mix(glass, vec3(.34, .38, .45), max(fl, mu) * .6);
+        glass += vec3(1., .95, .85) * pow(max(0., dot(r, uSun)), 60.) * 1.3;
+        glass += vec3(.10, .14, .22) * smoothstep(vH - 8., vH, vW.y);
+        base = glass * (.88 + .12 * l);
+      } else if (vK > .5) {   // district showrooms and warehouses: metal cladding over a glazed front at street level
+        float tone = .80 + .12 * hash(floor(vW.xz / 23.));
+        vec3 clad = vec3(tone, tone * .985, tone * .96) * l;
+        float rib = .94 + .06 * step(.5, fract((vW.x + vW.z) / 1.2));
+        vec3 front = mix(vec3(.12, .15, .2), vec3(.95, .9, .78), .35 * step(.55, hash(floor(vec2((vW.x + vW.z) / 6., 0.)))));
+        base = mix(clad * rib, front, step(vW.y, 3.8) * .85);
+      } else {   // concrete and stone, window rows on taller blocks
+        float tone = .62 + .3 * hash(vec2(floor(vH * 3.), floor(vW.x / 40.)));
+        base = vec3(.82, .78, .71) * tone * l;
+        if (vH > 12.) base *= mix(1., .62, smoothstep(.55, .62, fract(vW.y / 3.6)) * (1. - smoothstep(.85, .9, fract(vW.y / 3.6))));
+      }
+      base *= mix(.62, 1., smoothstep(0., 10., vW.y));   // contact shadow at the base
       o = vec4(fog(base, distance(vW, uEye)), 1.); }`);
   const quadBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]), gl.STATIC_DRAW);
   const vaoG = gl.createVertexArray(); gl.bindVertexArray(vaoG); gl.enableVertexAttribArray(0); gl.bindAttribLocation(G.p, 0, 'aP'); gl.vertexAttribPointer(gl.getAttribLocation(G.p, 'aP'), 2, gl.FLOAT, false, 0, 0);
   let vaoB = null, nB = 0;
   const CH = [];
   function tex(img) { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img); gl.generateMipmap(gl.TEXTURE_2D); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); if (ANI) gl.texParameterf(gl.TEXTURE_2D, ANI.TEXTURE_MAX_ANISOTROPY_EXT, 8); return t; }
-  function buildings(list) {
-    const P = [], N = [], H = [];
-    for (const [h0, , f] of list) {
+  function buildings(list) {   // list items: [height, id, footprint, kind]; kind 1 = walls only (the imagery is the roof)
+    const P = [], N = [], H = [], K = [];
+    for (const [h0, , f, kind = 0] of list) {
       const h = Math.max(4, h0), n = f.length / 2; if (n < 3) continue;
       for (let i = 0; i < n; i++) {
         const x0 = f[i * 2], z0 = f[i * 2 + 1], x1 = f[((i + 1) % n) * 2], z1 = f[((i + 1) % n) * 2 + 1];
         const nx = z1 - z0, nz = -(x1 - x0), nl = Math.hypot(nx, nz) || 1;
         const q = [[x0, 0, z0], [x1, 0, z1], [x1, h, z1], [x0, 0, z0], [x1, h, z1], [x0, h, z0]];
-        for (const v of q) { P.push(...v); N.push(nx / nl, 0, nz / nl); H.push(h); }
+        for (const v of q) { P.push(...v); N.push(nx / nl, 0, nz / nl); H.push(h); K.push(kind); }
       }
-      for (let i = 1; i < n - 1; i++) for (const k of [0, i, i + 1]) { P.push(f[k * 2], h, f[k * 2 + 1]); N.push(0, 1, 0); H.push(h); }
+      if (!kind) for (let i = 1; i < n - 1; i++) for (const k of [0, i, i + 1]) { P.push(f[k * 2], h, f[k * 2 + 1]); N.push(0, 1, 0); H.push(h); K.push(0); }
     }
     nB = P.length / 3;
     vaoB = gl.createVertexArray(); gl.bindVertexArray(vaoB);
-    const put = (arr, loc, k) => { const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(arr), gl.STATIC_DRAW); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, k, gl.FLOAT, false, 0, 0); };
-    put(P, gl.getAttribLocation(B.p, 'aP'), 3); put(N, gl.getAttribLocation(B.p, 'aN'), 3); put(H, gl.getAttribLocation(B.p, 'aH'), 1);
+    const put = (arr, loc, k) => { if (loc < 0) return; const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(arr), gl.STATIC_DRAW); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, k, gl.FLOAT, false, 0, 0); };
+    put(P, gl.getAttribLocation(B.p, 'aP'), 3); put(N, gl.getAttribLocation(B.p, 'aN'), 3); put(H, gl.getAttribLocation(B.p, 'aH'), 1); put(K, gl.getAttribLocation(B.p, 'aK'), 1);
   }
   DR.load = async function (base) {
     const w = await (await fetch(base + 'sat/world.json')).json();
     await Promise.all(w.chunks.map(async c => { const img = await loadImg(`${base}sat/${c.f}.jpg`); if (!img) return; CH.push({ c, t: tex(img) }); }));
     CH.sort((a, b) => a.c.L - b.c.L);
     // the skyline stands in 3D (KAFD, and true towers anywhere); the imagery carries the low-rise city and the districts
-    buildings(w.b.filter(b => { const f = b[2]; const near = Math.hypot(f[0], f[1]) < 2600; return near && b[0] >= 24; }));
+    // the reel's flight also stands KAFD's lower blocks and the two districts' showrooms in 3D
+    const full = (typeof FILM !== 'undefined' && FILM && FILM.id === 'R');
+    buildings(w.b.filter(b => { const f = b[2], dk = Math.hypot(f[0], f[1]);
+      if (dk < 2600) return full ? b[0] >= 8 : b[0] >= 24;
+      if (!full) return false;
+      return Math.hypot(f[0] - 17300, f[1] + 5600) < 4200 || Math.hypot(f[0] - 4550, f[1] - 23980) < 2600; })
+      .map(b => { const f = b[2]; return Math.hypot(f[0], f[1]) < 2600 ? b : [b[0], b[1], b[2], 1]; }));
     DR.ready = true;
   };
   /* ---------- camera ---------- */
