@@ -5,7 +5,8 @@ import json, math, sys
 from flight import pose, latlng, END
 from terrain import ground_smooth
 FPS, W, H = 30, 3840, 2160
-MIN_AGL = 80
+GEOID = 20   # metres, margin in case Earth Studio measures from the ellipsoid rather than sea level
+MIN_AGL = 90
 N = int(round(END * FPS)) + 1
 LON, LAT, ALT, PAN, TILT = (-180, 180), (-89.9999, 89.9999), (1, 65117481), (0, 360), (0, 180)
 rel = lambda v, r: (v - r[0]) / (r[1] - r[0])
@@ -19,7 +20,7 @@ def smooth(key, w=12):
 g, tg = smooth('g'), smooth('tg')
 frames = []
 for i, r in enumerate(raw):
-    alt = g[i] + r['agl']; talt = tg[i] + r['tagl']
+    alt = g[i] + GEOID + r["agl"]; talt = tg[i] + GEOID + r["tagl"]
     hd = (math.degrees(math.atan2(r['dx'], -r['dz'])) + 360) % 360
     tilt = 90 + math.degrees(math.atan2(talt - alt, math.hypot(r['dx'], r['dz'])))
     frames.append(dict(t=r['t'], lat=r['la'], lng=r['lo'], alt=alt, ground=g[i], pan=hd, tilt=tilt))
